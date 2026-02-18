@@ -43,11 +43,19 @@ func (set *cloudProviderSet) GetByProviderIDScheme(scheme string) (cloudprovider
 	return set.providers[idx], true
 }
 
+func (set *cloudProviderSet) All() []cloudprovider.CloudProvider {
+	return set.providers
+}
+
 func (set *cloudProviderSet) Register(c cloudprovider.CloudProvider, gk schema.GroupKind, scheme string) {
 	idx := len(set.providers)
 	set.providers = append(set.providers, c)
 	set.byGroupKind[gk] = idx
 	set.byProviderIDScheme[scheme] = idx
+}
+
+type Closeable interface {
+	Close(context.Context) error
 }
 
 type CloudProvidersHub struct {
@@ -144,4 +152,16 @@ func (c *CloudProvidersHub) RepairPolicies() []cloudprovider.RepairPolicy {
 		result = append(result, cp.RepairPolicies()...)
 	}
 	return result
+}
+
+func (c *CloudProvidersHub) Close(ctx context.Context) error {
+	var errs []error
+	for _, cp := range c.set.providers {
+		if closeable, ok := cp.(Closeable); ok {
+			if err := closeable.Close(ctx); err != nil {
+				errs = append(errs, err)
+			}
+		}
+	}
+	return errors.Join(errs...)
 }

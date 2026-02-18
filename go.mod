@@ -5,8 +5,11 @@ go 1.26.0
 require (
 	github.com/Azure/karpenter-provider-azure v1.7.1
 	github.com/awslabs/operatorpkg v0.0.0-20250909182303-e8e550b6f339
+	github.com/go-logr/logr v1.4.3
 	github.com/go-logr/zapr v1.3.0
+	github.com/nebius/gosdk v0.0.0-20260217111238-a69032eb851a
 	github.com/samber/lo v1.52.0
+	google.golang.org/protobuf v1.36.11
 	k8s.io/api v0.35.0
 	k8s.io/apimachinery v0.35.0
 	k8s.io/client-go v0.35.0
@@ -15,6 +18,7 @@ require (
 )
 
 require (
+	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.6-20250425153114-8976f5be98c1.1 // indirect
 	github.com/Azure/aks-middleware v0.0.42 // indirect
 	github.com/Azure/azure-kusto-go v0.16.1 // indirect
 	github.com/Azure/azure-sdk-for-go v68.0.0+incompatible // indirect
@@ -54,6 +58,7 @@ require (
 	github.com/antlr4-go/antlr/v4 v4.13.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/blang/semver/v4 v4.0.0 // indirect
+	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/emicklei/go-restful/v3 v3.13.0 // indirect
@@ -62,7 +67,6 @@ require (
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/fxamacker/cbor/v2 v2.9.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.12 // indirect
-	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-openapi/analysis v0.24.1 // indirect
 	github.com/go-openapi/errors v0.22.6 // indirect
@@ -89,12 +93,14 @@ require (
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/go-playground/validator/v10 v10.30.1 // indirect
 	github.com/go-viper/mapstructure/v2 v2.4.0 // indirect
+	github.com/gofrs/flock v0.12.1 // indirect
 	github.com/golang-jwt/jwt/v4 v4.5.2 // indirect
 	github.com/golang-jwt/jwt/v5 v5.3.1 // indirect
 	github.com/google/btree v1.1.3 // indirect
 	github.com/google/gnostic-models v0.7.1 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
+	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.3.2 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jongio/azidext/go/azidext v0.5.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
@@ -139,8 +145,8 @@ require (
 	golang.org/x/text v0.33.0 // indirect
 	golang.org/x/time v0.14.0 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.5.0 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20250528174236-200df99c418a // indirect
 	google.golang.org/grpc v1.72.3 // indirect
-	google.golang.org/protobuf v1.36.11 // indirect
 	gopkg.in/dnaeon/go-vcr.v3 v3.2.0 // indirect
 	gopkg.in/evanphx/json-patch.v4 v4.13.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect

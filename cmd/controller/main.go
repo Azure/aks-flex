@@ -27,6 +27,7 @@ import (
 	flexcloudproviders "github.com/Azure/karpenter-provider-flex/pkg/cloudproviders"
 	"github.com/Azure/karpenter-provider-flex/pkg/cloudproviders/nebius"
 	flexcontrollers "github.com/Azure/karpenter-provider-flex/pkg/controllers"
+	flexoptions "github.com/Azure/karpenter-provider-flex/pkg/options"
 )
 
 func init() {
@@ -51,6 +52,11 @@ func main() {
 	logger.V(0).Info("Initial options", "options", options.FromContext(ctx).String())
 
 	hubCloudProvider := flexcloudproviders.NewCloudProvidersHub()
+	defer func() {
+		if err := hubCloudProvider.Close(ctx); err != nil {
+			logger.Error(err, "closing cloud providers")
+		}
+	}()
 
 	// AKS cloud provider...
 	var aksCloudProvider *cloudprovider.CloudProvider
@@ -73,7 +79,12 @@ func main() {
 
 	// nebius cloud provider...
 	{
-		nebius.Register(hubCloudProvider)
+		nebius.Register(
+			hubCloudProvider,
+			flexoptions.MustNewNebiusSDK(ctx),
+			op.GetClient(),
+			op.GetConfig(),
+		)
 	}
 
 	overlayUndecoratedCloudProvider := metrics.Decorate(hubCloudProvider)
