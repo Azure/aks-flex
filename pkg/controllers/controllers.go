@@ -3,10 +3,12 @@ package controllers
 import (
 	"context"
 
-	"github.com/Azure/karpenter-provider-flex/pkg/controllers/nodes"
 	"github.com/awslabs/operatorpkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/karpenter/pkg/events"
+
+	"github.com/Azure/karpenter-provider-flex/pkg/controllers/nebius"
+	"github.com/Azure/karpenter-provider-flex/pkg/controllers/nodes"
 )
 
 func NewControllers(
@@ -15,6 +17,10 @@ func NewControllers(
 	recorder events.Recorder,
 ) []controller.Controller {
 	return []controller.Controller{
+		// TODO: implement node class hash logic for drift detection/reconciliation
+		nebius.NewNodeClassStatusController(kubeClient),
+		nebius.NewNodeClassTerminationController(kubeClient, recorder),
+
 		nodes.NewSetProviderIDController(kubeClient),
 	}
 }

@@ -1,5 +1,5 @@
 package apis
 
-var (
+const (
 	Group = "flex.aks.azure.com"
 )

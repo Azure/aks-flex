@@ -10,6 +10,7 @@ import (
 	"github.com/Azure/karpenter-provider-azure/pkg/operator/options"
 	"github.com/go-logr/zapr"
 	"github.com/samber/lo"
+	"k8s.io/client-go/kubernetes/scheme"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/karpenter/pkg/cloudprovider/metrics"
 	"sigs.k8s.io/karpenter/pkg/cloudprovider/overlay"
@@ -20,13 +21,25 @@ import (
 	"sigs.k8s.io/karpenter/pkg/operator/logging"
 	coreoptions "sigs.k8s.io/karpenter/pkg/operator/options"
 
+	"github.com/Azure/karpenter-provider-flex/pkg/apis/v1alpha1"
 	flexcontrollers "github.com/Azure/karpenter-provider-flex/pkg/controllers"
 )
+
+func init() {
+	// FIXME: review this logic... are we sure this is the right way?
+	v1alpha1.SchemeBuilder.AddToScheme(scheme.Scheme)
+}
 
 func main() {
 	ctx := injection.WithOptionsOrDie(context.Background(), coreoptions.Injectables...)
 	logger := zapr.NewLogger(logging.NewLogger(ctx, "controller"))
-	lo.Must0(operator.WaitForCRDs(ctx, 2*time.Minute, ctrl.GetConfigOrDie(), logger), "failed waiting for CRDs")
+	lo.Must0(
+		operator.WaitForCRDs(
+			ctx, 2*time.Minute, ctrl.GetConfigOrDie(), logger,
+			&v1alpha1.NebiusNodeClass{},
+		),
+		"failed waiting for CRDs",
+	)
 
 	ctx, op := operator.NewOperator(coreoperator.NewOperator())
 
