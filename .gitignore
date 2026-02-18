@@ -416,3 +416,8 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
+
+# NOTE: we use go mod vendor to allow private patching.
+# But we don't actually commit the vendor folder.
+vendor/
