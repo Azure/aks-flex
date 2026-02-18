@@ -28,6 +28,7 @@ import (
 	"sigs.k8s.io/karpenter/pkg/events"
 	"sigs.k8s.io/karpenter/pkg/operator/injection"
 
+	"github.com/Azure/karpenter-provider-flex/pkg/apis"
 	"github.com/Azure/karpenter-provider-flex/pkg/apis/v1alpha1"
 )
 
@@ -66,7 +67,11 @@ func (c *NodeClassTerminationController) Register(ctx context.Context, mgr manag
 				if nc.Spec.NodeClassRef == nil {
 					return nil
 				}
-				if nc.Spec.NodeClassRef.Kind != "StretchNebiusNodeClass" {
+				if nc.Spec.NodeClassRef.Group != apis.Group {
+					return nil
+				}
+				if nc.Spec.NodeClassRef.Kind != "NebiusNodeClass" {
+					// TODO: support other kinds of NodeClass in the future if needed
 					return nil
 				}
 				return []reconcile.Request{{NamespacedName: types.NamespacedName{Name: nc.Spec.NodeClassRef.Name}}}
