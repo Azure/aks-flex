@@ -421,3 +421,8 @@ FodyWeavers.xsd
 # NOTE: we use go mod vendor to allow private patching.
 # But we don't actually commit the vendor folder.
 vendor/
+
+# Go build output and local tool binaries
+bin/
+cover.out
+dist/
