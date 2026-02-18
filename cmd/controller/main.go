@@ -7,12 +7,10 @@ import (
 	"github.com/Azure/karpenter-provider-azure/pkg/cloudprovider"
 	"github.com/Azure/karpenter-provider-azure/pkg/controllers"
 	"github.com/Azure/karpenter-provider-azure/pkg/operator"
+	"github.com/Azure/karpenter-provider-azure/pkg/operator/options"
 	"github.com/go-logr/zapr"
 	"github.com/samber/lo"
-
 	ctrl "sigs.k8s.io/controller-runtime"
-
-	"github.com/Azure/karpenter-provider-azure/pkg/operator/options"
 	"sigs.k8s.io/karpenter/pkg/cloudprovider/metrics"
 	"sigs.k8s.io/karpenter/pkg/cloudprovider/overlay"
 	corecontrollers "sigs.k8s.io/karpenter/pkg/controllers"
@@ -21,6 +19,8 @@ import (
 	"sigs.k8s.io/karpenter/pkg/operator/injection"
 	"sigs.k8s.io/karpenter/pkg/operator/logging"
 	coreoptions "sigs.k8s.io/karpenter/pkg/operator/options"
+
+	flexcontrollers "github.com/Azure/karpenter-provider-flex/pkg/controllers"
 )
 
 func main() {
@@ -74,6 +74,11 @@ func main() {
 			op.ImageProvider,
 			op.InClusterKubernetesInterface,
 			op.AZClient.SubnetsClient(),
+		)...).
+		WithControllers(ctx, flexcontrollers.NewControllers(
+			ctx,
+			op.GetClient(),
+			op.EventRecorder,
 		)...).
 		Start(ctx)
 }

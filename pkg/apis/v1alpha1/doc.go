@@ -5,15 +5,20 @@
 package v1alpha1
 
 import (
-	"k8s.io/apimachinery/pkg/apis/meta/internalversion/scheme"
-	corev1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime/schema"
-
 	"github.com/Azure/karpenter-provider-flex/pkg/apis"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	runtime "k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
-func init() {
-	gv := schema.GroupVersion{Group: apis.Group, Version: "v1alpha1"}
-	corev1.AddToGroupVersion(scheme.Scheme, gv)
-	scheme.Scheme.AddKnownTypes(gv)
-}
+var (
+	SchemeGroupVersion = schema.GroupVersion{Group: apis.Group, Version: "v1alpha1"}
+	SchemeBuilder      = runtime.NewSchemeBuilder(func(scheme *runtime.Scheme) error {
+		scheme.AddKnownTypes(SchemeGroupVersion,
+			&NebiusNodeClass{},
+			&NebiusNodeClassList{},
+		)
+		metav1.AddToGroupVersion(scheme, SchemeGroupVersion)
+		return nil
+	})
+)
