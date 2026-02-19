@@ -1,0 +1,139 @@
+package nebius
+
+import (
+	"fmt"
+	"net/url"
+
+	"github.com/Azure/karpenter-provider-azure/pkg/operator/options"
+	labelspkg "github.com/Azure/karpenter-provider-azure/pkg/providers/labels"
+	"github.com/samber/lo"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	v1 "sigs.k8s.io/karpenter/pkg/apis/v1"
+	"sigs.k8s.io/karpenter/pkg/cloudprovider"
+	"sigs.k8s.io/karpenter/pkg/utils/resources"
+
+	"github.com/azure-management-and-platforms/aks-unbounded/stretch/pkg/nodes/topology"
+	stretchapi "github.com/azure-management-and-platforms/aks-unbounded/stretch/plugin/api"
+	kubeadm "github.com/azure-management-and-platforms/aks-unbounded/stretch/plugin/pkg/services/agentpools/api/features/kubeadm"
+	nebiusinstance "github.com/azure-management-and-platforms/aks-unbounded/stretch/plugin/pkg/services/agentpools/nebius/instance"
+
+	"github.com/Azure/karpenter-provider-flex/pkg/apis/v1alpha1"
+	"github.com/Azure/karpenter-provider-flex/pkg/cloudproviders"
+)
+
+func filterNoneZeroResource(
+	_ corev1.ResourceName,
+	v resource.Quantity,
+) bool {
+	return !resources.IsZero(v)
+}
+
+func providerIDToAgentPoolName(providerID string) (string, error) {
+	parsedURL, err := url.Parse(providerID)
+	if err != nil {
+		return "", fmt.Errorf("parsing providerID %q: %w", providerID, err)
+	}
+	if parsedURL.Scheme != ProviderIDScheme {
+		return "", fmt.Errorf("unexpected providerID scheme %q, expected %q", parsedURL.Scheme, ProviderIDScheme)
+	}
+	// aks-neibus://<agentPoolName> -> <agentPoolName>
+	return parsedURL.Host, nil
+}
+
+func agentPoolNameToProviderID(agentPoolName string) string {
+	// <agentPoolName> -> aks-neibus://<agentPoolName>
+	return fmt.Sprintf("%s://%s", ProviderIDScheme, agentPoolName)
+}
+
+func stretchAgentPoolToNodeClaim(
+	agentPool *nebiusinstance.AgentPool,
+	instanceType *cloudprovider.InstanceType,
+) *v1.NodeClaim {
+	rv := &v1.NodeClaim{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:              agentPool.GetMetadata().GetId(),
+			Labels:            map[string]string{},
+			Annotations:       map[string]string{},
+			CreationTimestamp: metav1.NewTime(agentPool.GetStatus().GetCreatedAt().AsTime()),
+		},
+		Spec: v1.NodeClaimSpec{},
+		Status: v1.NodeClaimStatus{
+			ProviderID: agentPoolNameToProviderID(agentPool.GetMetadata().GetId()),
+		},
+	}
+
+	// TODO: populate deleting state to deletion timestamp
+
+	rv.Labels = labelspkg.GetAllSingleValuedRequirementLabels(instanceType.Requirements)
+	rv.Status.Capacity = lo.PickBy(instanceType.Capacity, filterNoneZeroResource)
+	rv.Status.Allocatable = lo.PickBy(instanceType.Allocatable(), filterNoneZeroResource)
+
+	// TODO: zone from instance
+	// TODO: labels from instance
+
+	return rv
+}
+
+func nodeClaimToStretchAgentPool(
+	karpOpts *options.Options,
+	clusterCA []byte,
+	// FIXME: confirm where to define the project id / region info
+	projectID, region string,
+	nodeClass *v1alpha1.NebiusNodeClass,
+	nodeClaim *v1.NodeClaim,
+	platformPreset *platformPreset,
+) *nebiusinstance.AgentPool {
+	mdBuilder := stretchapi.Metadata_builder{
+		Id: lo.ToPtr(nodeClaim.Name),
+	}
+
+	platform := platformPreset.platform
+
+	var imageFamily string
+	switch {
+	case nodeClass.Spec.OSDiskImageFamily != nil:
+		imageFamily = *nodeClass.Spec.OSDiskImageFamily
+	case platform.GetSpec().GetGpuMemoryGigabytes() > 0:
+		// the platform has GPU, so use a GPU image by default
+		imageFamily = "ubuntu24.04-gpu-driverless"
+	default:
+		imageFamily = "ubuntu24.04-driverless"
+	}
+	osDiskSize := lo.FromPtrOr(
+		nodeClass.Spec.OSDiskSizeGB,
+		// default to 100GB, which is the default for Nebius agent pools
+		100,
+	)
+
+	kubeadmConfig := kubeadm.Config_builder{
+		Server:                   lo.ToPtr(karpOpts.ClusterEndpoint),
+		CertificateAuthorityData: clusterCA,
+		Token:                    lo.ToPtr(karpOpts.KubeletClientTLSBootstrapToken),
+		NodeLabels: map[string]string{
+			// NOTE: this is needed for assigning right provider id after creation
+			cloudproviders.NodeClaimLabelKey:          nodeClaim.Name,
+			topology.NodeLabelKeyCloudProviderManaged: "false",
+			topology.NodeLabelKeyCloudProviderCluster: karpOpts.NodeResourceGroup,
+			topology.NodeLabelKeyStretchManaged:       "true",
+		},
+	}.Build()
+
+	specBuilder := nebiusinstance.AgentPoolSpec_builder{
+		ProjectId:   lo.ToPtr(projectID),
+		Region:      lo.ToPtr(region),
+		SubnetId:    lo.ToPtr(nodeClass.Spec.SubnetID),
+		Platform:    lo.ToPtr(platformPreset.platform.GetMetadata().GetName()),
+		Preset:      lo.ToPtr(platformPreset.preset.GetName()),
+		ImageFamily: lo.ToPtr(imageFamily),
+		OsDiskSize:  lo.ToPtr(osDiskSize),
+		// TODO: wireguard settings - we need to implement a poor man IPAM solution here
+		Kubeadm: kubeadmConfig,
+	}
+
+	return nebiusinstance.AgentPool_builder{
+		Metadata: mdBuilder.Build(),
+		Spec:     specBuilder.Build(),
+	}.Build()
+}

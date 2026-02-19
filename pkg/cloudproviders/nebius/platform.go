@@ -7,6 +7,7 @@ import (
 
 	"github.com/Azure/karpenter-provider-azure/pkg/apis/v1beta1"
 	"github.com/Azure/karpenter-provider-azure/pkg/providers/instancetype"
+	nebiusinstance "github.com/azure-management-and-platforms/aks-unbounded/stretch/plugin/pkg/services/agentpools/nebius/instance"
 	"github.com/nebius/gosdk"
 	nebiuscommonv1 "github.com/nebius/gosdk/proto/nebius/common/v1"
 	nebiuscomputev1 "github.com/nebius/gosdk/proto/nebius/compute/v1"
@@ -180,10 +181,10 @@ func resolvePlatformPresetFromInstance(
 	ctx context.Context,
 	projectID string,
 	sdk *gosdk.SDK,
-	instance *nebiuscomputev1.Instance,
+	agentPool *nebiusinstance.AgentPool,
 ) (*platformPreset, error) {
-	platformName := instance.GetSpec().GetResources().GetPlatform()
-	presetName := instance.GetSpec().GetResources().GetPreset()
+	platformName := agentPool.GetSpec().GetPlatform()
+	presetName := agentPool.GetSpec().GetPreset()
 
 	getReq := &nebiuscommonv1.GetByNameRequest{
 		ParentId: projectID,

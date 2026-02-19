@@ -19,23 +19,28 @@ type nebiusOptionsKey struct{}
 type nebiusOptions struct {
 	CredentialsFile string
 	ProjectID       string // TODO: move to node class or allow overriding in node class
+	Region          string // TODO: move to node class or allow overriding in node class
 }
 
 var _ options.Injectable = (*nebiusOptions)(nil)
 
 func (n *nebiusOptions) AddFlags(fs *options.FlagSet) {
-	fs.StringVar(&n.CredentialsFile, "stretch-nebius.credentials-file", "", "The path to the Nebius credentials file.")
-	fs.StringVar(&n.ProjectID, "stretch-nebius.project-id", "", "The Nebius project ID to use.")
+	fs.StringVar(&n.CredentialsFile, "flex-nebius.credentials-file", "", "The path to the Nebius credentials file.")
+	fs.StringVar(&n.ProjectID, "flex-nebius.project-id", "", "The Nebius project ID to use.")
+	fs.StringVar(&n.Region, "flex-nebius.region", "", "The Nebius region to use.")
 }
 
 func (n *nebiusOptions) Parse(fs *options.FlagSet, args ...string) error {
 	// NOTE: just assume other options have been parsed
 
 	if n.CredentialsFile == "" {
-		return fmt.Errorf("stretch-nebius.credentials-file is required")
+		return fmt.Errorf("flex-nebius.credentials-file is required")
 	}
 	if n.ProjectID == "" {
-		return fmt.Errorf("stretch-nebius.project-id is required")
+		return fmt.Errorf("flex-nebius.project-id is required")
+	}
+	if n.Region == "" {
+		return fmt.Errorf("flex-nebius.region is required")
 	}
 
 	return nil
@@ -56,6 +61,12 @@ func MustGetNebiusProjectID(ctx context.Context) string {
 	opts := nebiusOptionsFromContext(ctx)
 	lo.Assert(opts != nil, "nebius options not found in context")
 	return opts.ProjectID
+}
+
+func MustGetNebiusRegion(ctx context.Context) string {
+	opts := nebiusOptionsFromContext(ctx)
+	lo.Assert(opts != nil, "nebius options not found in context")
+	return opts.Region
 }
 
 func MustNewNebiusSDK(ctx context.Context) *gosdk.SDK {

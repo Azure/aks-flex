@@ -79,12 +79,13 @@ func main() {
 
 	// nebius cloud provider...
 	{
-		nebius.Register(
+		err := nebius.Register(
 			hubCloudProvider,
 			flexoptions.MustNewNebiusSDK(ctx),
 			op.GetClient(),
 			op.GetConfig(),
 		)
+		lo.Must0(err, "registering nebius cloud provider")
 	}
 
 	overlayUndecoratedCloudProvider := metrics.Decorate(hubCloudProvider)
