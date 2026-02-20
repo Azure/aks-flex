@@ -138,6 +138,10 @@ func (c *CloudProvider) Create(ctx context.Context, nodeClaim *v1.NodeClaim) (*v
 		ctx, agentPool,
 	)
 	if err != nil {
+		if isQuotaError(err) {
+			// stop karpenter from creating more node claims
+			return nil, cloudprovider.NewInsufficientCapacityError(err)
+		}
 		return nil, fmt.Errorf("creating stretch agent pool: %w", err)
 	}
 
