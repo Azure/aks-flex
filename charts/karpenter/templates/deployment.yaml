@@ -68,9 +68,14 @@ spec:
             capabilities:
               drop:
                 - ALL
-            readOnlyRootFilesystem: true
+            # readOnlyRootFilesystem: true
+            readOnlyRootFilesystem: false # FIXME: update db usage
           image: {{ include "karpenter.controller.image" . }}
           imagePullPolicy: {{ .Values.imagePullPolicy }}
+        {{- if .Values.controller.nebiusCredentials.enabled }}
+          args:
+            - -flex-nebius.credentials-file={{ .Values.controller.nebiusCredentials.mountPath }}/{{ .Values.controller.nebiusCredentials.secretKey }}
+        {{- end }}
           env:
             - name: KUBERNETES_MIN_VERSION
               value: "1.19.0-0"
@@ -162,8 +167,13 @@ spec:
           resources:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-        {{- if .Values.controller.extraVolumeMounts }}
+        {{- if or .Values.controller.extraVolumeMounts .Values.controller.nebiusCredentials.enabled }}
           volumeMounts:
+          {{- if .Values.controller.nebiusCredentials.enabled }}
+            - name: nebius-credentials
+              mountPath: {{ .Values.controller.nebiusCredentials.mountPath }}
+              readOnly: true
+          {{- end }}
           {{- with .Values.controller.extraVolumeMounts }}
             {{- toYaml . | nindent 12 }}
           {{- end }}
@@ -200,8 +210,13 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-    {{- if .Values.extraVolumes }}
+    {{- if or .Values.extraVolumes .Values.controller.nebiusCredentials.enabled }}
       volumes:
+      {{- if .Values.controller.nebiusCredentials.enabled }}
+        - name: nebius-credentials
+          secret:
+            secretName: {{ .Values.controller.nebiusCredentials.secretName }}
+      {{- end }}
       {{- with .Values.extraVolumes }}
         {{- toYaml . | nindent 8 }}
       {{- end }}

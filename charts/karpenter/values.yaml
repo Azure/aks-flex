@@ -98,6 +98,18 @@ controller:
     # -- SHA256 digest of the controller image.
     # digest:
     digest: sha256:125ec013e50e837bbf1fc44ea1d25f3e11f65803d7664f20a0b7f388e23142ba
+  # -- Optional Nebius credentials secret mount. The secret must be created by
+  # the user separately (not managed by this chart). When enabled, the secret is
+  # mounted as a file and passed via the -flex-nebius.credentials-file flag.
+  nebiusCredentials:
+    # -- Enable mounting the Nebius credentials secret.
+    enabled: false
+    # -- Name of the pre-existing Secret containing the credentials file.
+    secretName: "nebius-credentials"
+    # -- Key inside the Secret that holds the credentials file.
+    secretKey: "credentials.json"
+    # -- Mount path inside the container.
+    mountPath: "/etc/nebius"
   # -- Additional environment variables for the controller pod.
   env: []
   # - name:
