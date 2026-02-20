@@ -139,6 +139,17 @@ func (c *CloudProvider) Create(ctx context.Context, nodeClaim *v1.NodeClaim) (*v
 	)
 	if err != nil {
 		if isQuotaError(err) {
+			// NOTE: nebius doesn't block creation for quota issues, instead they
+			// create the resource but mark it as failed. This could lead to contention
+			// of other resources (disk, nic, etc). So here we delete the created resource
+			// in best effort when seeing quota error.
+			// FIXME: don't leak go routine here
+			go func() {
+				if err := c.Delete(ctx, nodeClaim); err != nil {
+					logger.Error(err, "deleting nodeClaim after quota error")
+				}
+			}()
+
 			// stop karpenter from creating more node claims
 			return nil, cloudprovider.NewInsufficientCapacityError(err)
 		}
