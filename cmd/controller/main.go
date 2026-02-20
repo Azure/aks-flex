@@ -52,6 +52,8 @@ func main() {
 	// TODO: Consider also dumping at least some core options
 	logger.V(0).Info("Initial options", "options", options.FromContext(ctx).String())
 
+	flexoptions.MustInitalizeStretchPlugin(ctx, op.GetConfig())
+
 	hubCloudProvider := flexcloudproviders.NewCloudProvidersHub()
 	defer func() {
 		if err := hubCloudProvider.Close(ctx); err != nil {

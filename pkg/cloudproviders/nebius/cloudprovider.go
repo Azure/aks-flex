@@ -62,8 +62,6 @@ func Register(
 	kubeClient client.Client,
 	clusterCA []byte,
 ) error {
-	nebiusinstance.SetSDKDoNotUseInProd(sdk)
-
 	stretchPluginConn, err := stretchservices.NewConnection()
 	if err != nil {
 		return fmt.Errorf("creating stretch plugin connection: %w", err)

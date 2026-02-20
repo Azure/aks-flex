@@ -72,8 +72,9 @@ spec:
             readOnlyRootFilesystem: false # FIXME: update db usage
           image: {{ include "karpenter.controller.image" . }}
           imagePullPolicy: {{ .Values.imagePullPolicy }}
-        {{- if .Values.controller.nebiusCredentials.enabled }}
           args:
+            - -stretch.database-namespace={{ .Release.Namespace }}
+        {{- if .Values.controller.nebiusCredentials.enabled }}
             - -flex-nebius.credentials-file={{ .Values.controller.nebiusCredentials.mountPath }}/{{ .Values.controller.nebiusCredentials.secretKey }}
         {{- end }}
           env:

@@ -94,10 +94,10 @@ controller:
     # -- Repository path to the controller image.
     repository: ghcr.io/bahe-msft/karpenter-provider-flex
     # -- Tag of the controller image.
-    tag: poc-2e67a1a
+    tag: poc-1ec7596
     # -- SHA256 digest of the controller image.
     # digest:
-    digest: sha256:d29800e2cd958be1a72df2cf8d6723f020fb2002c6dcf775339bcd77db7648b4
+    digest: sha256:286bc811d925dcbb031aec94e6bde2f83004f5050cb6646876706a262a92af81
   # -- Optional Nebius credentials secret mount. The secret must be created by
   # the user separately (not managed by this chart). When enabled, the secret is
   # mounted as a file and passed via the -flex-nebius.credentials-file flag.
