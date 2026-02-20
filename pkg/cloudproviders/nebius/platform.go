@@ -48,6 +48,14 @@ func (p *platformPreset) ToInstanceType() *corecloudprovider.InstanceType {
 			scheduling.NewRequirement(v1beta1.LabelSKUCPU, corev1.NodeSelectorOpIn, vcpusCount),
 			scheduling.NewRequirement(v1beta1.LabelSKUMemory, corev1.NodeSelectorOpIn, memoryMiB),
 			scheduling.NewRequirement(v1beta1.LabelSKUGPUCount, corev1.NodeSelectorOpIn, gpuCount),
+
+			// NOTE: the following 3 requirements are required by karpenter consolidation
+			// TODO: confirm the labeling logics for node & nodeclaim in karpenter
+			scheduling.NewRequirement(
+				corev1.LabelInstanceTypeStable, corev1.NodeSelectorOpIn, p.InstanceTypeName(),
+			),
+			scheduling.NewRequirement(corev1.LabelTopologyZone, corev1.NodeSelectorOpIn, "1"),        // FIXME: does nebius provide zone information?
+			scheduling.NewRequirement(v1.CapacityTypeLabelKey, corev1.NodeSelectorOpIn, "on-demand"), // FIXME: this should be determined based on the platform preset
 		),
 		Offerings: corecloudprovider.Offerings{
 			// FIXME: determine real availability zones from Nebius platform data
