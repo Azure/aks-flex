@@ -61,12 +61,21 @@ spec:
                 description: OSDiskSizeGB is the size of the OS disk in GB.
                 format: int32
                 type: integer
+              projectID:
+                description: ProjectID is the nebius project id to launch nodes in.
+                type: string
+              region:
+                description: Region sets the nebius region to launch nodes in. Must
+                  be a region where the specified subnet exists.
+                type: string
               subnetID:
                 description: |-
                   SubnetID is the nebius subnet id to launch nodes in.
                   Node will be auto-assigned an IP from this subnet.
                 type: string
             required:
+            - projectID
+            - region
             - subnetID
             type: object
           status:

@@ -48,6 +48,12 @@ func (s *NebiusNodeClass) StatusConditions() status.ConditionSet {
 }
 
 type NebiusNodeClassSpec struct {
+	// ProjectID is the nebius project id to launch nodes in.
+	// +required
+	ProjectID string `json:"projectID,omitempty"`
+	// Region sets the nebius region to launch nodes in. Must be a region where the specified subnet exists.
+	// +required
+	Region string `json:"region,omitempty"`
 	// SubnetID is the nebius subnet id to launch nodes in.
 	// Node will be auto-assigned an IP from this subnet.
 	// +required

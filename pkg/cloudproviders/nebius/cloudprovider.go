@@ -29,7 +29,6 @@ import (
 	"github.com/Azure/karpenter-provider-flex/pkg/apis"
 	"github.com/Azure/karpenter-provider-flex/pkg/apis/v1alpha1"
 	"github.com/Azure/karpenter-provider-flex/pkg/cloudproviders"
-	"github.com/Azure/karpenter-provider-flex/pkg/options"
 )
 
 type CloudProvider struct {
@@ -80,18 +79,18 @@ var _ corecloudprovider.CloudProvider = (*CloudProvider)(nil)
 
 func (c *CloudProvider) getNodeClass( // TODO: make it reusable
 	ctx context.Context,
-	nodeClaim *v1.NodeClaim,
+	nodeClassRef *v1.NodeClassReference,
 ) (*v1alpha1.NebiusNodeClass, error) {
-	if nodeClaim.Spec.NodeClassRef == nil {
-		return nil, fmt.Errorf("nodeClaim %s does not have a nodeClassRef", nodeClaim.Name)
+	if nodeClassRef == nil {
+		return nil, fmt.Errorf("nodeClaim must reference a node class")
 	}
-	if nodeClaim.Spec.NodeClassRef.Group != apis.Group {
-		return nil, fmt.Errorf("nodeClaim %s references a node class in group %q, expected %q", nodeClaim.Name, nodeClaim.Spec.NodeClassRef.Group, apis.Group)
+	if nodeClassRef.Group != apis.Group {
+		return nil, fmt.Errorf("nodeClassRef %s references a node class in group %q, expected %q", nodeClassRef.Name, nodeClassRef.Group, apis.Group)
 	}
 
 	rv := &v1alpha1.NebiusNodeClass{}
-	if err := c.kubeClient.Get(ctx, client.ObjectKey{Name: nodeClaim.Spec.NodeClassRef.Name}, rv); err != nil {
-		return nil, fmt.Errorf("getting NebiusNodeClass %s: %w", nodeClaim.Spec.NodeClassRef.Name, err)
+	if err := c.kubeClient.Get(ctx, client.ObjectKey{Name: nodeClassRef.Name}, rv); err != nil {
+		return nil, fmt.Errorf("getting NebiusNodeClass %s: %w", nodeClassRef.Name, err)
 	}
 
 	if !rv.DeletionTimestamp.IsZero() {
@@ -105,7 +104,7 @@ func (c *CloudProvider) Create(ctx context.Context, nodeClaim *v1.NodeClaim) (*v
 	logger := log.FromContext(ctx).WithValues("nodeClaim", nodeClaim.Name)
 	logger.Info("creating nebius VM for nodeClaim")
 
-	nodeClass, err := c.getNodeClass(ctx, nodeClaim)
+	nodeClass, err := c.getNodeClass(ctx, nodeClaim.Spec.NodeClassRef)
 	if err != nil {
 		// FIXME: proper error attribution
 		return nil, err
@@ -114,7 +113,7 @@ func (c *CloudProvider) Create(ctx context.Context, nodeClaim *v1.NodeClaim) (*v
 	// resolve instance type to use based on pricing/offerings
 	platformPresetToLaunch, err := resolvePlatformPresetFromNodeClaim(
 		ctx,
-		options.MustGetNebiusProjectID(ctx), // TODO: maybe resolve from node class?
+		nodeClass.Spec.ProjectID,
 		c.sdk,
 		nodeClaim,
 	)
@@ -129,8 +128,6 @@ func (c *CloudProvider) Create(ctx context.Context, nodeClaim *v1.NodeClaim) (*v
 	agentPool := nodeClaimToStretchAgentPool(
 		karpoptions.FromContext(ctx),
 		c.clusterRestConfig.CAData,
-		options.MustGetNebiusProjectID(ctx),
-		options.MustGetNebiusRegion(ctx),
 		nodeClass,
 		nodeClaim,
 		platformPresetToLaunch,
@@ -204,7 +201,7 @@ func (c *CloudProvider) Get(ctx context.Context, providerID string) (*v1.NodeCla
 		return nil, err
 	}
 
-	projectID := options.MustGetNebiusProjectID(ctx)
+	projectID := agentPool.GetSpec().GetProjectId()
 	platformPreset, err := resolvePlatformPresetFromInstance(
 		ctx,
 		projectID,
@@ -228,12 +225,11 @@ func (c *CloudProvider) List(ctx context.Context) ([]*v1.NodeClaim, error) {
 		return nil, err
 	}
 
-	projectID := options.MustGetNebiusProjectID(ctx)
-
 	nodeClaims := make([]*v1.NodeClaim, len(agentPools))
 	for i, agentPool := range agentPools {
 		// FIXME: don't do this n+1 lookup
 		// cache platform preset results
+		projectID := agentPool.GetSpec().GetProjectId()
 		platformPreset, err := resolvePlatformPresetFromInstance(
 			ctx,
 			projectID,
@@ -251,9 +247,13 @@ func (c *CloudProvider) List(ctx context.Context) ([]*v1.NodeClaim, error) {
 }
 
 func (c *CloudProvider) GetInstanceTypes(ctx context.Context, nodePool *v1.NodePool) ([]*corecloudprovider.InstanceType, error) {
-	projectID := options.MustGetNebiusProjectID(ctx)
-
 	logger := loggerFromContext(ctx)
+
+	nodeClass, err := c.getNodeClass(ctx, nodePool.Spec.Template.Spec.NodeClassRef)
+	if err != nil {
+		return nil, fmt.Errorf("getting node class for node pool: %w", err)
+	}
+	projectID := nodeClass.Spec.ProjectID
 
 	// TODO: implement caching
 	var rv []*corecloudprovider.InstanceType

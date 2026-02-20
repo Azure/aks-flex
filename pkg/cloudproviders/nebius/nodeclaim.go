@@ -79,8 +79,6 @@ func stretchAgentPoolToNodeClaim(
 func nodeClaimToStretchAgentPool(
 	karpOpts *options.Options,
 	clusterCA []byte,
-	// FIXME: confirm where to define the project id / region info
-	projectID, region string,
 	nodeClass *v1alpha1.NebiusNodeClass,
 	nodeClaim *v1.NodeClaim,
 	platformPreset *platformPreset,
@@ -121,8 +119,8 @@ func nodeClaimToStretchAgentPool(
 	}.Build()
 
 	specBuilder := nebiusinstance.AgentPoolSpec_builder{
-		ProjectId:   lo.ToPtr(projectID),
-		Region:      lo.ToPtr(region),
+		ProjectId:   lo.ToPtr(nodeClass.Spec.ProjectID),
+		Region:      lo.ToPtr(nodeClass.Spec.Region),
 		SubnetId:    lo.ToPtr(nodeClass.Spec.SubnetID),
 		Platform:    lo.ToPtr(platformPreset.platform.GetMetadata().GetName()),
 		Preset:      lo.ToPtr(platformPreset.preset.GetName()),
