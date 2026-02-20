@@ -127,6 +127,11 @@ func nodeClaimToStretchAgentPool(
 		// FIXME: this should be determined based on the platform preset
 		v1.CapacityTypeLabelKey: "on-demand",
 	})
+	// NOTE: forcing user mode for karpenter created nodes
+	// FIXME: confirm in which place we should set this label
+	kubeadmConfig.AddNodeLabels(map[string]string{
+		"kubernetes.azure.com/mode": "user",
+	})
 	// NOTE: needed for karpenter disruption
 	kubeadmConfig.AddK8SRegisterTaints(v1.UnregisteredNoExecuteTaint)
 
