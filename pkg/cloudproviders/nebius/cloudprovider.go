@@ -170,13 +170,18 @@ func (c *CloudProvider) Delete(ctx context.Context, nodeClaim *v1.NodeClaim) err
 		return nil // don't return error since we want to retry deletion until successful, and this will likely be a permanent error
 	}
 
+	logger.Info("deleting agent pool for nodeClaim")
+
 	err = stretchhelper.Delete(
 		c.stretchAgentPoolsClient.Delete,
 		ctx, agentPoolName,
 	)
 	if err != nil {
-		return fmt.Errorf("deleting stretch agent pool: %w", err)
+		logger.Error(err, "deleting agent pool")
+		return fmt.Errorf("deleting agent pool: %w", err)
 	}
+
+	logger.Info("deleted agent pool for nodeClaim")
 
 	return nil
 }
