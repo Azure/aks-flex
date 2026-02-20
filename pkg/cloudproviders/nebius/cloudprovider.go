@@ -7,12 +7,12 @@ import (
 
 	karpoptions "github.com/Azure/karpenter-provider-azure/pkg/operator/options"
 	labelspkg "github.com/Azure/karpenter-provider-azure/pkg/providers/labels"
+	"github.com/Azure/karpenter-provider-azure/pkg/utils"
 	"github.com/awslabs/operatorpkg/status"
 	"github.com/nebius/gosdk"
 	"github.com/samber/lo"
 	"google.golang.org/grpc"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	v1 "sigs.k8s.io/karpenter/pkg/apis/v1"
@@ -25,7 +25,6 @@ import (
 	agentpoolsapi "github.com/azure-management-and-platforms/aks-unbounded/stretch/plugin/pkg/services/agentpools/api"
 	nebiusinstance "github.com/azure-management-and-platforms/aks-unbounded/stretch/plugin/pkg/services/agentpools/nebius/instance"
 
-	"github.com/Azure/karpenter-provider-azure/pkg/utils"
 	"github.com/Azure/karpenter-provider-flex/pkg/apis"
 	"github.com/Azure/karpenter-provider-flex/pkg/apis/v1alpha1"
 	"github.com/Azure/karpenter-provider-flex/pkg/cloudproviders"
@@ -36,31 +35,32 @@ type CloudProvider struct {
 	stretchPluginConn       *grpc.ClientConn
 	stretchAgentPoolsClient agentpoolsapi.AgentPoolsClient
 
-	kubeClient        client.Client
-	clusterRestConfig *rest.Config
+	kubeClient client.Client
+	clusterCA  []byte
 }
 
 func newCloudProvider(
 	sdk *gosdk.SDK,
 	stretchPluginConn *grpc.ClientConn,
 	kubeClient client.Client,
-	restConfig *rest.Config,
+	clusterCA []byte,
 ) *CloudProvider {
 	return &CloudProvider{
 		sdk:                     sdk,
 		stretchPluginConn:       stretchPluginConn,
 		stretchAgentPoolsClient: agentpoolsapi.NewAgentPoolsClient(stretchPluginConn),
 
-		kubeClient:        kubeClient,
-		clusterRestConfig: restConfig,
+		kubeClient: kubeClient,
+		clusterCA:  clusterCA,
 	}
 }
 
 func Register(
+	ctx context.Context,
 	hub *cloudproviders.CloudProvidersHub,
 	sdk *gosdk.SDK,
 	kubeClient client.Client,
-	restConfig *rest.Config,
+	clusterCA []byte,
 ) error {
 	nebiusinstance.SetSDKDoNotUseInProd(sdk)
 
@@ -69,7 +69,7 @@ func Register(
 		return fmt.Errorf("creating stretch plugin connection: %w", err)
 	}
 
-	cp := newCloudProvider(sdk, stretchPluginConn, kubeClient, restConfig)
+	cp := newCloudProvider(sdk, stretchPluginConn, kubeClient, clusterCA)
 	hub.Register(cp, GroupKind, ProviderIDScheme)
 
 	return nil
@@ -127,7 +127,7 @@ func (c *CloudProvider) Create(ctx context.Context, nodeClaim *v1.NodeClaim) (*v
 
 	agentPool := nodeClaimToStretchAgentPool(
 		karpoptions.FromContext(ctx),
-		c.clusterRestConfig.CAData,
+		c.clusterCA,
 		nodeClass,
 		nodeClaim,
 		platformPresetToLaunch,

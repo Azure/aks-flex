@@ -28,6 +28,7 @@ import (
 	"github.com/Azure/karpenter-provider-flex/pkg/cloudproviders/nebius"
 	flexcontrollers "github.com/Azure/karpenter-provider-flex/pkg/controllers"
 	flexoptions "github.com/Azure/karpenter-provider-flex/pkg/options"
+	utilsk8s "github.com/Azure/karpenter-provider-flex/pkg/utils/k8s"
 )
 
 func init() {
@@ -77,13 +78,16 @@ func main() {
 		}, "azure")
 	}
 
+	clusterCA := lo.Must(utilsk8s.RetrieveClusterCA(op.GetConfig()))
+
 	// nebius cloud provider...
 	{
 		err := nebius.Register(
+			ctx,
 			hubCloudProvider,
 			flexoptions.MustNewNebiusSDK(ctx),
 			op.GetClient(),
-			op.GetConfig(),
+			clusterCA,
 		)
 		lo.Must0(err, "registering nebius cloud provider")
 	}
