@@ -1,8 +1,10 @@
 
 # Image URL to use all building/pushing image targets
-IMG ?= karpenter-provider-flex
-# Image tag
-TAG ?= latest
+IMG ?= ghcr.io/bahe-msft/karpenter-provider-flex
+# Image tag: branch name + short commit hash (e.g. main-abc1234)
+GIT_BRANCH := $(shell git rev-parse --abbrev-ref HEAD | sed 's/[^a-zA-Z0-9._-]/-/g')
+GIT_SHORT_SHA := $(shell git rev-parse --short HEAD)
+TAG ?= $(GIT_BRANCH)-$(GIT_SHORT_SHA)
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
 ENVTEST_K8S_VERSION = 1.31.0
 
@@ -24,6 +26,9 @@ GOOS ?= $(shell go env GOOS)
 GOARCH ?= $(shell go env GOARCH)
 GO_LDFLAGS ?=
 BINARY_NAME ?= controller
+
+# Helper for subst in platform iteration
+comma := ,
 
 .PHONY: all
 all: help
@@ -103,18 +108,19 @@ verify-vendor: vendor-patch ## Verify vendor directory is up-to-date with patche
 
 .PHONY: build
 build: vendor-patch fmt vet ## Build controller binary.
-	go build -ldflags "$(GO_LDFLAGS)" -o bin/$(BINARY_NAME) ./cmd/controller
+	GOOS=$(GOOS) GOARCH=$(GOARCH) go build -ldflags "$(GO_LDFLAGS)" -o bin/$(BINARY_NAME)-$(GOOS)-$(GOARCH) ./cmd/controller
 
 .PHONY: run
 run: vendor-patch fmt vet ## Run a controller from your host.
 	go run ./cmd/controller
 
-# If you wish to build the controller image targeting other platforms you can use the --platform flag.
-# (i.e. docker build --platform linux/arm64). However, you must enable docker buildKit for it.
-# More info: https://docs.docker.com/develop/develop-images/build_enhancements/
+# Build the binary for linux targeting the given architecture, then package it
+# into a container image. The Dockerfile simply copies the pre-built binary into
+# a distroless base image.
 .PHONY: docker-build
 docker-build: ## Build docker image with the controller.
-	$(CONTAINER_TOOL) build -t ${IMG}:${TAG} .
+	GOOS=linux GOARCH=$(GOARCH) $(MAKE) build
+	$(CONTAINER_TOOL) build --build-arg TARGETARCH=$(GOARCH) -t ${IMG}:${TAG} .
 
 .PHONY: docker-push
 docker-push: ## Push docker image with the controller.
@@ -126,10 +132,14 @@ docker-push: ## Push docker image with the controller.
 # - have enabled BuildKit, More info: https://docs.docker.com/develop/develop-images/build_enhancements/
 # - be able to push the image for your registry (i.e. if you do not inform a valid value via IMG=<myregistry/image:<tag>> then the export will fail)
 # To properly provided solutions that support more than one platform, you should use this option.
-PLATFORMS ?= linux/arm64,linux/amd64
+PLATFORMS ?= linux/amd64
 .PHONY: docker-buildx
 docker-buildx: ## Build and push docker image for the controller for cross-platform support.
-	# Copy existing Dockerfile and target linux/$(ARCH)
+	@for platform in $(subst $(comma), ,$(PLATFORMS)); do \
+		os=$${platform%%/*}; arch=$${platform##*/}; \
+		echo "Building binary for $${os}/$${arch}..."; \
+		GOOS=$${os} GOARCH=$${arch} $(MAKE) build || exit 1; \
+	done
 	- $(CONTAINER_TOOL) buildx create --name karpenter-builder
 	$(CONTAINER_TOOL) buildx use karpenter-builder
 	- $(CONTAINER_TOOL) buildx build --push --platform=$(PLATFORMS) --tag ${IMG}:${TAG} -f Dockerfile .

@@ -92,12 +92,12 @@ extraVolumes: []
 controller:
   image:
     # -- Repository path to the controller image.
-    repository: mcr.microsoft.com/aks/karpenter/controller
+    repository: ghcr.io/bahe-msft/karpenter-provider-flex
     # -- Tag of the controller image.
-    tag:
+    tag: poc-b61d917
     # -- SHA256 digest of the controller image.
     # digest:
-    digest: sha256:dd095cdcf857c3812f2084a7b20294932f461b0bff912acf58d592faa032fbef
+    digest: sha256:125ec013e50e837bbf1fc44ea1d25f3e11f65803d7664f20a0b7f388e23142ba
   # -- Additional environment variables for the controller pod.
   env: []
   # - name:
