@@ -89,15 +89,10 @@ func nodeClaimToStretchAgentPool(
 
 	platform := platformPreset.platform
 
-	var imageFamily string
-	switch {
-	case nodeClass.Spec.OSDiskImageFamily != nil:
-		imageFamily = *nodeClass.Spec.OSDiskImageFamily
-	case platform.GetSpec().GetGpuMemoryGigabytes() > 0:
+	imageFamily := lo.FromPtrOr(nodeClass.Spec.OSDiskImageFamily, "ubuntu24.04-driverless")
+	if platform.GetSpec().GetGpuMemoryGigabytes() > 0 {
 		// the platform has GPU, so use a GPU image by default
-		imageFamily = "ubuntu24.04-gpu-driverless"
-	default:
-		imageFamily = "ubuntu24.04-driverless"
+		imageFamily = "ubuntu24.04-cuda12"
 	}
 	osDiskSize := lo.FromPtrOr(
 		nodeClass.Spec.OSDiskSizeGB,
