@@ -127,6 +127,8 @@ func nodeClaimToStretchAgentPool(
 		// FIXME: this should be determined based on the platform preset
 		v1.CapacityTypeLabelKey: "on-demand",
 	})
+	// NOTE: needed for karpenter disruption
+	kubeadmConfig.AddK8SRegisterTaints(v1.UnregisteredNoExecuteTaint)
 
 	specBuilder := nebiusinstance.AgentPoolSpec_builder{
 		ProjectId:   lo.ToPtr(nodeClass.Spec.ProjectID),

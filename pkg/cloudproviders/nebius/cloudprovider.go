@@ -276,7 +276,7 @@ func (c *CloudProvider) List(ctx context.Context) ([]*v1.NodeClaim, error) {
 }
 
 func (c *CloudProvider) GetInstanceTypes(ctx context.Context, nodePool *v1.NodePool) ([]*corecloudprovider.InstanceType, error) {
-	logger := loggerFromContext(ctx)
+	logger := loggerFromContext(ctx).WithValues("nodePool", nodePool.Name)
 
 	nodeClass, err := c.getNodeClass(ctx, nodePool.Spec.Template.Spec.NodeClassRef)
 	if err != nil {
@@ -305,6 +305,8 @@ func (c *CloudProvider) GetInstanceTypes(ctx context.Context, nodePool *v1.NodeP
 
 		rv = append(rv, platformPreset.ToInstanceType())
 	}
+
+	logger.V(5).Info("listed instance types", "count", len(rv))
 
 	return rv, nil
 }
