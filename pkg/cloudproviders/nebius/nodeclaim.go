@@ -117,12 +117,22 @@ func nodeClaimToStretchAgentPool(
 			topology.NodeLabelKeyStretchManaged:       "true",
 		},
 	}.Build()
+	// NOTE: the following 3 labels are required by karpenter consolidation
+	kubeadmConfig.AddNodeLabels(map[string]string{
+		// FIXME: this should set in stretch api side
+		// NOTE: this needs to match the value returned by GetInstanceTypes
+		corev1.LabelInstanceTypeStable: platformPreset.InstanceTypeName(),
+		// FIXME: does nebius provide zone information?
+		corev1.LabelTopologyZone: "1",
+		// FIXME: this should be determined based on the platform preset
+		v1.CapacityTypeLabelKey: "on-demand",
+	})
 
 	specBuilder := nebiusinstance.AgentPoolSpec_builder{
 		ProjectId:   lo.ToPtr(nodeClass.Spec.ProjectID),
 		Region:      lo.ToPtr(nodeClass.Spec.Region),
 		SubnetId:    lo.ToPtr(nodeClass.Spec.SubnetID),
-		Platform:    lo.ToPtr(platformPreset.platform.GetMetadata().GetName()),
+		Platform:    lo.ToPtr(platform.GetMetadata().GetName()),
 		Preset:      lo.ToPtr(platformPreset.preset.GetName()),
 		ImageFamily: lo.ToPtr(imageFamily),
 		OsDiskSize:  lo.ToPtr(osDiskSize),
