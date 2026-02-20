@@ -167,6 +167,20 @@ func (c *CloudProvider) Delete(ctx context.Context, nodeClaim *v1.NodeClaim) err
 		return nil // don't return error since we want to retry deletion until successful, and this will likely be a permanent error
 	}
 
+	// NOTE: this step is necessary to meet the requirement of the Delete behavior,
+	// see sigs.k8s.io/karpenter/pkg/cloudprovider#CloudProvider.Delete for details.
+	if _, err := stretchhelper.Get[*nebiusinstance.AgentPool](
+		c.stretchAgentPoolsClient.Get,
+		ctx, agentPoolName,
+	); err != nil {
+		if isNotFound(err) {
+			// no longer exists - return NodeClaimNotFoundError to signal deletion later
+			return cloudprovider.NewNodeClaimNotFoundError(err)
+		}
+		// get failed, but we proceed to delete in best effort
+		logger.V(5).Error(err, "getting agent pool for nodeClaim, proceed to delete")
+	}
+
 	logger.Info("deleting agent pool for nodeClaim")
 
 	err = stretchhelper.Delete(
