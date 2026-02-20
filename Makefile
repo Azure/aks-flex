@@ -108,7 +108,7 @@ verify-vendor: vendor-patch ## Verify vendor directory is up-to-date with patche
 
 .PHONY: build
 build: vendor-patch fmt vet ## Build controller binary.
-	GOOS=$(GOOS) GOARCH=$(GOARCH) go build -ldflags "$(GO_LDFLAGS)" -o bin/$(BINARY_NAME)-$(GOOS)-$(GOARCH) ./cmd/controller
+	GOOS=$(GOOS) GOARCH=$(GOARCH) go build -trimpath -ldflags "$(GO_LDFLAGS)" -o bin/$(BINARY_NAME)-$(GOOS)-$(GOARCH) ./cmd/controller
 
 .PHONY: run
 run: vendor-patch fmt vet ## Run a controller from your host.
