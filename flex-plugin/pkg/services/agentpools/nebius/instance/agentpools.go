@@ -5,10 +5,8 @@ import (
 	_ "embed"
 	"fmt"
 	"strings"
-	"sync/atomic"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
-	"github.com/nebius/gosdk"
 	compute "github.com/nebius/gosdk/proto/nebius/compute/v1"
 	"google.golang.org/protobuf/types/known/anypb"
 
@@ -21,20 +19,6 @@ import (
 	"github.com/Azure/aks-flex/flex-plugin/pkg/util/cloudinit"
 	utilnebius "github.com/Azure/aks-flex/flex-plugin/pkg/util/nebius"
 )
-
-var sdkPointer atomic.Pointer[gosdk.SDK]
-
-func SetSDKDoNotUseInProd(sdk *gosdk.SDK) {
-	sdkPointer.Store(sdk)
-}
-
-func mustGetSDK() *gosdk.SDK {
-	rv := sdkPointer.Load()
-	if rv == nil {
-		panic("SDK not set")
-	}
-	return rv
-}
 
 //go:embed assets/wg-spoke.sh
 var wgSpokeScript string
@@ -127,13 +111,15 @@ func (srv *agentPoolsServer) CreateOrUpdate(
 		CloudInitData: string(userdataContent),
 	}
 
-	nbInstance := utilnebius.NewInstance(mustGetSDK(), instanceConfig)
+	sdk := utilnebius.MustGetSDK(ctx)
+
+	nbInstance := utilnebius.NewInstance(sdk, instanceConfig)
 	if err := nbInstance.Provision(ctx); err != nil {
 		return nil, fmt.Errorf("failed to provision instance: %w", err)
 	}
 
 	// FIXME: remove nebius util layer
-	instanceInfo, err := mustGetSDK().Services().Compute().V1().Instance().Get(
+	instanceInfo, err := sdk.Services().Compute().V1().Instance().Get(
 		ctx,
 		&compute.GetInstanceRequest{
 			Id: nbInstance.InstanceID(),
@@ -171,8 +157,10 @@ func (srv *agentPoolsServer) Delete(
 		return nil, err
 	}
 
+	sdk := utilnebius.MustGetSDK(ctx)
+
 	instanceName := instanceName(instance)
-	nbInstance := utilnebius.NewInstance(mustGetSDK(), utilnebius.InstanceConfig{
+	nbInstance := utilnebius.NewInstance(sdk, utilnebius.InstanceConfig{
 		ProjectID: instance.GetSpec().GetProjectId(),
 		Name:      instanceName,
 	})

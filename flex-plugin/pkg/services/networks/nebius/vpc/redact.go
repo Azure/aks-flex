@@ -1,3 +1,3 @@
-package network
+package vpc
 
 func (x *Network) Redact() {}

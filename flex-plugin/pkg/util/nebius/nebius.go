@@ -2,41 +2,43 @@ package nebius
 
 import (
 	"context"
-	"errors"
+	"sync/atomic"
 
 	"github.com/nebius/gosdk"
-	"github.com/nebius/gosdk/auth"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
-// NewSDK creates a new Nebius SDK client with service account credentials.
-func NewSDK(ctx context.Context, credentialsFile string) (*gosdk.SDK, error) {
-	if credentialsFile == "" {
-		return nil, errors.New("NEBIUS_CREDENTIALS_FILE environment variable not set")
-	}
+var sdkPointer atomic.Pointer[gosdk.SDK]
 
-	return gosdk.New(ctx,
-		gosdk.WithCredentials(
-			gosdk.ServiceAccountReader(
-				auth.NewServiceAccountCredentialsFileParser(nil, credentialsFile),
-			),
-		),
-	)
+// FIXME: figure out the pattern for passing SDK clients around
+func SetSDKDoNotUseInProd(sdk *gosdk.SDK) {
+	sdkPointer.Store(sdk)
 }
 
-// isAlreadyExists checks if the error indicates the resource already exists.
-func isAlreadyExists(err error) bool {
+func MustGetSDK(ctx context.Context) *gosdk.SDK {
+	rv := sdkPointer.Load()
+	if rv == nil {
+		panic("SDK not set")
+	}
+	return rv
+}
+
+// IsAlreadyExists checks if the error indicates the resource already exists.
+func IsAlreadyExists(err error) bool {
 	if s, ok := status.FromError(err); ok {
 		return s.Code() == codes.AlreadyExists
 	}
 	return false
 }
 
-// isNotFound checks if the error indicates the resource was not found.
-func isNotFound(err error) bool {
+// IsNotFound checks if the error indicates the resource was not found.
+func IsNotFound(err error) bool {
 	if s, ok := status.FromError(err); ok {
 		return s.Code() == codes.NotFound
 	}
 	return false
 }
+
+var isAlreadyExists = IsAlreadyExists
+var isNotFound = IsNotFound

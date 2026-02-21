@@ -2,9 +2,9 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        v6.33.4
-// source: flex-plugin/pkg/services/networks/nebius/network/network.proto
+// source: flex-plugin/pkg/services/networks/nebius/vpc/vpc.proto
 
-package network
+package vpc
 
 import (
 	api "github.com/Azure/aks-flex/flex-plugin/api"
@@ -33,7 +33,7 @@ type Network struct {
 
 func (x *Network) Reset() {
 	*x = Network{}
-	mi := &file_flex_plugin_pkg_services_networks_nebius_network_network_proto_msgTypes[0]
+	mi := &file_flex_plugin_pkg_services_networks_nebius_vpc_vpc_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -45,7 +45,7 @@ func (x *Network) String() string {
 func (*Network) ProtoMessage() {}
 
 func (x *Network) ProtoReflect() protoreflect.Message {
-	mi := &file_flex_plugin_pkg_services_networks_nebius_network_network_proto_msgTypes[0]
+	mi := &file_flex_plugin_pkg_services_networks_nebius_vpc_vpc_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -142,8 +142,9 @@ func (b0 Network_builder) Build() *Network {
 
 type NetworkSpec struct {
 	state                  protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Region      *string                `protobuf:"bytes,1,opt,name=region"`
-	xxx_hidden_Vnet        *vnet.Config           `protobuf:"bytes,2,opt,name=vnet"`
+	xxx_hidden_ProjectId   *string                `protobuf:"bytes,1,opt,name=project_id,json=projectId"`
+	xxx_hidden_Region      *string                `protobuf:"bytes,2,opt,name=region"`
+	xxx_hidden_Vnet        *vnet.Config           `protobuf:"bytes,3,opt,name=vnet"`
 	XXX_raceDetectHookData protoimpl.RaceDetectHookData
 	XXX_presence           [1]uint32
 	unknownFields          protoimpl.UnknownFields
@@ -152,7 +153,7 @@ type NetworkSpec struct {
 
 func (x *NetworkSpec) Reset() {
 	*x = NetworkSpec{}
-	mi := &file_flex_plugin_pkg_services_networks_nebius_network_network_proto_msgTypes[1]
+	mi := &file_flex_plugin_pkg_services_networks_nebius_vpc_vpc_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -164,7 +165,7 @@ func (x *NetworkSpec) String() string {
 func (*NetworkSpec) ProtoMessage() {}
 
 func (x *NetworkSpec) ProtoReflect() protoreflect.Message {
-	mi := &file_flex_plugin_pkg_services_networks_nebius_network_network_proto_msgTypes[1]
+	mi := &file_flex_plugin_pkg_services_networks_nebius_vpc_vpc_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -173,6 +174,16 @@ func (x *NetworkSpec) ProtoReflect() protoreflect.Message {
 		return ms
 	}
 	return mi.MessageOf(x)
+}
+
+func (x *NetworkSpec) GetProjectId() string {
+	if x != nil {
+		if x.xxx_hidden_ProjectId != nil {
+			return *x.xxx_hidden_ProjectId
+		}
+		return ""
+	}
+	return ""
 }
 
 func (x *NetworkSpec) GetRegion() string {
@@ -192,20 +203,32 @@ func (x *NetworkSpec) GetVnet() *vnet.Config {
 	return nil
 }
 
+func (x *NetworkSpec) SetProjectId(v string) {
+	x.xxx_hidden_ProjectId = &v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 3)
+}
+
 func (x *NetworkSpec) SetRegion(v string) {
 	x.xxx_hidden_Region = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 2)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 3)
 }
 
 func (x *NetworkSpec) SetVnet(v *vnet.Config) {
 	x.xxx_hidden_Vnet = v
 }
 
-func (x *NetworkSpec) HasRegion() bool {
+func (x *NetworkSpec) HasProjectId() bool {
 	if x == nil {
 		return false
 	}
 	return protoimpl.X.Present(&(x.XXX_presence[0]), 0)
+}
+
+func (x *NetworkSpec) HasRegion() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 1)
 }
 
 func (x *NetworkSpec) HasVnet() bool {
@@ -215,8 +238,13 @@ func (x *NetworkSpec) HasVnet() bool {
 	return x.xxx_hidden_Vnet != nil
 }
 
-func (x *NetworkSpec) ClearRegion() {
+func (x *NetworkSpec) ClearProjectId() {
 	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 0)
+	x.xxx_hidden_ProjectId = nil
+}
+
+func (x *NetworkSpec) ClearRegion() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 1)
 	x.xxx_hidden_Region = nil
 }
 
@@ -227,16 +255,21 @@ func (x *NetworkSpec) ClearVnet() {
 type NetworkSpec_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	Region *string
-	Vnet   *vnet.Config
+	ProjectId *string
+	Region    *string
+	Vnet      *vnet.Config
 }
 
 func (b0 NetworkSpec_builder) Build() *NetworkSpec {
 	m0 := &NetworkSpec{}
 	b, x := &b0, m0
 	_, _ = b, x
+	if b.ProjectId != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 3)
+		x.xxx_hidden_ProjectId = b.ProjectId
+	}
 	if b.Region != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 2)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 3)
 		x.xxx_hidden_Region = b.Region
 	}
 	x.xxx_hidden_Vnet = b.Vnet
@@ -245,6 +278,7 @@ func (b0 NetworkSpec_builder) Build() *NetworkSpec {
 
 type NetworkStatus struct {
 	state                  protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_PoolId      *string                `protobuf:"bytes,1,opt,name=pool_id,json=poolId"`
 	xxx_hidden_VnetId      *string                `protobuf:"bytes,2,opt,name=vnet_id,json=vnetId"`
 	xxx_hidden_SubnetId    *string                `protobuf:"bytes,3,opt,name=subnet_id,json=subnetId"`
 	XXX_raceDetectHookData protoimpl.RaceDetectHookData
@@ -255,7 +289,7 @@ type NetworkStatus struct {
 
 func (x *NetworkStatus) Reset() {
 	*x = NetworkStatus{}
-	mi := &file_flex_plugin_pkg_services_networks_nebius_network_network_proto_msgTypes[2]
+	mi := &file_flex_plugin_pkg_services_networks_nebius_vpc_vpc_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -267,7 +301,7 @@ func (x *NetworkStatus) String() string {
 func (*NetworkStatus) ProtoMessage() {}
 
 func (x *NetworkStatus) ProtoReflect() protoreflect.Message {
-	mi := &file_flex_plugin_pkg_services_networks_nebius_network_network_proto_msgTypes[2]
+	mi := &file_flex_plugin_pkg_services_networks_nebius_vpc_vpc_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -276,6 +310,16 @@ func (x *NetworkStatus) ProtoReflect() protoreflect.Message {
 		return ms
 	}
 	return mi.MessageOf(x)
+}
+
+func (x *NetworkStatus) GetPoolId() string {
+	if x != nil {
+		if x.xxx_hidden_PoolId != nil {
+			return *x.xxx_hidden_PoolId
+		}
+		return ""
+	}
+	return ""
 }
 
 func (x *NetworkStatus) GetVnetId() string {
@@ -298,43 +342,61 @@ func (x *NetworkStatus) GetSubnetId() string {
 	return ""
 }
 
+func (x *NetworkStatus) SetPoolId(v string) {
+	x.xxx_hidden_PoolId = &v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 3)
+}
+
 func (x *NetworkStatus) SetVnetId(v string) {
 	x.xxx_hidden_VnetId = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 2)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 3)
 }
 
 func (x *NetworkStatus) SetSubnetId(v string) {
 	x.xxx_hidden_SubnetId = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 2)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 2, 3)
 }
 
-func (x *NetworkStatus) HasVnetId() bool {
+func (x *NetworkStatus) HasPoolId() bool {
 	if x == nil {
 		return false
 	}
 	return protoimpl.X.Present(&(x.XXX_presence[0]), 0)
 }
 
-func (x *NetworkStatus) HasSubnetId() bool {
+func (x *NetworkStatus) HasVnetId() bool {
 	if x == nil {
 		return false
 	}
 	return protoimpl.X.Present(&(x.XXX_presence[0]), 1)
 }
 
-func (x *NetworkStatus) ClearVnetId() {
+func (x *NetworkStatus) HasSubnetId() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 2)
+}
+
+func (x *NetworkStatus) ClearPoolId() {
 	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 0)
+	x.xxx_hidden_PoolId = nil
+}
+
+func (x *NetworkStatus) ClearVnetId() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 1)
 	x.xxx_hidden_VnetId = nil
 }
 
 func (x *NetworkStatus) ClearSubnetId() {
-	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 1)
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 2)
 	x.xxx_hidden_SubnetId = nil
 }
 
 type NetworkStatus_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
+	PoolId   *string
 	VnetId   *string
 	SubnetId *string
 }
@@ -343,42 +405,49 @@ func (b0 NetworkStatus_builder) Build() *NetworkStatus {
 	m0 := &NetworkStatus{}
 	b, x := &b0, m0
 	_, _ = b, x
+	if b.PoolId != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 3)
+		x.xxx_hidden_PoolId = b.PoolId
+	}
 	if b.VnetId != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 2)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 3)
 		x.xxx_hidden_VnetId = b.VnetId
 	}
 	if b.SubnetId != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 2)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 2, 3)
 		x.xxx_hidden_SubnetId = b.SubnetId
 	}
 	return m0
 }
 
-var File_flex_plugin_pkg_services_networks_nebius_network_network_proto protoreflect.FileDescriptor
+var File_flex_plugin_pkg_services_networks_nebius_vpc_vpc_proto protoreflect.FileDescriptor
 
-const file_flex_plugin_pkg_services_networks_nebius_network_network_proto_rawDesc = "" +
+const file_flex_plugin_pkg_services_networks_nebius_vpc_vpc_proto_rawDesc = "" +
 	"\n" +
-	">flex-plugin/pkg/services/networks/nebius/network/network.proto\x12\x17networks.nebius.network\x1a\x19flex-plugin/api/api.proto\x1a>flex-plugin/pkg/services/networks/api/features/vnet/vnet.proto\"\xae\x01\n" +
+	"6flex-plugin/pkg/services/networks/nebius/vpc/vpc.proto\x12\x17networks.nebius.network\x1a\x19flex-plugin/api/api.proto\x1a>flex-plugin/pkg/services/networks/api/features/vnet/vnet.proto\"\xae\x01\n" +
 	"\aNetwork\x12)\n" +
 	"\bmetadata\x18\x01 \x01(\v2\r.api.MetadataR\bmetadata\x128\n" +
 	"\x04spec\x18\x02 \x01(\v2$.networks.nebius.network.NetworkSpecR\x04spec\x12>\n" +
-	"\x06status\x18\x03 \x01(\v2&.networks.nebius.network.NetworkStatusR\x06status\"G\n" +
-	"\vNetworkSpec\x12\x16\n" +
-	"\x06region\x18\x01 \x01(\tR\x06region\x12 \n" +
-	"\x04vnet\x18\x02 \x01(\v2\f.vnet.ConfigR\x04vnet\"E\n" +
+	"\x06status\x18\x03 \x01(\v2&.networks.nebius.network.NetworkStatusR\x06status\"f\n" +
+	"\vNetworkSpec\x12\x1d\n" +
+	"\n" +
+	"project_id\x18\x01 \x01(\tR\tprojectId\x12\x16\n" +
+	"\x06region\x18\x02 \x01(\tR\x06region\x12 \n" +
+	"\x04vnet\x18\x03 \x01(\v2\f.vnet.ConfigR\x04vnet\"^\n" +
 	"\rNetworkStatus\x12\x17\n" +
+	"\apool_id\x18\x01 \x01(\tR\x06poolId\x12\x17\n" +
 	"\avnet_id\x18\x02 \x01(\tR\x06vnetId\x12\x1b\n" +
-	"\tsubnet_id\x18\x03 \x01(\tR\bsubnetIdBLZJgithub.com/Azure/aks-flex/flex-plugin/pkg/services/networks/nebius/networkb\beditionsp\xe9\a"
+	"\tsubnet_id\x18\x03 \x01(\tR\bsubnetIdBHZFgithub.com/Azure/aks-flex/flex-plugin/pkg/services/networks/nebius/vpcb\beditionsp\xe9\a"
 
-var file_flex_plugin_pkg_services_networks_nebius_network_network_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
-var file_flex_plugin_pkg_services_networks_nebius_network_network_proto_goTypes = []any{
+var file_flex_plugin_pkg_services_networks_nebius_vpc_vpc_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_flex_plugin_pkg_services_networks_nebius_vpc_vpc_proto_goTypes = []any{
 	(*Network)(nil),       // 0: networks.nebius.network.Network
 	(*NetworkSpec)(nil),   // 1: networks.nebius.network.NetworkSpec
 	(*NetworkStatus)(nil), // 2: networks.nebius.network.NetworkStatus
 	(*api.Metadata)(nil),  // 3: api.Metadata
 	(*vnet.Config)(nil),   // 4: vnet.Config
 }
-var file_flex_plugin_pkg_services_networks_nebius_network_network_proto_depIdxs = []int32{
+var file_flex_plugin_pkg_services_networks_nebius_vpc_vpc_proto_depIdxs = []int32{
 	3, // 0: networks.nebius.network.Network.metadata:type_name -> api.Metadata
 	1, // 1: networks.nebius.network.Network.spec:type_name -> networks.nebius.network.NetworkSpec
 	2, // 2: networks.nebius.network.Network.status:type_name -> networks.nebius.network.NetworkStatus
@@ -390,26 +459,26 @@ var file_flex_plugin_pkg_services_networks_nebius_network_network_proto_depIdxs 
 	0, // [0:4] is the sub-list for field type_name
 }
 
-func init() { file_flex_plugin_pkg_services_networks_nebius_network_network_proto_init() }
-func file_flex_plugin_pkg_services_networks_nebius_network_network_proto_init() {
-	if File_flex_plugin_pkg_services_networks_nebius_network_network_proto != nil {
+func init() { file_flex_plugin_pkg_services_networks_nebius_vpc_vpc_proto_init() }
+func file_flex_plugin_pkg_services_networks_nebius_vpc_vpc_proto_init() {
+	if File_flex_plugin_pkg_services_networks_nebius_vpc_vpc_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_flex_plugin_pkg_services_networks_nebius_network_network_proto_rawDesc), len(file_flex_plugin_pkg_services_networks_nebius_network_network_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_flex_plugin_pkg_services_networks_nebius_vpc_vpc_proto_rawDesc), len(file_flex_plugin_pkg_services_networks_nebius_vpc_vpc_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_flex_plugin_pkg_services_networks_nebius_network_network_proto_goTypes,
-		DependencyIndexes: file_flex_plugin_pkg_services_networks_nebius_network_network_proto_depIdxs,
-		MessageInfos:      file_flex_plugin_pkg_services_networks_nebius_network_network_proto_msgTypes,
+		GoTypes:           file_flex_plugin_pkg_services_networks_nebius_vpc_vpc_proto_goTypes,
+		DependencyIndexes: file_flex_plugin_pkg_services_networks_nebius_vpc_vpc_proto_depIdxs,
+		MessageInfos:      file_flex_plugin_pkg_services_networks_nebius_vpc_vpc_proto_msgTypes,
 	}.Build()
-	File_flex_plugin_pkg_services_networks_nebius_network_network_proto = out.File
-	file_flex_plugin_pkg_services_networks_nebius_network_network_proto_goTypes = nil
-	file_flex_plugin_pkg_services_networks_nebius_network_network_proto_depIdxs = nil
+	File_flex_plugin_pkg_services_networks_nebius_vpc_vpc_proto = out.File
+	file_flex_plugin_pkg_services_networks_nebius_vpc_vpc_proto_goTypes = nil
+	file_flex_plugin_pkg_services_networks_nebius_vpc_vpc_proto_depIdxs = nil
 }

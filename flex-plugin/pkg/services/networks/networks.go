@@ -4,7 +4,8 @@ import (
 	"github.com/Azure/aks-flex/flex-plugin/pkg/db"
 	"github.com/Azure/aks-flex/flex-plugin/pkg/server"
 	"github.com/Azure/aks-flex/flex-plugin/pkg/services/networks/api"
-	"github.com/Azure/aks-flex/flex-plugin/pkg/services/networks/aws/vpc"
+	awsvpc "github.com/Azure/aks-flex/flex-plugin/pkg/services/networks/aws/vpc"
+	nebiusvpc "github.com/Azure/aks-flex/flex-plugin/pkg/services/networks/nebius/vpc"
 )
 
 type networksServer struct {
@@ -18,8 +19,12 @@ func NewNetworksServer(db db.DB) api.NetworksServer {
 	}
 
 	server.MustRegister(srv.Servers, func() (api.NetworksServer, error) {
-		return vpc.NewNetworksServer(srv.DB)
-	}, &vpc.Network{})
+		return awsvpc.NewNetworksServer(srv.DB)
+	}, &awsvpc.Network{})
+
+	server.MustRegister(srv.Servers, func() (api.NetworksServer, error) {
+		return nebiusvpc.NewNetworksServer(srv.DB)
+	}, &nebiusvpc.Network{})
 
 	return srv
 }

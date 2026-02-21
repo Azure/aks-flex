@@ -2,7 +2,7 @@ edition = "2024";
 
 package networks.nebius.network;
 
-option go_package = "github.com/Azure/aks-flex/flex-plugin/pkg/services/networks/nebius/network";
+option go_package = "github.com/Azure/aks-flex/flex-plugin/pkg/services/networks/nebius/vpc";
 
 import "flex-plugin/api/api.proto";
 import "flex-plugin/pkg/services/networks/api/features/vnet/vnet.proto";
@@ -16,15 +16,17 @@ message Network {
 }
 
 message NetworkSpec {
-  string region = 1;
+  string project_id = 1;
+  string region = 2;
 
-  vnet.Config vnet = 2;
+  vnet.Config vnet = 3;
 }
 
 message NetworkStatus {
   // ProvisioningState string
   // LastError         error
 
+  string pool_id = 1;
   string vnet_id = 2;
   string subnet_id = 3;
 }

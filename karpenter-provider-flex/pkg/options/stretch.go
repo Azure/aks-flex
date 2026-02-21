@@ -9,7 +9,7 @@ import (
 	"sigs.k8s.io/karpenter/pkg/operator/options"
 
 	"github.com/Azure/aks-flex/flex-plugin/pkg/services"
-	nebiusinstance "github.com/Azure/aks-flex/flex-plugin/pkg/services/agentpools/nebius/instance"
+	nebiusutil "github.com/Azure/aks-flex/flex-plugin/pkg/util/nebius"
 )
 
 func init() {
@@ -51,7 +51,7 @@ func MustInitalizeStretchPlugin(ctx context.Context, restConfig *rest.Config) {
 	nebiusOpts := nebiusOptionsFromContext(ctx)
 	lo.Assert(nebiusOpts != nil, "nebius options not found in context")
 
-	nebiusinstance.SetSDKDoNotUseInProd(MustNewNebiusSDK(ctx))
+	nebiusutil.SetSDKDoNotUseInProd(MustNewNebiusSDK(ctx))
 
 	kubeClient := lo.Must(kubernetes.NewForConfig(restConfig))
 
