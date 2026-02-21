@@ -20,19 +20,40 @@ var (
 		},
 	}
 
+	deploycilium      bool
 	deployWireguard   bool
-	enableGPUOperator bool
+	deployGPUOperator bool
 
 	//go:embed assets/aks.json
 	aksJSON []byte
 )
 
 func init() {
-	Command.Flags().BoolVar(&deployWireguard, "wireguard", deployWireguard, "deploy WireGuard gateway node pool and DaemonSet")
-	Command.Flags().BoolVar(&enableGPUOperator, "enable-gpu-operator", enableGPUOperator, "install NVIDIA GPU Operator via Helm")
+	Command.Flags().BoolVar(&deploycilium, "cilium", true, "deploy Cilium CNI") // default to true to allow minimal networking to work
+	Command.Flags().BoolVar(&deployWireguard, "wireguard", false, "deploy WireGuard gateway node pool and DaemonSet")
+	Command.Flags().BoolVar(&deployGPUOperator, "gpu-operator", false, "install NVIDIA GPU Operator via Helm")
+}
+
+func preflightChecks() error {
+	if deploycilium {
+		if err := preflightCiliumDeploy(); err != nil {
+			return err
+		}
+	}
+	if deployGPUOperator {
+		if err := preflightGPUOperator(); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func run(ctx context.Context) error {
+	if err := preflightChecks(); err != nil {
+		return err
+	}
+
 	cfg, err := config.New()
 	if err != nil {
 		return err
@@ -61,13 +82,19 @@ func run(ctx context.Context) error {
 		return err
 	}
 
+	if deploycilium {
+		if err := deployCilium(ctx, credentials, cfg); err != nil {
+			return err
+		}
+	}
+
 	if deployWireguard {
 		if err := deployWireGuard(ctx, credentials, cfg); err != nil {
 			return err
 		}
 	}
 
-	if enableGPUOperator {
+	if deployGPUOperator {
 		if err := installGPUOperator(ctx); err != nil {
 			return err
 		}

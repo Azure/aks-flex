@@ -88,15 +88,6 @@ func deployWireGuard(ctx context.Context, credentials *azidentity.DefaultAzureCr
 		return fmt.Errorf("failed to deploy WireGuard to Kubernetes: %w", err)
 	}
 
-	log.Printf("\nWireGuard setup complete!")
-	log.Printf("  WireGuard DaemonSet deployed to AKS")
-	log.Printf("  WireGuard Port: 51820 (UDP)")
-	log.Printf("  Gateway Public IP: %s", gatewayIP)
-	log.Printf("  Hub Public Key: %s", keys.PublicKey)
-	log.Printf("\nNext steps:")
-	log.Printf("  Deploy Nebius VM using 'go run ./cmd/stretch nodes nebius deploy'")
-	log.Printf("  The Nebius node will discover the hub's public key from the node annotation")
-
 	return nil
 }
 

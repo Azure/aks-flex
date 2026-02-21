@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 
+	_ "github.com/joho/godotenv/autoload"
 	"github.com/spf13/cobra"
 
 	"github.com/Azure/aks-flex/cli/internal/aks"

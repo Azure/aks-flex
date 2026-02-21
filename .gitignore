@@ -430,3 +430,4 @@ dist/
 *.db
 
 .env
+.kube
