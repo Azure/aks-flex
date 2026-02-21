@@ -1,0 +1,135 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"clusterName": {
+			"type": "string"
+		},
+		"vmSize": {
+			"type": "string",
+			"defaultValue": "Standard_D2s_v3"
+		},
+		"deployWireguard": {
+			"type": "bool",
+			"defaultValue": false
+		}
+	},
+	"resources": [
+		{
+			"type": "Microsoft.ContainerService/managedClusters",
+			"apiVersion": "2024-01-01",
+			"name": "[parameters('clusterName')]",
+			"location": "[resourceGroup().location]",
+			"identity": {
+				"type": "SystemAssigned"
+			},
+			"properties": {
+				"agentPoolProfiles": [
+					{
+						"name": "system",
+						"count": 2,
+						"vmSize": "[parameters('vmSize')]",
+						"mode": "System",
+						"vnetSubnetId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', 'vnet', 'aks')]"
+					}
+				],
+				"dnsPrefix": "[parameters('clusterName')]",
+				"networkProfile": {
+					"networkPlugin": "none"
+				}
+			}
+		},
+		{
+			"condition": "[parameters('deployWireguard')]",
+			"apiVersion": "2023-09-01",
+			"type": "Microsoft.Network/networkSecurityGroups/securityRules",
+			"name": "nsg/AllowWireGuard",
+			"properties": {
+				"priority": 100,
+				"direction": "Inbound",
+				"access": "Allow",
+				"protocol": "Udp",
+				"sourcePortRange": "*",
+				"destinationPortRange": "51820",
+				"sourceAddressPrefix": "*",
+				"destinationAddressPrefix": "*"
+			}
+		},
+		{
+			"condition": "[parameters('deployWireguard')]",
+			"apiVersion": "2023-09-01",
+			"type": "Microsoft.Network/publicIPPrefixes",
+			"name": "nebius-wg-pip-prefix",
+			"location": "[resourceGroup().location]",
+			"sku": {
+				"name": "Standard"
+			},
+			"properties": {
+				"prefixLength": 31,
+				"publicIPAddressVersion": "IPv4"
+			}
+		},
+		{
+			"condition": "[parameters('deployWireguard')]",
+			"apiVersion": "2025-10-01",
+			"type": "Microsoft.ContainerService/managedClusters/agentPools",
+			"name": "[concat(parameters('clusterName'), '/wireguard')]",
+			"properties": {
+				"count": 1,
+				"vmSize": "Standard_D2s_v3",
+				"mode": "User",
+				"osType": "Linux",
+				"vnetSubnetId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', 'vnet', 'nodes')]",
+				"enableNodePublicIP": true,
+				"nodePublicIPPrefixID": "[resourceId('Microsoft.Network/publicIPPrefixes', 'nebius-wg-pip-prefix')]",
+				"networkProfile": {
+					"allowedHostPorts": [
+						{
+							"portStart": 51820,
+							"portEnd": 51820,
+							"protocol": "UDP"
+						}
+					]
+				},
+				"nodeLabels": {
+					"stretch.azure.com/wireguard-gateway": "true",
+					"stretch.azure.com/wireguard-hub": "true"
+				},
+				"nodeTaints": [
+					"stretch.azure.com/wireguard-gateway=true:NoSchedule"
+				]
+			},
+			"dependsOn": [
+				"[resourceId('Microsoft.ContainerService/managedClusters', parameters('clusterName'))]",
+				"[resourceId('Microsoft.Network/publicIPPrefixes', 'nebius-wg-pip-prefix')]"
+			]
+		},
+		{
+			"condition": "[parameters('deployWireguard')]",
+			"apiVersion": "2023-09-01",
+			"type": "Microsoft.Network/routeTables",
+			"name": "nebius-routes",
+			"location": "[resourceGroup().location]",
+			"properties": {
+				"routes": []
+			}
+		}
+	],
+	"outputs": {
+		"nodePoolName": {
+			"condition": "[parameters('deployWireguard')]",
+			"type": "string",
+			"value": "wireguard"
+		},
+		"publicIpPrefixId": {
+			"condition": "[parameters('deployWireguard')]",
+			"type": "string",
+			"value": "[resourceId('Microsoft.Network/publicIPPrefixes', 'nebius-wg-pip-prefix')]"
+		},
+		"routeTableId": {
+			"condition": "[parameters('deployWireguard')]",
+			"type": "string",
+			"value": "[resourceId('Microsoft.Network/routeTables', 'nebius-routes')]"
+		}
+	}
+}
