@@ -1,0 +1,22 @@
+diff --git a/vendor/github.com/Azure/karpenter-provider-azure/pkg/operator/operator.go b/vendor/github.com/Azure/karpenter-provider-azure/pkg/operator/operator.go
+index 95b0b8b..397760b 100644
+--- a/vendor/github.com/Azure/karpenter-provider-azure/pkg/operator/operator.go
++++ b/vendor/github.com/Azure/karpenter-provider-azure/pkg/operator/operator.go
+@@ -132,8 +132,16 @@ func NewOperator(ctx context.Context, operator *operator.Operator) (context.Cont
+ 		options.FromContext(ctx).VnetGUID = vnetGUID
+ 	}
+
++	var inClusterConfig *rest.Config
++	if v, err := rest.InClusterConfig(); err == nil {
++		inClusterConfig = v
++	} else {
++		// Fallback to operator config if not running in cluster
++		inClusterConfig = operator.GetConfig()
++		log.FromContext(ctx).V(0).Info("falling back to operator REST config for in-cluster Kubernetes interface")
++	}
++
+ 	// These options are set similarly to those used by operator.KubernetesInterface
+-	inClusterConfig := lo.Must(rest.InClusterConfig())
+ 	inClusterConfig.RateLimiter = flowcontrol.NewTokenBucketRateLimiter(float32(coreoptions.FromContext(ctx).KubeClientQPS), coreoptions.FromContext(ctx).KubeClientBurst)
+ 	inClusterConfig.UserAgent = auth.GetUserAgentExtension()
+ 	inClusterClient := kubernetes.NewForConfigOrDie(inClusterConfig)
