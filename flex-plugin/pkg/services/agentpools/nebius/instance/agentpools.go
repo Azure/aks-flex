@@ -6,8 +6,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
-	compute "github.com/nebius/gosdk/proto/nebius/compute/v1"
+	"github.com/nebius/gosdk"
+	nebiuscommon "github.com/nebius/gosdk/proto/nebius/common/v1"
+	nebiuscompute "github.com/nebius/gosdk/proto/nebius/compute/v1"
+	nebiuscomputeservice "github.com/nebius/gosdk/services/nebius/compute/v1"
 	"google.golang.org/protobuf/types/known/anypb"
 
 	"github.com/Azure/aks-flex/flex-plugin/api"
@@ -37,10 +39,6 @@ func NewAgentPoolsServer(storage db.RODB) (agentpools.AgentPoolsServer, error) {
 	}, nil
 }
 
-func instanceName(instance *AgentPool) string {
-	return fmt.Sprintf("stretch-%s", instance.GetMetadata().GetId())
-}
-
 func (srv *agentPoolsServer) CreateOrUpdate(
 	ctx context.Context,
 	req *api.CreateOrUpdateRequest,
@@ -50,6 +48,10 @@ func (srv *agentPoolsServer) CreateOrUpdate(
 		return nil, err
 	}
 	apSpec := ap.GetSpec()
+
+	// TODO: validate / default spec
+
+	agentPoolResources := resolveNebiusAgentPool(utilnebius.MustGetSDK(ctx), ap)
 
 	kubeadmConfig := apSpec.GetKubeadm()
 	kubeadmConfig.AddNodeLabels(map[string]string{
@@ -99,40 +101,24 @@ func (srv *agentPoolsServer) CreateOrUpdate(
 		return nil, fmt.Errorf("failed to marshal cloud-init: %w", err)
 	}
 
-	instanceName := instanceName(ap)
-	instanceConfig := utilnebius.InstanceConfig{
-		ProjectID:     apSpec.GetProjectId(),
-		Name:          instanceName, // FIXME: do we use the instance id as name?
-		Platform:      apSpec.GetPlatform(),
-		Preset:        apSpec.GetPreset(),
-		SubnetID:      apSpec.GetSubnetId(),
-		ImageFamily:   apSpec.GetImageFamily(),
-		DiskSizeGB:    int64(apSpec.GetOsDiskSize()),
-		CloudInitData: string(userdataContent),
-	}
-
-	sdk := utilnebius.MustGetSDK(ctx)
-
-	nbInstance := utilnebius.NewInstance(sdk, instanceConfig)
-	if err := nbInstance.Provision(ctx); err != nil {
-		return nil, fmt.Errorf("failed to provision instance: %w", err)
-	}
-
-	// FIXME: remove nebius util layer
-	instanceInfo, err := sdk.Services().Compute().V1().Instance().Get(
-		ctx,
-		&compute.GetInstanceRequest{
-			Id: nbInstance.InstanceID(),
-		},
-	)
+	bootDisk, err := agentPoolResources.DiskCRUD.CreateOrUpdate(ctx, utilnebius.DriftTODO, agentPoolResources.DesiredBootDisk())
 	if err != nil {
-		return nil, fmt.Errorf("failed to get instance info: %w", err)
+		return nil, err
 	}
 
-	status := AgentPoolStatus_builder{
-		InstanceId: to.Ptr(nbInstance.InstanceID()),
-		CreatedAt:  instanceInfo.Metadata.CreatedAt,
-	}.Build()
+	desiredInstance := agentPoolResources.DesiredInstance(bootDisk, string(userdataContent))
+	instance, err := agentPoolResources.InstanceCRUD.CreateOrUpdate(ctx, utilnebius.DriftTODO, desiredInstance)
+	if err != nil {
+		return nil, err
+	}
+
+	status := ap.GetStatus()
+	if status == nil {
+		status = &AgentPoolStatus{}
+	}
+	status.SetInstanceId(instance.GetMetadata().GetId())
+	status.SetOsDiskId(bootDisk.GetMetadata().GetId())
+	status.SetCreatedAt(instance.GetMetadata().GetCreatedAt())
 	ap.SetStatus(status)
 
 	item, err := anypb.New(ap)
@@ -152,21 +138,103 @@ func (srv *agentPoolsServer) Delete(
 		return api.DeleteResponse_builder{}.Build(), nil
 	}
 
-	instance, err := helper.To[*AgentPool](obj)
+	ap, err := helper.To[*AgentPool](obj)
 	if err != nil {
 		return nil, err
 	}
 
-	sdk := utilnebius.MustGetSDK(ctx)
+	agentPoolResources := resolveNebiusAgentPool(utilnebius.MustGetSDK(ctx), ap)
+	osDisk := agentPoolResources.DesiredBootDisk()
+	const emptyUserData = "" // deletion doesn't require user data
+	instance := agentPoolResources.DesiredInstance(osDisk, emptyUserData)
 
-	instanceName := instanceName(instance)
-	nbInstance := utilnebius.NewInstance(sdk, utilnebius.InstanceConfig{
-		ProjectID: instance.GetSpec().GetProjectId(),
-		Name:      instanceName,
-	})
-	if err := nbInstance.Delete(ctx); err != nil {
-		return nil, fmt.Errorf("failed to delete instance: %w", err)
+	if err := agentPoolResources.InstanceCRUD.Delete(ctx, instance); err != nil {
+		return nil, err
+	}
+	if err := agentPoolResources.DiskCRUD.Delete(ctx, osDisk); err != nil {
+		return nil, err
 	}
 
 	return api.DeleteResponse_builder{}.Build(), nil
+}
+
+var (
+	instanceCRUD = utilnebius.ResourceCRUDFactory[nebiuscomputeservice.InstanceService, *nebiuscompute.Instance]()
+	diskCRUD     = utilnebius.ResourceCRUDFactory[nebiuscomputeservice.DiskService, *nebiuscompute.Disk]()
+)
+
+type nebiusAgentPoolResources struct {
+	InstanceCRUD *utilnebius.ResourceCRUD[*nebiuscompute.Instance, *nebiuscompute.InstanceSpec]
+	DiskCRUD     *utilnebius.ResourceCRUD[*nebiuscompute.Disk, *nebiuscompute.DiskSpec]
+
+	AgentPool *AgentPool
+}
+
+func resolveNebiusAgentPool(sdk *gosdk.SDK, ap *AgentPool) *nebiusAgentPoolResources {
+	return &nebiusAgentPoolResources{
+		InstanceCRUD: instanceCRUD(sdk.Services().Compute().V1().Instance()),
+		DiskCRUD:     diskCRUD(sdk.Services().Compute().V1().Disk()),
+		AgentPool:    ap,
+	}
+}
+
+func (res *nebiusAgentPoolResources) DesiredBootDisk() *nebiuscompute.Disk {
+	return &nebiuscompute.Disk{
+		Metadata: &nebiuscommon.ResourceMetadata{
+			ParentId: res.AgentPool.GetSpec().GetProjectId(),
+			Name:     fmt.Sprintf("%s-boot", res.AgentPool.GetMetadata().GetId()),
+		},
+		Spec: &nebiuscompute.DiskSpec{
+			Size: &nebiuscompute.DiskSpec_SizeGibibytes{
+				SizeGibibytes: res.AgentPool.GetSpec().GetOsDiskSizeGibibytes(),
+			},
+			Type: nebiuscompute.DiskSpec_NETWORK_SSD,
+			Source: &nebiuscompute.DiskSpec_SourceImageFamily{
+				SourceImageFamily: &nebiuscompute.SourceImageFamily{
+					ImageFamily: res.AgentPool.GetSpec().GetImageFamily(),
+				},
+			},
+		},
+	}
+}
+
+func (res *nebiusAgentPoolResources) DesiredInstance(
+	osDisk *nebiuscompute.Disk,
+	userdata string,
+) *nebiuscompute.Instance {
+	nic := &nebiuscompute.NetworkInterfaceSpec{
+		SubnetId:  res.AgentPool.GetSpec().GetSubnetId(),
+		Name:      "eth0",
+		IpAddress: &nebiuscompute.IPAddress{
+			// Auto-allocate private IP
+		},
+	}
+	// TODO: allow assigning public IP
+
+	return &nebiuscompute.Instance{
+		Metadata: &nebiuscommon.ResourceMetadata{
+			ParentId: res.AgentPool.GetSpec().GetProjectId(),
+			Name:     res.AgentPool.GetMetadata().GetId(),
+		},
+		Spec: &nebiuscompute.InstanceSpec{
+			Resources: &nebiuscompute.ResourcesSpec{
+				Platform: res.AgentPool.GetSpec().GetPlatform(),
+				Size: &nebiuscompute.ResourcesSpec_Preset{
+					Preset: res.AgentPool.GetSpec().GetPreset(),
+				},
+			},
+			BootDisk: &nebiuscompute.AttachedDiskSpec{
+				AttachMode: nebiuscompute.AttachedDiskSpec_READ_WRITE,
+				Type: &nebiuscompute.AttachedDiskSpec_ExistingDisk{
+					ExistingDisk: &nebiuscompute.ExistingDisk{
+						Id: osDisk.GetMetadata().GetId(),
+					},
+				},
+			},
+			NetworkInterfaces: []*nebiuscompute.NetworkInterfaceSpec{
+				nic,
+			},
+			CloudInitUserData: userdata,
+		},
+	}
 }

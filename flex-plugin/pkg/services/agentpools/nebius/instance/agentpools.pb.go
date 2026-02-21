@@ -143,20 +143,20 @@ func (b0 AgentPool_builder) Build() *AgentPool {
 }
 
 type AgentPoolSpec struct {
-	state                  protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_ProjectId   *string                `protobuf:"bytes,1,opt,name=project_id,json=projectId"`
-	xxx_hidden_Region      *string                `protobuf:"bytes,2,opt,name=region"`
-	xxx_hidden_SubnetId    *string                `protobuf:"bytes,3,opt,name=subnet_id,json=subnetId"`
-	xxx_hidden_Platform    *string                `protobuf:"bytes,4,opt,name=platform"`
-	xxx_hidden_Preset      *string                `protobuf:"bytes,5,opt,name=preset"`
-	xxx_hidden_ImageFamily *string                `protobuf:"bytes,6,opt,name=image_family,json=imageFamily"`
-	xxx_hidden_OsDiskSize  int32                  `protobuf:"varint,7,opt,name=os_disk_size,json=osDiskSize"`
-	xxx_hidden_Kubeadm     *kubeadm.Config        `protobuf:"bytes,8,opt,name=kubeadm"`
-	xxx_hidden_Wireguard   *wireguard.Config      `protobuf:"bytes,9,opt,name=wireguard"`
-	XXX_raceDetectHookData protoimpl.RaceDetectHookData
-	XXX_presence           [1]uint32
-	unknownFields          protoimpl.UnknownFields
-	sizeCache              protoimpl.SizeCache
+	state                          protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_ProjectId           *string                `protobuf:"bytes,1,opt,name=project_id,json=projectId"`
+	xxx_hidden_Region              *string                `protobuf:"bytes,2,opt,name=region"`
+	xxx_hidden_SubnetId            *string                `protobuf:"bytes,3,opt,name=subnet_id,json=subnetId"`
+	xxx_hidden_Platform            *string                `protobuf:"bytes,4,opt,name=platform"`
+	xxx_hidden_Preset              *string                `protobuf:"bytes,5,opt,name=preset"`
+	xxx_hidden_ImageFamily         *string                `protobuf:"bytes,6,opt,name=image_family,json=imageFamily"`
+	xxx_hidden_OsDiskSizeGibibytes int64                  `protobuf:"varint,7,opt,name=os_disk_size_gibibytes,json=osDiskSizeGibibytes"`
+	xxx_hidden_Kubeadm             *kubeadm.Config        `protobuf:"bytes,8,opt,name=kubeadm"`
+	xxx_hidden_Wireguard           *wireguard.Config      `protobuf:"bytes,9,opt,name=wireguard"`
+	XXX_raceDetectHookData         protoimpl.RaceDetectHookData
+	XXX_presence                   [1]uint32
+	unknownFields                  protoimpl.UnknownFields
+	sizeCache                      protoimpl.SizeCache
 }
 
 func (x *AgentPoolSpec) Reset() {
@@ -244,9 +244,9 @@ func (x *AgentPoolSpec) GetImageFamily() string {
 	return ""
 }
 
-func (x *AgentPoolSpec) GetOsDiskSize() int32 {
+func (x *AgentPoolSpec) GetOsDiskSizeGibibytes() int64 {
 	if x != nil {
-		return x.xxx_hidden_OsDiskSize
+		return x.xxx_hidden_OsDiskSizeGibibytes
 	}
 	return 0
 }
@@ -295,8 +295,8 @@ func (x *AgentPoolSpec) SetImageFamily(v string) {
 	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 5, 9)
 }
 
-func (x *AgentPoolSpec) SetOsDiskSize(v int32) {
-	x.xxx_hidden_OsDiskSize = v
+func (x *AgentPoolSpec) SetOsDiskSizeGibibytes(v int64) {
+	x.xxx_hidden_OsDiskSizeGibibytes = v
 	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 6, 9)
 }
 
@@ -350,7 +350,7 @@ func (x *AgentPoolSpec) HasImageFamily() bool {
 	return protoimpl.X.Present(&(x.XXX_presence[0]), 5)
 }
 
-func (x *AgentPoolSpec) HasOsDiskSize() bool {
+func (x *AgentPoolSpec) HasOsDiskSizeGibibytes() bool {
 	if x == nil {
 		return false
 	}
@@ -401,9 +401,9 @@ func (x *AgentPoolSpec) ClearImageFamily() {
 	x.xxx_hidden_ImageFamily = nil
 }
 
-func (x *AgentPoolSpec) ClearOsDiskSize() {
+func (x *AgentPoolSpec) ClearOsDiskSizeGibibytes() {
 	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 6)
-	x.xxx_hidden_OsDiskSize = 0
+	x.xxx_hidden_OsDiskSizeGibibytes = 0
 }
 
 func (x *AgentPoolSpec) ClearKubeadm() {
@@ -417,15 +417,15 @@ func (x *AgentPoolSpec) ClearWireguard() {
 type AgentPoolSpec_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	ProjectId   *string
-	Region      *string
-	SubnetId    *string
-	Platform    *string
-	Preset      *string
-	ImageFamily *string
-	OsDiskSize  *int32
-	Kubeadm     *kubeadm.Config
-	Wireguard   *wireguard.Config
+	ProjectId           *string
+	Region              *string
+	SubnetId            *string
+	Platform            *string
+	Preset              *string
+	ImageFamily         *string
+	OsDiskSizeGibibytes *int64
+	Kubeadm             *kubeadm.Config
+	Wireguard           *wireguard.Config
 }
 
 func (b0 AgentPoolSpec_builder) Build() *AgentPoolSpec {
@@ -456,9 +456,9 @@ func (b0 AgentPoolSpec_builder) Build() *AgentPoolSpec {
 		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 5, 9)
 		x.xxx_hidden_ImageFamily = b.ImageFamily
 	}
-	if b.OsDiskSize != nil {
+	if b.OsDiskSizeGibibytes != nil {
 		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 6, 9)
-		x.xxx_hidden_OsDiskSize = *b.OsDiskSize
+		x.xxx_hidden_OsDiskSizeGibibytes = *b.OsDiskSizeGibibytes
 	}
 	x.xxx_hidden_Kubeadm = b.Kubeadm
 	x.xxx_hidden_Wireguard = b.Wireguard
@@ -468,7 +468,8 @@ func (b0 AgentPoolSpec_builder) Build() *AgentPoolSpec {
 type AgentPoolStatus struct {
 	state                  protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_InstanceId  *string                `protobuf:"bytes,1,opt,name=instance_id,json=instanceId"`
-	xxx_hidden_CreatedAt   *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=created_at,json=createdAt"`
+	xxx_hidden_OsDiskId    *string                `protobuf:"bytes,2,opt,name=os_disk_id,json=osDiskId"`
+	xxx_hidden_CreatedAt   *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=created_at,json=createdAt"`
 	XXX_raceDetectHookData protoimpl.RaceDetectHookData
 	XXX_presence           [1]uint32
 	unknownFields          protoimpl.UnknownFields
@@ -510,6 +511,16 @@ func (x *AgentPoolStatus) GetInstanceId() string {
 	return ""
 }
 
+func (x *AgentPoolStatus) GetOsDiskId() string {
+	if x != nil {
+		if x.xxx_hidden_OsDiskId != nil {
+			return *x.xxx_hidden_OsDiskId
+		}
+		return ""
+	}
+	return ""
+}
+
 func (x *AgentPoolStatus) GetCreatedAt() *timestamppb.Timestamp {
 	if x != nil {
 		return x.xxx_hidden_CreatedAt
@@ -519,7 +530,12 @@ func (x *AgentPoolStatus) GetCreatedAt() *timestamppb.Timestamp {
 
 func (x *AgentPoolStatus) SetInstanceId(v string) {
 	x.xxx_hidden_InstanceId = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 2)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 3)
+}
+
+func (x *AgentPoolStatus) SetOsDiskId(v string) {
+	x.xxx_hidden_OsDiskId = &v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 3)
 }
 
 func (x *AgentPoolStatus) SetCreatedAt(v *timestamppb.Timestamp) {
@@ -531,6 +547,13 @@ func (x *AgentPoolStatus) HasInstanceId() bool {
 		return false
 	}
 	return protoimpl.X.Present(&(x.XXX_presence[0]), 0)
+}
+
+func (x *AgentPoolStatus) HasOsDiskId() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 1)
 }
 
 func (x *AgentPoolStatus) HasCreatedAt() bool {
@@ -545,6 +568,11 @@ func (x *AgentPoolStatus) ClearInstanceId() {
 	x.xxx_hidden_InstanceId = nil
 }
 
+func (x *AgentPoolStatus) ClearOsDiskId() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 1)
+	x.xxx_hidden_OsDiskId = nil
+}
+
 func (x *AgentPoolStatus) ClearCreatedAt() {
 	x.xxx_hidden_CreatedAt = nil
 }
@@ -554,7 +582,9 @@ type AgentPoolStatus_builder struct {
 
 	// instance id is the nebius side id of the instance.
 	InstanceId *string
-	CreatedAt  *timestamppb.Timestamp
+	// os disk id is the nebius side id of the os disk attached to the instance.
+	OsDiskId  *string
+	CreatedAt *timestamppb.Timestamp
 }
 
 func (b0 AgentPoolStatus_builder) Build() *AgentPoolStatus {
@@ -562,8 +592,12 @@ func (b0 AgentPoolStatus_builder) Build() *AgentPoolStatus {
 	b, x := &b0, m0
 	_, _ = b, x
 	if b.InstanceId != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 2)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 3)
 		x.xxx_hidden_InstanceId = b.InstanceId
+	}
+	if b.OsDiskId != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 3)
+		x.xxx_hidden_OsDiskId = b.OsDiskId
 	}
 	x.xxx_hidden_CreatedAt = b.CreatedAt
 	return m0
@@ -577,7 +611,7 @@ const file_flex_plugin_pkg_services_agentpools_nebius_instance_agentpools_proto_
 	"\tAgentPool\x12)\n" +
 	"\bmetadata\x18\x01 \x01(\v2\r.api.MetadataR\bmetadata\x12=\n" +
 	"\x04spec\x18\x02 \x01(\v2).agentpools.nebius.instance.AgentPoolSpecR\x04spec\x12C\n" +
-	"\x06status\x18\x03 \x01(\v2+.agentpools.nebius.instance.AgentPoolStatusR\x06status\"\xb8\x02\n" +
+	"\x06status\x18\x03 \x01(\v2+.agentpools.nebius.instance.AgentPoolStatusR\x06status\"\xcb\x02\n" +
 	"\rAgentPoolSpec\x12\x1d\n" +
 	"\n" +
 	"project_id\x18\x01 \x01(\tR\tprojectId\x12\x16\n" +
@@ -585,16 +619,17 @@ const file_flex_plugin_pkg_services_agentpools_nebius_instance_agentpools_proto_
 	"\tsubnet_id\x18\x03 \x01(\tR\bsubnetId\x12\x1a\n" +
 	"\bplatform\x18\x04 \x01(\tR\bplatform\x12\x16\n" +
 	"\x06preset\x18\x05 \x01(\tR\x06preset\x12!\n" +
-	"\fimage_family\x18\x06 \x01(\tR\vimageFamily\x12 \n" +
-	"\fos_disk_size\x18\a \x01(\x05R\n" +
-	"osDiskSize\x12)\n" +
+	"\fimage_family\x18\x06 \x01(\tR\vimageFamily\x123\n" +
+	"\x16os_disk_size_gibibytes\x18\a \x01(\x03R\x13osDiskSizeGibibytes\x12)\n" +
 	"\akubeadm\x18\b \x01(\v2\x0f.kubeadm.ConfigR\akubeadm\x12/\n" +
-	"\twireguard\x18\t \x01(\v2\x11.wireguard.ConfigR\twireguard\"m\n" +
+	"\twireguard\x18\t \x01(\v2\x11.wireguard.ConfigR\twireguard\"\x8b\x01\n" +
 	"\x0fAgentPoolStatus\x12\x1f\n" +
 	"\vinstance_id\x18\x01 \x01(\tR\n" +
-	"instanceId\x129\n" +
+	"instanceId\x12\x1c\n" +
 	"\n" +
-	"created_at\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAtBOZMgithub.com/Azure/aks-flex/flex-plugin/pkg/services/agentpools/nebius/instanceb\beditionsp\xe9\a"
+	"os_disk_id\x18\x02 \x01(\tR\bosDiskId\x129\n" +
+	"\n" +
+	"created_at\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAtBOZMgithub.com/Azure/aks-flex/flex-plugin/pkg/services/agentpools/nebius/instanceb\beditionsp\xe9\a"
 
 var file_flex_plugin_pkg_services_agentpools_nebius_instance_agentpools_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
 var file_flex_plugin_pkg_services_agentpools_nebius_instance_agentpools_proto_goTypes = []any{

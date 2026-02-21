@@ -25,14 +25,14 @@ func newNebiusAgentPool(ctx context.Context) proto.Message {
 	return nebiusap.AgentPool_builder{
 		Metadata: api.NewMetadata[*nebiusap.AgentPool]("nebius-default"),
 		Spec: nebiusap.AgentPoolSpec_builder{
-			ProjectId:   to.Ptr(configcmd.OrPlaceholder(projectID)),
-			Region:      to.Ptr(configcmd.OrPlaceholder(region)),
-			SubnetId:    to.Ptr(configcmd.OrPlaceholder("")),
-			Platform:    to.Ptr(configcmd.OrPlaceholder("")),
-			Preset:      to.Ptr(configcmd.OrPlaceholder("")),
-			ImageFamily: to.Ptr(configcmd.OrPlaceholder("")),
-			OsDiskSize:  to.Ptr(int32(500)),
-			Kubeadm:     configcmd.DefaultKubeadmConfig(ctx),
+			ProjectId:           to.Ptr(configcmd.OrPlaceholder(projectID)),
+			Region:              to.Ptr(configcmd.OrPlaceholder(region)),
+			SubnetId:            to.Ptr(configcmd.OrPlaceholder("")),
+			Platform:            to.Ptr(configcmd.OrPlaceholder("")),
+			Preset:              to.Ptr(configcmd.OrPlaceholder("")),
+			ImageFamily:         to.Ptr(configcmd.OrPlaceholder("")),
+			OsDiskSizeGibibytes: to.Ptr(int64(128)),
+			Kubeadm:             configcmd.DefaultKubeadmConfig(ctx),
 			Wireguard: wireguard.Config_builder{
 				PeerIp: to.Ptr(configcmd.OrPlaceholder("")),
 			}.Build(),

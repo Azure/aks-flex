@@ -24,7 +24,7 @@ message AgentPoolSpec {
   string platform = 4;
   string preset = 5;
   string image_family = 6;
-  int32 os_disk_size = 7;
+  int64 os_disk_size_gibibytes = 7;
   kubeadm.Config kubeadm = 8;
   wireguard.Config wireguard = 9;
 }
@@ -32,5 +32,7 @@ message AgentPoolSpec {
 message AgentPoolStatus {
   // instance id is the nebius side id of the instance.
   string instance_id = 1;
-  google.protobuf.Timestamp created_at = 2;
+  // os disk id is the nebius side id of the os disk attached to the instance.
+  string os_disk_id = 2;
+  google.protobuf.Timestamp created_at = 3;
 }
