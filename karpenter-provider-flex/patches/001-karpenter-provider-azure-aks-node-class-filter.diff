@@ -1,7 +1,7 @@
-diff --git a/vendor/github.com/Azure/karpenter-provider-azure/pkg/controllers/nodeclaim/inplaceupdate/controller.go b/vendor/github.com/Azure/karpenter-provider-azure/pkg/controllers/nodeclaim/inplaceupdate/controller.go
+diff --git a/karpenter-provider-flex/vendor/github.com/Azure/karpenter-provider-azure/pkg/controllers/nodeclaim/inplaceupdate/controller.go b/karpenter-provider-flex/vendor/github.com/Azure/karpenter-provider-azure/pkg/controllers/nodeclaim/inplaceupdate/controller.go
 index fb46b1a..08cd5e4 100644
---- a/vendor/github.com/Azure/karpenter-provider-azure/pkg/controllers/nodeclaim/inplaceupdate/controller.go
-+++ b/vendor/github.com/Azure/karpenter-provider-azure/pkg/controllers/nodeclaim/inplaceupdate/controller.go
+--- a/karpenter-provider-flex/vendor/github.com/Azure/karpenter-provider-azure/pkg/controllers/nodeclaim/inplaceupdate/controller.go
++++ b/karpenter-provider-flex/vendor/github.com/Azure/karpenter-provider-azure/pkg/controllers/nodeclaim/inplaceupdate/controller.go
 @@ -252,6 +252,7 @@ func (c *Controller) Register(_ context.Context, m manager.Manager) error {
  		For(
  			&karpv1.NodeClaim{},
@@ -10,10 +10,10 @@ index fb46b1a..08cd5e4 100644
  				predicate.Or(
  					predicate.GenerationChangedPredicate{}, // Note that this will trigger on pod restart for all Machines.
  				),
-diff --git a/vendor/github.com/Azure/karpenter-provider-azure/pkg/utils/nodeclaim/nodeclaim.go b/vendor/github.com/Azure/karpenter-provider-azure/pkg/utils/nodeclaim/nodeclaim.go
+diff --git a/karpenter-provider-flex/vendor/github.com/Azure/karpenter-provider-azure/pkg/utils/nodeclaim/nodeclaim.go b/karpenter-provider-flex/vendor/github.com/Azure/karpenter-provider-azure/pkg/utils/nodeclaim/nodeclaim.go
 index 6b3719b..60b4631 100644
---- a/vendor/github.com/Azure/karpenter-provider-azure/pkg/utils/nodeclaim/nodeclaim.go
-+++ b/vendor/github.com/Azure/karpenter-provider-azure/pkg/utils/nodeclaim/nodeclaim.go
+--- a/karpenter-provider-flex/vendor/github.com/Azure/karpenter-provider-azure/pkg/utils/nodeclaim/nodeclaim.go
++++ b/karpenter-provider-flex/vendor/github.com/Azure/karpenter-provider-azure/pkg/utils/nodeclaim/nodeclaim.go
 @@ -24,6 +24,7 @@ import (
  	"k8s.io/apimachinery/pkg/runtime/schema"
  	"k8s.io/apimachinery/pkg/types"

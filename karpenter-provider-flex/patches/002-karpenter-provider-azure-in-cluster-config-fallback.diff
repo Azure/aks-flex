@@ -1,7 +1,7 @@
-diff --git a/vendor/github.com/Azure/karpenter-provider-azure/pkg/operator/operator.go b/vendor/github.com/Azure/karpenter-provider-azure/pkg/operator/operator.go
+diff --git a/karpenter-provider-flex/vendor/github.com/Azure/karpenter-provider-azure/pkg/operator/operator.go b/karpenter-provider-flex/vendor/github.com/Azure/karpenter-provider-azure/pkg/operator/operator.go
 index 95b0b8b..397760b 100644
---- a/vendor/github.com/Azure/karpenter-provider-azure/pkg/operator/operator.go
-+++ b/vendor/github.com/Azure/karpenter-provider-azure/pkg/operator/operator.go
+--- a/karpenter-provider-flex/vendor/github.com/Azure/karpenter-provider-azure/pkg/operator/operator.go
++++ b/karpenter-provider-flex/vendor/github.com/Azure/karpenter-provider-azure/pkg/operator/operator.go
 @@ -132,8 +132,16 @@ func NewOperator(ctx context.Context, operator *operator.Operator) (context.Cont
  		options.FromContext(ctx).VnetGUID = vnetGUID
  	}

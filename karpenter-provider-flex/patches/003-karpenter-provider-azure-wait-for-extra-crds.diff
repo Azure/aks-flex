@@ -1,7 +1,7 @@
-diff --git a/vendor/github.com/Azure/karpenter-provider-azure/pkg/operator/operator.go b/vendor/github.com/Azure/karpenter-provider-azure/pkg/operator/operator.go
+diff --git a/karpenter-provider-flex/vendor/github.com/Azure/karpenter-provider-azure/pkg/operator/operator.go b/karpenter-provider-flex/vendor/github.com/Azure/karpenter-provider-azure/pkg/operator/operator.go
 index 397760b..143d58b 100644
---- a/vendor/github.com/Azure/karpenter-provider-azure/pkg/operator/operator.go
-+++ b/vendor/github.com/Azure/karpenter-provider-azure/pkg/operator/operator.go
+--- a/karpenter-provider-flex/vendor/github.com/Azure/karpenter-provider-azure/pkg/operator/operator.go
++++ b/karpenter-provider-flex/vendor/github.com/Azure/karpenter-provider-azure/pkg/operator/operator.go
 @@ -314,7 +314,13 @@ func getVnetGUID(ctx context.Context, creds azcore.TokenCredential, cfg *auth.Co
  }
 
