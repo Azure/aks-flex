@@ -38,7 +38,7 @@ export NEBIUS_PROJECT_ID={{.NebiusProjectID}}
 export NEBIUS_REGION=<update with your Nebius region>
 # Nebius credential file path
 # ref: https://docs.nebius.com/iam/service-accounts/authorized-keys
-export NEBIUS_CREDENTIAL_FILE=<update with your Nebius credential file path>
+export NEBIUS_CREDENTIALS_FILE=<update with your Nebius credential file path>
 {{- end }}
 `))
 
@@ -47,10 +47,10 @@ type configContext struct {
 	AzureSubscriptionID    string
 	AzureResourceGroupName string
 
-	EnableNebius         bool
-	NebiusProjectID      string
-	NebiusRegion         string
-	NebiusCredentialFile string
+	EnableNebius          bool
+	NebiusProjectID       string
+	NebiusRegion          string
+	NebiusCredentialsFile string
 }
 
 func execAndGetOutput(ctx context.Context, name string, args ...string) (string, error) {

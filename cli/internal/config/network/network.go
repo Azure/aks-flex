@@ -10,6 +10,7 @@ var r = configcmd.NewRouter("network", "Generate a default network config for a 
 
 func init() {
 	r.Handle("aws", configcmd.ProtoHandler(newAWSNetwork))
+	r.Handle("nebius", configcmd.ProtoHandler(newNebiusNetwork))
 }
 
 var Command *cobra.Command = r.Command()
