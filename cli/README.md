@@ -21,7 +21,11 @@ $ aks-flex-cli aks deploy --cilium --wireguard
 ## Initializing Remote Cloud Network
 
 ```
-$ aks-flex-cli network <remote-cloud> deploy
+$ aks-flex-cli config network <remote-cloud> > network.json
+```
+
+```
+$ aks-flex-cli plugin apply -f network.json
 ```
 
 ## Creating First Agent Pool
@@ -42,4 +46,10 @@ $ aks-flex-cli plugin get agentpools <name>
 
 ```
 $ aks-flex-cli plugin delete agentpools <name>
+```
+
+## Bootstrap a Node (manually)
+
+```
+$ aks-flex-cli config node-bootstrap <remote-cloud> > user-config.yaml
 ```
