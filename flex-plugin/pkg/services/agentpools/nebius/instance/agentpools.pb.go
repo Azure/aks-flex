@@ -2,20 +2,19 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        v6.33.4
-// source: stretch/plugin/pkg/services/agentpools/nebius/instance/agentpools.proto
+// source: flex-plugin/pkg/services/agentpools/nebius/instance/agentpools.proto
 
 package instance
 
 import (
-	reflect "reflect"
-	unsafe "unsafe"
-
 	api "github.com/Azure/aks-flex/flex-plugin/api"
 	kubeadm "github.com/Azure/aks-flex/flex-plugin/pkg/services/agentpools/api/features/kubeadm"
 	wireguard "github.com/Azure/aks-flex/flex-plugin/pkg/services/agentpools/api/features/wireguard"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
+	reflect "reflect"
+	unsafe "unsafe"
 )
 
 const (
@@ -36,7 +35,7 @@ type AgentPool struct {
 
 func (x *AgentPool) Reset() {
 	*x = AgentPool{}
-	mi := &file_stretch_plugin_pkg_services_agentpools_nebius_instance_agentpools_proto_msgTypes[0]
+	mi := &file_flex_plugin_pkg_services_agentpools_nebius_instance_agentpools_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -48,7 +47,7 @@ func (x *AgentPool) String() string {
 func (*AgentPool) ProtoMessage() {}
 
 func (x *AgentPool) ProtoReflect() protoreflect.Message {
-	mi := &file_stretch_plugin_pkg_services_agentpools_nebius_instance_agentpools_proto_msgTypes[0]
+	mi := &file_flex_plugin_pkg_services_agentpools_nebius_instance_agentpools_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -162,7 +161,7 @@ type AgentPoolSpec struct {
 
 func (x *AgentPoolSpec) Reset() {
 	*x = AgentPoolSpec{}
-	mi := &file_stretch_plugin_pkg_services_agentpools_nebius_instance_agentpools_proto_msgTypes[1]
+	mi := &file_flex_plugin_pkg_services_agentpools_nebius_instance_agentpools_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -174,7 +173,7 @@ func (x *AgentPoolSpec) String() string {
 func (*AgentPoolSpec) ProtoMessage() {}
 
 func (x *AgentPoolSpec) ProtoReflect() protoreflect.Message {
-	mi := &file_stretch_plugin_pkg_services_agentpools_nebius_instance_agentpools_proto_msgTypes[1]
+	mi := &file_flex_plugin_pkg_services_agentpools_nebius_instance_agentpools_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -478,7 +477,7 @@ type AgentPoolStatus struct {
 
 func (x *AgentPoolStatus) Reset() {
 	*x = AgentPoolStatus{}
-	mi := &file_stretch_plugin_pkg_services_agentpools_nebius_instance_agentpools_proto_msgTypes[2]
+	mi := &file_flex_plugin_pkg_services_agentpools_nebius_instance_agentpools_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -490,7 +489,7 @@ func (x *AgentPoolStatus) String() string {
 func (*AgentPoolStatus) ProtoMessage() {}
 
 func (x *AgentPoolStatus) ProtoReflect() protoreflect.Message {
-	mi := &file_stretch_plugin_pkg_services_agentpools_nebius_instance_agentpools_proto_msgTypes[2]
+	mi := &file_flex_plugin_pkg_services_agentpools_nebius_instance_agentpools_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -570,11 +569,11 @@ func (b0 AgentPoolStatus_builder) Build() *AgentPoolStatus {
 	return m0
 }
 
-var File_stretch_plugin_pkg_services_agentpools_nebius_instance_agentpools_proto protoreflect.FileDescriptor
+var File_flex_plugin_pkg_services_agentpools_nebius_instance_agentpools_proto protoreflect.FileDescriptor
 
-const file_stretch_plugin_pkg_services_agentpools_nebius_instance_agentpools_proto_rawDesc = "" +
+const file_flex_plugin_pkg_services_agentpools_nebius_instance_agentpools_proto_rawDesc = "" +
 	"\n" +
-	"Gstretch/plugin/pkg/services/agentpools/nebius/instance/agentpools.proto\x12\x1aagentpools.nebius.instance\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1cstretch/plugin/api/api.proto\x1aIstretch/plugin/pkg/services/agentpools/api/features/kubeadm/kubeadm.proto\x1aMstretch/plugin/pkg/services/agentpools/api/features/wireguard/wireguard.proto\"\xba\x01\n" +
+	"Dflex-plugin/pkg/services/agentpools/nebius/instance/agentpools.proto\x12\x1aagentpools.nebius.instance\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x19flex-plugin/api/api.proto\x1aFflex-plugin/pkg/services/agentpools/api/features/kubeadm/kubeadm.proto\x1aJflex-plugin/pkg/services/agentpools/api/features/wireguard/wireguard.proto\"\xba\x01\n" +
 	"\tAgentPool\x12)\n" +
 	"\bmetadata\x18\x01 \x01(\v2\r.api.MetadataR\bmetadata\x12=\n" +
 	"\x04spec\x18\x02 \x01(\v2).agentpools.nebius.instance.AgentPoolSpecR\x04spec\x12C\n" +
@@ -595,10 +594,10 @@ const file_stretch_plugin_pkg_services_agentpools_nebius_instance_agentpools_pro
 	"\vinstance_id\x18\x01 \x01(\tR\n" +
 	"instanceId\x129\n" +
 	"\n" +
-	"created_at\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAtBpZngithub.com/Azure/aks-flex/flex-plugin/pkg/services/agentpools/nebius/instanceb\beditionsp\xe9\a"
+	"created_at\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAtBOZMgithub.com/Azure/aks-flex/flex-plugin/pkg/services/agentpools/nebius/instanceb\beditionsp\xe9\a"
 
-var file_stretch_plugin_pkg_services_agentpools_nebius_instance_agentpools_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
-var file_stretch_plugin_pkg_services_agentpools_nebius_instance_agentpools_proto_goTypes = []any{
+var file_flex_plugin_pkg_services_agentpools_nebius_instance_agentpools_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_flex_plugin_pkg_services_agentpools_nebius_instance_agentpools_proto_goTypes = []any{
 	(*AgentPool)(nil),             // 0: agentpools.nebius.instance.AgentPool
 	(*AgentPoolSpec)(nil),         // 1: agentpools.nebius.instance.AgentPoolSpec
 	(*AgentPoolStatus)(nil),       // 2: agentpools.nebius.instance.AgentPoolStatus
@@ -607,7 +606,7 @@ var file_stretch_plugin_pkg_services_agentpools_nebius_instance_agentpools_proto
 	(*wireguard.Config)(nil),      // 5: wireguard.Config
 	(*timestamppb.Timestamp)(nil), // 6: google.protobuf.Timestamp
 }
-var file_stretch_plugin_pkg_services_agentpools_nebius_instance_agentpools_proto_depIdxs = []int32{
+var file_flex_plugin_pkg_services_agentpools_nebius_instance_agentpools_proto_depIdxs = []int32{
 	3, // 0: agentpools.nebius.instance.AgentPool.metadata:type_name -> api.Metadata
 	1, // 1: agentpools.nebius.instance.AgentPool.spec:type_name -> agentpools.nebius.instance.AgentPoolSpec
 	2, // 2: agentpools.nebius.instance.AgentPool.status:type_name -> agentpools.nebius.instance.AgentPoolStatus
@@ -621,26 +620,26 @@ var file_stretch_plugin_pkg_services_agentpools_nebius_instance_agentpools_proto
 	0, // [0:6] is the sub-list for field type_name
 }
 
-func init() { file_stretch_plugin_pkg_services_agentpools_nebius_instance_agentpools_proto_init() }
-func file_stretch_plugin_pkg_services_agentpools_nebius_instance_agentpools_proto_init() {
-	if File_stretch_plugin_pkg_services_agentpools_nebius_instance_agentpools_proto != nil {
+func init() { file_flex_plugin_pkg_services_agentpools_nebius_instance_agentpools_proto_init() }
+func file_flex_plugin_pkg_services_agentpools_nebius_instance_agentpools_proto_init() {
+	if File_flex_plugin_pkg_services_agentpools_nebius_instance_agentpools_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_stretch_plugin_pkg_services_agentpools_nebius_instance_agentpools_proto_rawDesc), len(file_stretch_plugin_pkg_services_agentpools_nebius_instance_agentpools_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_flex_plugin_pkg_services_agentpools_nebius_instance_agentpools_proto_rawDesc), len(file_flex_plugin_pkg_services_agentpools_nebius_instance_agentpools_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_stretch_plugin_pkg_services_agentpools_nebius_instance_agentpools_proto_goTypes,
-		DependencyIndexes: file_stretch_plugin_pkg_services_agentpools_nebius_instance_agentpools_proto_depIdxs,
-		MessageInfos:      file_stretch_plugin_pkg_services_agentpools_nebius_instance_agentpools_proto_msgTypes,
+		GoTypes:           file_flex_plugin_pkg_services_agentpools_nebius_instance_agentpools_proto_goTypes,
+		DependencyIndexes: file_flex_plugin_pkg_services_agentpools_nebius_instance_agentpools_proto_depIdxs,
+		MessageInfos:      file_flex_plugin_pkg_services_agentpools_nebius_instance_agentpools_proto_msgTypes,
 	}.Build()
-	File_stretch_plugin_pkg_services_agentpools_nebius_instance_agentpools_proto = out.File
-	file_stretch_plugin_pkg_services_agentpools_nebius_instance_agentpools_proto_goTypes = nil
-	file_stretch_plugin_pkg_services_agentpools_nebius_instance_agentpools_proto_depIdxs = nil
+	File_flex_plugin_pkg_services_agentpools_nebius_instance_agentpools_proto = out.File
+	file_flex_plugin_pkg_services_agentpools_nebius_instance_agentpools_proto_goTypes = nil
+	file_flex_plugin_pkg_services_agentpools_nebius_instance_agentpools_proto_depIdxs = nil
 }

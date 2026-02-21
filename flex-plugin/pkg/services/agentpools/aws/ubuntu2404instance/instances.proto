@@ -4,7 +4,7 @@ package agentpools.aws.ubuntu2404instance;
 
 option go_package = "github.com/Azure/aks-flex/flex-plugin/pkg/services/agentpools/aws/ubuntu2404instance";
 
-import "stretch/plugin/api/api.proto";
+import "flex-plugin/api/api.proto";
 
 message Instance {
   api.Metadata metadata = 1;

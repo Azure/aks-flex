@@ -2,17 +2,16 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        v6.33.4
-// source: stretch/plugin/pkg/db/internal/testobj/testobj.proto
+// source: flex-plugin/pkg/db/internal/testobj/testobj.proto
 
 package testobj
 
 import (
-	reflect "reflect"
-	unsafe "unsafe"
-
 	api "github.com/Azure/aks-flex/flex-plugin/api"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	reflect "reflect"
+	unsafe "unsafe"
 )
 
 const (
@@ -31,7 +30,7 @@ type FakeObject struct {
 
 func (x *FakeObject) Reset() {
 	*x = FakeObject{}
-	mi := &file_stretch_plugin_pkg_db_internal_testobj_testobj_proto_msgTypes[0]
+	mi := &file_flex_plugin_pkg_db_internal_testobj_testobj_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -43,7 +42,7 @@ func (x *FakeObject) String() string {
 func (*FakeObject) ProtoMessage() {}
 
 func (x *FakeObject) ProtoReflect() protoreflect.Message {
-	mi := &file_stretch_plugin_pkg_db_internal_testobj_testobj_proto_msgTypes[0]
+	mi := &file_flex_plugin_pkg_db_internal_testobj_testobj_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -90,21 +89,21 @@ func (b0 FakeObject_builder) Build() *FakeObject {
 	return m0
 }
 
-var File_stretch_plugin_pkg_db_internal_testobj_testobj_proto protoreflect.FileDescriptor
+var File_flex_plugin_pkg_db_internal_testobj_testobj_proto protoreflect.FileDescriptor
 
-const file_stretch_plugin_pkg_db_internal_testobj_testobj_proto_rawDesc = "" +
+const file_flex_plugin_pkg_db_internal_testobj_testobj_proto_rawDesc = "" +
 	"\n" +
-	"4stretch/plugin/pkg/db/internal/testobj/testobj.proto\x12\atestobj\x1a\x1cstretch/plugin/api/api.proto\"7\n" +
+	"1flex-plugin/pkg/db/internal/testobj/testobj.proto\x12\atestobj\x1a\x19flex-plugin/api/api.proto\"7\n" +
 	"\n" +
 	"FakeObject\x12)\n" +
-	"\bmetadata\x18\x01 \x01(\v2\r.api.MetadataR\bmetadataB`Z^github.com/Azure/aks-flex/flex-plugin/pkg/db/internal/testobjb\beditionsp\xe9\a"
+	"\bmetadata\x18\x01 \x01(\v2\r.api.MetadataR\bmetadataB?Z=github.com/Azure/aks-flex/flex-plugin/pkg/db/internal/testobjb\beditionsp\xe9\a"
 
-var file_stretch_plugin_pkg_db_internal_testobj_testobj_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
-var file_stretch_plugin_pkg_db_internal_testobj_testobj_proto_goTypes = []any{
+var file_flex_plugin_pkg_db_internal_testobj_testobj_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
+var file_flex_plugin_pkg_db_internal_testobj_testobj_proto_goTypes = []any{
 	(*FakeObject)(nil),   // 0: testobj.FakeObject
 	(*api.Metadata)(nil), // 1: api.Metadata
 }
-var file_stretch_plugin_pkg_db_internal_testobj_testobj_proto_depIdxs = []int32{
+var file_flex_plugin_pkg_db_internal_testobj_testobj_proto_depIdxs = []int32{
 	1, // 0: testobj.FakeObject.metadata:type_name -> api.Metadata
 	1, // [1:1] is the sub-list for method output_type
 	1, // [1:1] is the sub-list for method input_type
@@ -113,26 +112,26 @@ var file_stretch_plugin_pkg_db_internal_testobj_testobj_proto_depIdxs = []int32{
 	0, // [0:1] is the sub-list for field type_name
 }
 
-func init() { file_stretch_plugin_pkg_db_internal_testobj_testobj_proto_init() }
-func file_stretch_plugin_pkg_db_internal_testobj_testobj_proto_init() {
-	if File_stretch_plugin_pkg_db_internal_testobj_testobj_proto != nil {
+func init() { file_flex_plugin_pkg_db_internal_testobj_testobj_proto_init() }
+func file_flex_plugin_pkg_db_internal_testobj_testobj_proto_init() {
+	if File_flex_plugin_pkg_db_internal_testobj_testobj_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_stretch_plugin_pkg_db_internal_testobj_testobj_proto_rawDesc), len(file_stretch_plugin_pkg_db_internal_testobj_testobj_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_flex_plugin_pkg_db_internal_testobj_testobj_proto_rawDesc), len(file_flex_plugin_pkg_db_internal_testobj_testobj_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   1,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_stretch_plugin_pkg_db_internal_testobj_testobj_proto_goTypes,
-		DependencyIndexes: file_stretch_plugin_pkg_db_internal_testobj_testobj_proto_depIdxs,
-		MessageInfos:      file_stretch_plugin_pkg_db_internal_testobj_testobj_proto_msgTypes,
+		GoTypes:           file_flex_plugin_pkg_db_internal_testobj_testobj_proto_goTypes,
+		DependencyIndexes: file_flex_plugin_pkg_db_internal_testobj_testobj_proto_depIdxs,
+		MessageInfos:      file_flex_plugin_pkg_db_internal_testobj_testobj_proto_msgTypes,
 	}.Build()
-	File_stretch_plugin_pkg_db_internal_testobj_testobj_proto = out.File
-	file_stretch_plugin_pkg_db_internal_testobj_testobj_proto_goTypes = nil
-	file_stretch_plugin_pkg_db_internal_testobj_testobj_proto_depIdxs = nil
+	File_flex_plugin_pkg_db_internal_testobj_testobj_proto = out.File
+	file_flex_plugin_pkg_db_internal_testobj_testobj_proto_goTypes = nil
+	file_flex_plugin_pkg_db_internal_testobj_testobj_proto_depIdxs = nil
 }

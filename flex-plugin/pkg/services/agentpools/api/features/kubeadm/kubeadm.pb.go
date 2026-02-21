@@ -2,16 +2,15 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        v6.33.4
-// source: stretch/plugin/pkg/services/agentpools/api/features/kubeadm/kubeadm.proto
+// source: flex-plugin/pkg/services/agentpools/api/features/kubeadm/kubeadm.proto
 
 package kubeadm
 
 import (
-	reflect "reflect"
-	unsafe "unsafe"
-
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	reflect "reflect"
+	unsafe "unsafe"
 )
 
 const (
@@ -34,7 +33,7 @@ type Taint struct {
 
 func (x *Taint) Reset() {
 	*x = Taint{}
-	mi := &file_stretch_plugin_pkg_services_agentpools_api_features_kubeadm_kubeadm_proto_msgTypes[0]
+	mi := &file_flex_plugin_pkg_services_agentpools_api_features_kubeadm_kubeadm_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -46,7 +45,7 @@ func (x *Taint) String() string {
 func (*Taint) ProtoMessage() {}
 
 func (x *Taint) ProtoReflect() protoreflect.Message {
-	mi := &file_stretch_plugin_pkg_services_agentpools_api_features_kubeadm_kubeadm_proto_msgTypes[0]
+	mi := &file_flex_plugin_pkg_services_agentpools_api_features_kubeadm_kubeadm_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -181,7 +180,7 @@ type Config struct {
 
 func (x *Config) Reset() {
 	*x = Config{}
-	mi := &file_stretch_plugin_pkg_services_agentpools_api_features_kubeadm_kubeadm_proto_msgTypes[1]
+	mi := &file_flex_plugin_pkg_services_agentpools_api_features_kubeadm_kubeadm_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -193,7 +192,7 @@ func (x *Config) String() string {
 func (*Config) ProtoMessage() {}
 
 func (x *Config) ProtoReflect() protoreflect.Message {
-	mi := &file_stretch_plugin_pkg_services_agentpools_api_features_kubeadm_kubeadm_proto_msgTypes[1]
+	mi := &file_flex_plugin_pkg_services_agentpools_api_features_kubeadm_kubeadm_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -375,11 +374,11 @@ func (b0 Config_builder) Build() *Config {
 	return m0
 }
 
-var File_stretch_plugin_pkg_services_agentpools_api_features_kubeadm_kubeadm_proto protoreflect.FileDescriptor
+var File_flex_plugin_pkg_services_agentpools_api_features_kubeadm_kubeadm_proto protoreflect.FileDescriptor
 
-const file_stretch_plugin_pkg_services_agentpools_api_features_kubeadm_kubeadm_proto_rawDesc = "" +
+const file_flex_plugin_pkg_services_agentpools_api_features_kubeadm_kubeadm_proto_rawDesc = "" +
 	"\n" +
-	"Istretch/plugin/pkg/services/agentpools/api/features/kubeadm/kubeadm.proto\x12\akubeadm\"G\n" +
+	"Fflex-plugin/pkg/services/agentpools/api/features/kubeadm/kubeadm.proto\x12\akubeadm\"G\n" +
 	"\x05Taint\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value\x12\x16\n" +
@@ -394,15 +393,15 @@ const file_stretch_plugin_pkg_services_agentpools_api_features_kubeadm_kubeadm_p
 	"\x14register_with_taints\x18\x06 \x03(\v2\x0e.kubeadm.TaintR\x12registerWithTaints\x1a=\n" +
 	"\x0fNodeLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01BuZsgithub.com/Azure/aks-flex/flex-plugin/pkg/services/agentpools/api/features/kubeadmb\beditionsp\xe9\a"
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01BTZRgithub.com/Azure/aks-flex/flex-plugin/pkg/services/agentpools/api/features/kubeadmb\beditionsp\xe9\a"
 
-var file_stretch_plugin_pkg_services_agentpools_api_features_kubeadm_kubeadm_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
-var file_stretch_plugin_pkg_services_agentpools_api_features_kubeadm_kubeadm_proto_goTypes = []any{
+var file_flex_plugin_pkg_services_agentpools_api_features_kubeadm_kubeadm_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_flex_plugin_pkg_services_agentpools_api_features_kubeadm_kubeadm_proto_goTypes = []any{
 	(*Taint)(nil),  // 0: kubeadm.Taint
 	(*Config)(nil), // 1: kubeadm.Config
 	nil,            // 2: kubeadm.Config.NodeLabelsEntry
 }
-var file_stretch_plugin_pkg_services_agentpools_api_features_kubeadm_kubeadm_proto_depIdxs = []int32{
+var file_flex_plugin_pkg_services_agentpools_api_features_kubeadm_kubeadm_proto_depIdxs = []int32{
 	2, // 0: kubeadm.Config.node_labels:type_name -> kubeadm.Config.NodeLabelsEntry
 	0, // 1: kubeadm.Config.register_with_taints:type_name -> kubeadm.Taint
 	2, // [2:2] is the sub-list for method output_type
@@ -412,26 +411,26 @@ var file_stretch_plugin_pkg_services_agentpools_api_features_kubeadm_kubeadm_pro
 	0, // [0:2] is the sub-list for field type_name
 }
 
-func init() { file_stretch_plugin_pkg_services_agentpools_api_features_kubeadm_kubeadm_proto_init() }
-func file_stretch_plugin_pkg_services_agentpools_api_features_kubeadm_kubeadm_proto_init() {
-	if File_stretch_plugin_pkg_services_agentpools_api_features_kubeadm_kubeadm_proto != nil {
+func init() { file_flex_plugin_pkg_services_agentpools_api_features_kubeadm_kubeadm_proto_init() }
+func file_flex_plugin_pkg_services_agentpools_api_features_kubeadm_kubeadm_proto_init() {
+	if File_flex_plugin_pkg_services_agentpools_api_features_kubeadm_kubeadm_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_stretch_plugin_pkg_services_agentpools_api_features_kubeadm_kubeadm_proto_rawDesc), len(file_stretch_plugin_pkg_services_agentpools_api_features_kubeadm_kubeadm_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_flex_plugin_pkg_services_agentpools_api_features_kubeadm_kubeadm_proto_rawDesc), len(file_flex_plugin_pkg_services_agentpools_api_features_kubeadm_kubeadm_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_stretch_plugin_pkg_services_agentpools_api_features_kubeadm_kubeadm_proto_goTypes,
-		DependencyIndexes: file_stretch_plugin_pkg_services_agentpools_api_features_kubeadm_kubeadm_proto_depIdxs,
-		MessageInfos:      file_stretch_plugin_pkg_services_agentpools_api_features_kubeadm_kubeadm_proto_msgTypes,
+		GoTypes:           file_flex_plugin_pkg_services_agentpools_api_features_kubeadm_kubeadm_proto_goTypes,
+		DependencyIndexes: file_flex_plugin_pkg_services_agentpools_api_features_kubeadm_kubeadm_proto_depIdxs,
+		MessageInfos:      file_flex_plugin_pkg_services_agentpools_api_features_kubeadm_kubeadm_proto_msgTypes,
 	}.Build()
-	File_stretch_plugin_pkg_services_agentpools_api_features_kubeadm_kubeadm_proto = out.File
-	file_stretch_plugin_pkg_services_agentpools_api_features_kubeadm_kubeadm_proto_goTypes = nil
-	file_stretch_plugin_pkg_services_agentpools_api_features_kubeadm_kubeadm_proto_depIdxs = nil
+	File_flex_plugin_pkg_services_agentpools_api_features_kubeadm_kubeadm_proto = out.File
+	file_flex_plugin_pkg_services_agentpools_api_features_kubeadm_kubeadm_proto_goTypes = nil
+	file_flex_plugin_pkg_services_agentpools_api_features_kubeadm_kubeadm_proto_depIdxs = nil
 }

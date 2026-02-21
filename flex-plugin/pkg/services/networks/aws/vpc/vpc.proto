@@ -4,8 +4,8 @@ package networks.aws.vpc;
 
 option go_package = "github.com/Azure/aks-flex/flex-plugin/pkg/services/networks/aws/vpc";
 
-import "stretch/plugin/api/api.proto";
-import "stretch/plugin/pkg/services/networks/api/features/vnet/vnet.proto";
+import "flex-plugin/api/api.proto";
+import "flex-plugin/pkg/services/networks/api/features/vnet/vnet.proto";
 
 message Network {
   api.Metadata metadata = 1;

@@ -4,8 +4,8 @@ package ipsecvpn;
 
 option go_package = "github.com/Azure/aks-flex/flex-plugin/pkg/services/peerings/aws/ipsecvpn";
 
-import "stretch/plugin/api/api.proto";
-import "stretch/plugin/pkg/services/peerings/api/features/ipsec/ipsec.proto";
+import "flex-plugin/api/api.proto";
+import "flex-plugin/pkg/services/peerings/api/features/ipsec/ipsec.proto";
 
 message Peering {
   api.Metadata metadata = 1;

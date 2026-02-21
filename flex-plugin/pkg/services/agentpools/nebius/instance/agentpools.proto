@@ -5,9 +5,9 @@ package agentpools.nebius.instance;
 option go_package = "github.com/Azure/aks-flex/flex-plugin/pkg/services/agentpools/nebius/instance";
 
 import "google/protobuf/timestamp.proto";
-import "stretch/plugin/api/api.proto";
-import "stretch/plugin/pkg/services/agentpools/api/features/kubeadm/kubeadm.proto";
-import "stretch/plugin/pkg/services/agentpools/api/features/wireguard/wireguard.proto";
+import "flex-plugin/api/api.proto";
+import "flex-plugin/pkg/services/agentpools/api/features/kubeadm/kubeadm.proto";
+import "flex-plugin/pkg/services/agentpools/api/features/wireguard/wireguard.proto";
 
 message AgentPool {
   api.Metadata metadata = 1;
