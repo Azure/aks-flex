@@ -50,17 +50,17 @@ func ResourceCRUDFactory[SVC any, T Resource[S], S any]() func(s SVC) *ResourceC
 
 	// Cache methods (reflection done ONCE here).
 	getByNameM := expectRPCMethod(svcType, "GetByName")
-	getByIDM := expectRPCMethod(svcType, "GetById")
+	getByIDM := expectRPCMethod(svcType, "Get")
 	createM := expectRPCMethod(svcType, "Create")
 	updateM := expectRPCMethod(svcType, "Update")
 	deleteM := expectRPCMethod(svcType, "Delete")
 
 	// Cache request element types so we can allocate requests quickly.
-	getByNameReqElem := getByNameM.Type.In(2).Elem()
-	getByIDReqElem := getByIDM.Type.In(2).Elem()
-	createReqElem := createM.Type.In(2).Elem()
-	updateReqElem := updateM.Type.In(2).Elem()
-	deleteReqElem := deleteM.Type.In(2).Elem()
+	getByNameReqElem := getByNameM.Type.In(1).Elem()
+	getByIDReqElem := getByIDM.Type.In(1).Elem()
+	createReqElem := createM.Type.In(1).Elem()
+	updateReqElem := updateM.Type.In(1).Elem()
+	deleteReqElem := deleteM.Type.In(1).Elem()
 
 	waitAndResourceID := func(ctx context.Context, opVal reflect.Value) (string, error) {
 		waitM := opVal.MethodByName("Wait")
@@ -93,8 +93,8 @@ func ResourceCRUDFactory[SVC any, T Resource[S], S any]() func(s SVC) *ResourceC
 			panic("service value is invalid")
 		}
 		// Ensure the runtime value matches the static SVC type.
-		if svcVal.Type() != svcType {
-			panic(fmt.Sprintf("service value type %v != expected %v", svcVal.Type(), svcType))
+		if svcValType := svcVal.Type(); !svcValType.AssignableTo(svcType) {
+			panic(fmt.Sprintf("service value type %v doesn't implement %v", svcValType, svcType))
 		}
 
 		callUnary := func(ctx context.Context, m reflect.Method, reqPtr reflect.Value) (reflect.Value, error) {
@@ -250,11 +250,11 @@ func expectRPCMethod(svcType reflect.Type, name string) reflect.Method {
 	if !ok {
 		panic(fmt.Sprintf("service type %v does not have %s method", svcType, name))
 	}
-	// Expect: func(recv, ctx, *Req) (Resp, error)
+	// Expect: func(context.Context, *Req, ...grpc.Option) (Resp, error)
 	if m.Type.NumIn() < 3 {
 		panic(fmt.Sprintf("method %s on %v has unexpected signature", name, svcType))
 	}
-	reqTy := m.Type.In(2)
+	reqTy := m.Type.In(1)
 	if reqTy.Kind() != reflect.Ptr || reqTy.Elem().Kind() != reflect.Struct {
 		panic(fmt.Sprintf("method %s on %v req must be *struct, got %v", name, svcType, reqTy))
 	}
