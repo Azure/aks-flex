@@ -1,0 +1,30 @@
+edition = "2024";
+
+package networks.nebius.network;
+
+option go_package = "github.com/Azure/aks-flex/flex-plugin/pkg/services/networks/nebius/network";
+
+import "flex-plugin/api/api.proto";
+import "flex-plugin/pkg/services/networks/api/features/vnet/vnet.proto";
+
+message Network {
+  api.Metadata metadata = 1;
+
+  NetworkSpec spec = 2;
+
+  NetworkStatus status = 3;
+}
+
+message NetworkSpec {
+  string region = 1;
+
+  vnet.Config vnet = 2;
+}
+
+message NetworkStatus {
+  // ProvisioningState string
+  // LastError         error
+
+  string vnet_id = 2;
+  string subnet_id = 3;
+}
