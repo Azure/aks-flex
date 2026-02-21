@@ -172,7 +172,7 @@ func (res *nebiusNetworkResources) DesiredSubnet(network *nebiusvpc.Network) *ne
 	rv := &nebiusvpc.Subnet{
 		Metadata: &nebiuscommon.ResourceMetadata{
 			Id:       res.Network.GetStatus().GetSubnetId(),
-			ParentId: res.Network.GetStatus().GetVnetId(),
+			ParentId: res.Network.GetSpec().GetProjectId(),
 			Name:     fmt.Sprintf("%s-subnet", res.Network.GetMetadata().GetId()),
 		},
 		Spec: &nebiusvpc.SubnetSpec{
