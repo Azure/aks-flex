@@ -46,7 +46,7 @@ func FromAKS(ctx context.Context) (*kubeadm.Config, error) {
 	}
 
 	secrets := &corev1.SecretList{}
-	if err := cli.List(ctx, secrets, client.MatchingFields{"metadata.namespace": metav1.NamespaceSystem}, client.MatchingLabels{"minter.uk/stretch": "true"}); err != nil {
+	if err := cli.List(ctx, secrets, client.MatchingFields{"metadata.namespace": metav1.NamespaceSystem}, client.MatchingLabels{k8s.LabelBootstrapToken: "true"}); err != nil {
 		return nil, err
 	}
 

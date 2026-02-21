@@ -13,6 +13,9 @@ import (
 	"github.com/Azure/aks-flex/flex-plugin/pkg/util/config"
 )
 
+// LabelBootstrapToken is the label key used to identify bootstrap token secrets.
+const LabelBootstrapToken = "flex.aks.azure.com/bootstrap-token"
+
 func Client(ctx context.Context, credentials azcore.TokenCredential, cfg *config.Config) (client.Client, error) {
 	kubeconfig, err := Kubeconfig(ctx, credentials, cfg)
 	if err != nil {

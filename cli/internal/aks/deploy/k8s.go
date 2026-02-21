@@ -127,7 +127,7 @@ func bootstrapToken(ctx context.Context, cfg *config.Config, cli client.Client) 
 			Namespace: metav1.NamespaceSystem,
 			Name:      api.BootstrapTokenSecretPrefix + tokenID,
 			Labels: map[string]string{
-				"minter.uk/stretch": "true",
+				k8s.LabelBootstrapToken: "true",
 			},
 		},
 		Data: map[string][]byte{
