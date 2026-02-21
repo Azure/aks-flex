@@ -6,6 +6,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/Azure/aks-flex/cli/internal/aks"
+	"github.com/Azure/aks-flex/cli/internal/config"
 	"github.com/Azure/aks-flex/cli/internal/network"
 )
 
@@ -16,6 +17,7 @@ var command = &cobra.Command{
 
 func init() {
 	command.AddCommand(aks.Command)
+	command.AddCommand(config.Command)
 	command.AddCommand(network.Command)
 }
 
