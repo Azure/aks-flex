@@ -23,11 +23,13 @@ import (
 	stretchhelper "github.com/azure-management-and-platforms/aks-unbounded/stretch/plugin/pkg/helper"
 	stretchservices "github.com/azure-management-and-platforms/aks-unbounded/stretch/plugin/pkg/services"
 	agentpoolsapi "github.com/azure-management-and-platforms/aks-unbounded/stretch/plugin/pkg/services/agentpools/api"
+	"github.com/azure-management-and-platforms/aks-unbounded/stretch/plugin/pkg/services/agentpools/api/features/wireguard"
 	nebiusinstance "github.com/azure-management-and-platforms/aks-unbounded/stretch/plugin/pkg/services/agentpools/nebius/instance"
 
 	"github.com/Azure/karpenter-provider-flex/pkg/apis"
 	"github.com/Azure/karpenter-provider-flex/pkg/apis/v1alpha1"
 	"github.com/Azure/karpenter-provider-flex/pkg/cloudproviders"
+	wgallocator "github.com/Azure/karpenter-provider-flex/pkg/utils/wireguard"
 )
 
 type CloudProvider struct {
@@ -35,8 +37,9 @@ type CloudProvider struct {
 	stretchPluginConn       *grpc.ClientConn
 	stretchAgentPoolsClient agentpoolsapi.AgentPoolsClient
 
-	kubeClient client.Client
-	clusterCA  []byte
+	kubeClient  client.Client
+	clusterCA   []byte
+	wgAllocator *wgallocator.IPAllocator
 }
 
 func newCloudProvider(
@@ -44,14 +47,16 @@ func newCloudProvider(
 	stretchPluginConn *grpc.ClientConn,
 	kubeClient client.Client,
 	clusterCA []byte,
+	wgAlloc *wgallocator.IPAllocator,
 ) *CloudProvider {
 	return &CloudProvider{
 		sdk:                     sdk,
 		stretchPluginConn:       stretchPluginConn,
 		stretchAgentPoolsClient: agentpoolsapi.NewAgentPoolsClient(stretchPluginConn),
 
-		kubeClient: kubeClient,
-		clusterCA:  clusterCA,
+		kubeClient:  kubeClient,
+		clusterCA:   clusterCA,
+		wgAllocator: wgAlloc,
 	}
 }
 
@@ -61,13 +66,14 @@ func Register(
 	sdk *gosdk.SDK,
 	kubeClient client.Client,
 	clusterCA []byte,
+	wgAlloc *wgallocator.IPAllocator,
 ) error {
 	stretchPluginConn, err := stretchservices.NewConnection()
 	if err != nil {
 		return fmt.Errorf("creating stretch plugin connection: %w", err)
 	}
 
-	cp := newCloudProvider(sdk, stretchPluginConn, kubeClient, clusterCA)
+	cp := newCloudProvider(sdk, stretchPluginConn, kubeClient, clusterCA, wgAlloc)
 	hub.Register(cp, GroupKind, ProviderIDScheme)
 
 	return nil
@@ -123,12 +129,26 @@ func (c *CloudProvider) Create(ctx context.Context, nodeClaim *v1.NodeClaim) (*v
 		"platformPreset", platformPresetToLaunch.InstanceTypeName(),
 	)
 
+	// Allocate a WireGuard peer IP if enabled for this NodeClass.
+	var wgConfig *wireguard.Config
+	if nodeClass.Spec.WireguardPeerCIDR != nil {
+		peerIP, err := c.wgAllocator.AllocateIP(ctx, *nodeClass.Spec.WireguardPeerCIDR, nodeClass.Name, nodeClaim.Name)
+		if err != nil {
+			return nil, err
+		}
+		logger.Info("allocated WireGuard peer IP", "peerIP", peerIP)
+		wgConfig = wireguard.Config_builder{
+			PeerIp: lo.ToPtr(peerIP),
+		}.Build()
+	}
+
 	agentPool := nodeClaimToStretchAgentPool(
 		karpoptions.FromContext(ctx),
 		c.clusterCA,
 		nodeClass,
 		nodeClaim,
 		platformPresetToLaunch,
+		wgConfig,
 	)
 	// TODO: create async - we just need to retrieve the resource id for rebuilding the claim
 	agentPoolCreated, err := stretchhelper.CreateOrUpdate(
@@ -153,6 +173,8 @@ func (c *CloudProvider) Create(ctx context.Context, nodeClaim *v1.NodeClaim) (*v
 		}
 		return nil, fmt.Errorf("creating stretch agent pool: %w", err)
 	}
+
+	logger.Info("launched nebis agent pool")
 
 	// rebuild node claim object to reflect the created instance
 	newNodeClaim := stretchAgentPoolToNodeClaim(agentPoolCreated, platformPresetToLaunch.ToInstanceType())

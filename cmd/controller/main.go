@@ -29,6 +29,7 @@ import (
 	flexcontrollers "github.com/Azure/karpenter-provider-flex/pkg/controllers"
 	flexoptions "github.com/Azure/karpenter-provider-flex/pkg/options"
 	utilsk8s "github.com/Azure/karpenter-provider-flex/pkg/utils/k8s"
+	wireguard "github.com/Azure/karpenter-provider-flex/pkg/utils/wireguard"
 )
 
 func init() {
@@ -84,12 +85,16 @@ func main() {
 
 	// nebius cloud provider...
 	{
+		wgAlloc := wireguard.NewIPAllocator(op.Manager.GetCache(), nebius.GroupKind, 30*time.Second)
+		defer wgAlloc.Close()
+
 		err := nebius.Register(
 			ctx,
 			hubCloudProvider,
 			flexoptions.MustNewNebiusSDK(ctx),
 			op.GetClient(),
 			clusterCA,
+			wgAlloc,
 		)
 		lo.Must0(err, "registering nebius cloud provider")
 	}

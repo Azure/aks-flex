@@ -16,7 +16,8 @@ import (
 
 	"github.com/azure-management-and-platforms/aks-unbounded/stretch/pkg/nodes/topology"
 	stretchapi "github.com/azure-management-and-platforms/aks-unbounded/stretch/plugin/api"
-	kubeadm "github.com/azure-management-and-platforms/aks-unbounded/stretch/plugin/pkg/services/agentpools/api/features/kubeadm"
+	"github.com/azure-management-and-platforms/aks-unbounded/stretch/plugin/pkg/services/agentpools/api/features/kubeadm"
+	"github.com/azure-management-and-platforms/aks-unbounded/stretch/plugin/pkg/services/agentpools/api/features/wireguard"
 	nebiusinstance "github.com/azure-management-and-platforms/aks-unbounded/stretch/plugin/pkg/services/agentpools/nebius/instance"
 
 	"github.com/Azure/karpenter-provider-flex/pkg/apis/v1alpha1"
@@ -82,6 +83,7 @@ func nodeClaimToStretchAgentPool(
 	nodeClass *v1alpha1.NebiusNodeClass,
 	nodeClaim *v1.NodeClaim,
 	platformPreset *platformPreset,
+	wgConfig *wireguard.Config,
 ) *nebiusinstance.AgentPool {
 	mdBuilder := stretchapi.Metadata_builder{
 		Id: lo.ToPtr(nodeClaim.Name),
@@ -138,8 +140,8 @@ func nodeClaimToStretchAgentPool(
 		Preset:      lo.ToPtr(platformPreset.preset.GetName()),
 		ImageFamily: lo.ToPtr(imageFamily),
 		OsDiskSize:  lo.ToPtr(osDiskSize),
-		// TODO: wireguard settings - we need to implement a poor man IPAM solution here
-		Kubeadm: kubeadmConfig,
+		Kubeadm:     kubeadmConfig,
+		Wireguard:   wgConfig,
 	}
 
 	return nebiusinstance.AgentPool_builder{

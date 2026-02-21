@@ -94,10 +94,9 @@ controller:
     # -- Repository path to the controller image.
     repository: ghcr.io/bahe-msft/karpenter-provider-flex
     # -- Tag of the controller image.
-    tag: poc-1ec7596
+    tag: poc-803eb09
     # -- SHA256 digest of the controller image.
-    # digest:
-    digest: sha256:286bc811d925dcbb031aec94e6bde2f83004f5050cb6646876706a262a92af81
+    digest: sha256:1ab716c68829850cf086b053997b963f0f61129414e672923f0aeb06c8237293
   # -- Optional Nebius credentials secret mount. The secret must be created by
   # the user separately (not managed by this chart). When enabled, the secret is
   # mounted as a file and passed via the -flex-nebius.credentials-file flag.
@@ -152,7 +151,7 @@ webhook:
     # -- The container port to use for webhook metrics.
     port: 8001
 # -- Global log level, defaults to 'info'
-logLevel: info
+logLevel: debug
 # -- Log outputPaths - defaults to stdout only
 logOutputPaths:
   - stdout
