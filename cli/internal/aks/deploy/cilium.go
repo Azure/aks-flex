@@ -6,10 +6,7 @@ import (
 	"os"
 	"os/exec"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
-
 	"github.com/Azure/aks-flex/flex-plugin/pkg/util/config"
-	"github.com/Azure/aks-flex/flex-plugin/pkg/util/k8s"
 )
 
 var ciliumInstallInstruction = errors.New(
@@ -28,17 +25,9 @@ func preflightCiliumDeploy() error {
 
 func deployCilium(
 	ctx context.Context,
-	cred azcore.TokenCredential,
+	kubeconfigFile string,
 	cfg *config.Config,
 ) error {
-	kubeconfigFile, err := k8s.SaveKuebeconfig(ctx, cred, cfg)
-	if err != nil {
-		return err
-	}
-	defer func() {
-		_ = os.Remove(kubeconfigFile)
-	}()
-
 	cmd := exec.CommandContext(
 		ctx,
 		"cilium", "install",

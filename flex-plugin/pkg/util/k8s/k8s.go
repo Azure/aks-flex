@@ -41,31 +41,6 @@ func getKubeconfig(ctx context.Context, credentials azcore.TokenCredential, cfg 
 	return creds.Kubeconfigs[0].Value, nil
 }
 
-// SaveKuebeconfig saves the kubeconfig to temporary file.
-// The caller is responsible for deleting the temporary file after using it.
-func SaveKuebeconfig(
-	ctx context.Context,
-	credentials azcore.TokenCredential,
-	cfg *config.Config,
-) (string, error) {
-	kubeconfig, err := getKubeconfig(ctx, credentials, cfg)
-	if err != nil {
-		return "", err
-	}
-
-	tempfile, err := os.CreateTemp("", "kubeconfig-*.yaml")
-	if err != nil {
-		return "", err
-	}
-	defer tempfile.Close()
-
-	if _, err := tempfile.Write(kubeconfig); err != nil {
-		return "", err
-	}
-
-	return tempfile.Name(), nil
-}
-
 func Kubeconfig(ctx context.Context, credentials azcore.TokenCredential, cfg *config.Config) (*api.Config, error) {
 	creds, err := getKubeconfig(ctx, credentials, cfg)
 	if err != nil {
@@ -82,4 +57,19 @@ func Loader(ctx context.Context, credentials azcore.TokenCredential, cfg *config
 	}
 
 	return clientcmd.NewDefaultClientConfig(*kubeconfig, nil), nil
+}
+
+// SaveKubeconfigTo saves the cluster admin kubeconfig to the specified file path.
+func SaveKubeconfigTo(ctx context.Context, credentials azcore.TokenCredential, cfg *config.Config, path string) error {
+	kubeconfig, err := Kubeconfig(ctx, credentials, cfg)
+	if err != nil {
+		return err
+	}
+
+	content, err := clientcmd.Write(*kubeconfig)
+	if err != nil {
+		return err
+	}
+
+	return os.WriteFile(path, content, 0600)
 }
