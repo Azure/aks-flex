@@ -1,6 +1,7 @@
 package env
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -14,6 +15,9 @@ import (
 )
 
 var configTemplate = template.Must(template.New("env").Parse(`
+# !! This file includes sensitive information, please do not commit it to any public repository !!
+# Please update the values in this file for your environment.
+
 # -----------------------------------------------------------------------------
 # Azure Config
 # -----------------------------------------------------------------------------
@@ -116,5 +120,16 @@ func run(ctx context.Context, out io.Writer) error {
 		return err
 	}
 
-	return configTemplate.Execute(out, cc)
+	var b bytes.Buffer
+	if err := configTemplate.Execute(&b, cc); err != nil {
+		return err
+	}
+
+	generated := strings.TrimSpace(b.String()) + "\n"
+	_, err := out.Write([]byte(generated))
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
