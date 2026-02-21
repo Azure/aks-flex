@@ -14,11 +14,11 @@ import (
 	"sigs.k8s.io/karpenter/pkg/cloudprovider"
 	"sigs.k8s.io/karpenter/pkg/utils/resources"
 
-	"github.com/azure-management-and-platforms/aks-unbounded/stretch/pkg/nodes/topology"
-	stretchapi "github.com/azure-management-and-platforms/aks-unbounded/stretch/plugin/api"
-	"github.com/azure-management-and-platforms/aks-unbounded/stretch/plugin/pkg/services/agentpools/api/features/kubeadm"
-	"github.com/azure-management-and-platforms/aks-unbounded/stretch/plugin/pkg/services/agentpools/api/features/wireguard"
-	nebiusinstance "github.com/azure-management-and-platforms/aks-unbounded/stretch/plugin/pkg/services/agentpools/nebius/instance"
+	stretchapi "github.com/Azure/aks-flex/flex-plugin/api"
+	"github.com/Azure/aks-flex/flex-plugin/pkg/services/agentpools/api/features/kubeadm"
+	"github.com/Azure/aks-flex/flex-plugin/pkg/services/agentpools/api/features/wireguard"
+	nebiusinstance "github.com/Azure/aks-flex/flex-plugin/pkg/services/agentpools/nebius/instance"
+	"github.com/Azure/aks-flex/flex-plugin/pkg/topology"
 
 	"github.com/Azure/aks-flex/karpenter-provider-flex/pkg/apis/v1alpha1"
 	"github.com/Azure/aks-flex/karpenter-provider-flex/pkg/cloudproviders"

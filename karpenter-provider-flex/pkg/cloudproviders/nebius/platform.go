@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"iter"
 
+	nebiusinstance "github.com/Azure/aks-flex/flex-plugin/pkg/services/agentpools/nebius/instance"
 	"github.com/Azure/karpenter-provider-azure/pkg/apis/v1beta1"
 	"github.com/Azure/karpenter-provider-azure/pkg/providers/instancetype"
-	nebiusinstance "github.com/azure-management-and-platforms/aks-unbounded/stretch/plugin/pkg/services/agentpools/nebius/instance"
 	"github.com/nebius/gosdk"
 	nebiuscommonv1 "github.com/nebius/gosdk/proto/nebius/common/v1"
 	nebiuscomputev1 "github.com/nebius/gosdk/proto/nebius/compute/v1"

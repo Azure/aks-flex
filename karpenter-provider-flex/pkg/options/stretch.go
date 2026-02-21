@@ -8,8 +8,8 @@ import (
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/karpenter/pkg/operator/options"
 
-	"github.com/azure-management-and-platforms/aks-unbounded/stretch/plugin/pkg/services"
-	nebiusinstance "github.com/azure-management-and-platforms/aks-unbounded/stretch/plugin/pkg/services/agentpools/nebius/instance"
+	"github.com/Azure/aks-flex/flex-plugin/pkg/services"
+	nebiusinstance "github.com/Azure/aks-flex/flex-plugin/pkg/services/agentpools/nebius/instance"
 )
 
 func init() {

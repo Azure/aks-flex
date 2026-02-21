@@ -1,0 +1,11 @@
+edition = "2024";
+
+package testobj;
+
+option go_package = "github.com/Azure/aks-flex/flex-plugin/pkg/db/internal/testobj";
+
+import "stretch/plugin/api/api.proto";
+
+message FakeObject {
+  api.Metadata metadata = 1;
+}

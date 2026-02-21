@@ -1,0 +1,113 @@
+{
+	"AWSTemplateFormatVersion": "2010-09-09",
+	"Parameters": {
+		"PreSharedKey": {
+			"Type": "String",
+			"NoEcho": true
+		},
+		"RemoteIP": {
+			"Type": "String"
+		},
+		"RouteTable": {
+			"Type": "String"
+		},
+		"VPC": {
+			"Type": "String"
+		}
+	},
+	"Resources": {
+		"VPNGateway": {
+			"Type": "AWS::EC2::VPNGateway",
+			"Properties": {
+				"AmazonSideAsn": 64513,
+				"Type": "ipsec.1",
+				"Tags": [
+					{
+						"Key": "Name",
+						"Value": "VPNGateway"
+					}
+				]
+			}
+		},
+		"VPCGatewayAttachmentVPNGateway": {
+			"Type": "AWS::EC2::VPCGatewayAttachment",
+			"Properties": {
+				"VpcId": {
+					"Ref": "VPC"
+				},
+				"VpnGatewayId": {
+					"Ref": "VPNGateway"
+				}
+			}
+		},
+		"VPNGatewayRoutePropagation": {
+			"Type": "AWS::EC2::VPNGatewayRoutePropagation",
+			"DependsOn": "VPCGatewayAttachmentVPNGateway",
+			"Properties": {
+				"RouteTableIds": [
+					{
+						"Ref": "RouteTable"
+					}
+				],
+				"VpnGatewayId": {
+					"Ref": "VPNGateway"
+				}
+			}
+		},
+		"CustomerGateway": {
+			"Type": "AWS::EC2::CustomerGateway",
+			"Properties": {
+				"BgpAsn": 64512,
+				"IpAddress": {
+					"Ref": "RemoteIP"
+				},
+				"Type": "ipsec.1",
+				"Tags": [
+					{
+						"Key": "Name",
+						"Value": "CustomerGateway"
+					}
+				]
+			}
+		},
+		"VPNConnection": {
+			"Type": "AWS::EC2::VPNConnection",
+			"Properties": {
+				"CustomerGatewayId": {
+					"Ref": "CustomerGateway"
+				},
+				"Type": "ipsec.1",
+				"VpnTunnelOptionsSpecifications": [
+					{
+						"PreSharedKey": {
+							"Ref": "PreSharedKey"
+						},
+						"TunnelInsideCidr": "169.254.21.0/30"
+					},
+					{
+						"PreSharedKey": {
+							"Ref": "PreSharedKey"
+						},
+						"TunnelInsideCidr": "169.254.21.4/30"
+					}
+				],
+				"VpnGatewayId": {
+					"Ref": "VPNGateway"
+				},
+				"Tags": [
+					{
+						"Key": "Name",
+						"Value": "VPNConnection"
+					}
+				]
+			}
+		}
+	},
+	"Outputs": {
+		"VPNConnection": {
+			"Value": {
+				"Ref": "VPNConnection"
+			}
+		}
+	}
+}

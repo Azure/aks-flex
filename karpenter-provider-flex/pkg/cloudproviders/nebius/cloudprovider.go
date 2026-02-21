@@ -20,11 +20,11 @@ import (
 	corecloudprovider "sigs.k8s.io/karpenter/pkg/cloudprovider"
 	"sigs.k8s.io/karpenter/pkg/scheduling"
 
-	stretchhelper "github.com/azure-management-and-platforms/aks-unbounded/stretch/plugin/pkg/helper"
-	stretchservices "github.com/azure-management-and-platforms/aks-unbounded/stretch/plugin/pkg/services"
-	agentpoolsapi "github.com/azure-management-and-platforms/aks-unbounded/stretch/plugin/pkg/services/agentpools/api"
-	"github.com/azure-management-and-platforms/aks-unbounded/stretch/plugin/pkg/services/agentpools/api/features/wireguard"
-	nebiusinstance "github.com/azure-management-and-platforms/aks-unbounded/stretch/plugin/pkg/services/agentpools/nebius/instance"
+	stretchhelper "github.com/Azure/aks-flex/flex-plugin/pkg/helper"
+	stretchservices "github.com/Azure/aks-flex/flex-plugin/pkg/services"
+	agentpoolsapi "github.com/Azure/aks-flex/flex-plugin/pkg/services/agentpools/api"
+	"github.com/Azure/aks-flex/flex-plugin/pkg/services/agentpools/api/features/wireguard"
+	nebiusinstance "github.com/Azure/aks-flex/flex-plugin/pkg/services/agentpools/nebius/instance"
 
 	"github.com/Azure/aks-flex/karpenter-provider-flex/pkg/apis"
 	"github.com/Azure/aks-flex/karpenter-provider-flex/pkg/apis/v1alpha1"

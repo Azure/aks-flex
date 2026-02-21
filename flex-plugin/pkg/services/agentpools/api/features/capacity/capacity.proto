@@ -1,0 +1,9 @@
+edition = "2024";
+
+package capacity;
+
+option go_package = "github.com/Azure/aks-flex/flex-plugin/pkg/services/agentpools/api/features/capacity";
+
+message Config {
+  uint32 capacity = 1;
+}
