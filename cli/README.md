@@ -48,6 +48,12 @@ $ aks-flex-cli plugin get agentpools <name>
 $ aks-flex-cli plugin delete agentpools <name>
 ```
 
+## Prepare an (existing) cluster
+
+```
+$ aks-flex-cli config k8s-bootstrap > cluster-settings.yaml
+```
+
 ## Bootstrap a Node (manually)
 
 ```

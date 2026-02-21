@@ -107,3 +107,18 @@ data:
   kubelet: |
     apiVersion: kubelet.config.k8s.io/v1beta1
     kind: KubeletConfiguration
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  namespace: kube-system
+  name: bootstrap-token-{{ .tokenID }}
+  labels:
+    flex.aks.azure.com/bootstrap-token: "true"
+type: bootstrap.kubernetes.io/token
+stringData:
+  auth-extra-groups: system:bootstrappers:kubeadm:default-node-token
+  token-id: "{{ .tokenID }}"
+  token-secret: "{{ .tokenSecret }}"
+  usage-bootstrap-authentication: "true"
+  usage-bootstrap-signing: "true"

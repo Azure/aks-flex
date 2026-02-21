@@ -5,6 +5,7 @@ import (
 
 	"github.com/Azure/aks-flex/cli/internal/config/agentpools"
 	"github.com/Azure/aks-flex/cli/internal/config/env"
+	"github.com/Azure/aks-flex/cli/internal/config/k8sbootstrap"
 	"github.com/Azure/aks-flex/cli/internal/config/network"
 	"github.com/Azure/aks-flex/cli/internal/config/nodebootstrap"
 )
@@ -17,5 +18,6 @@ func init() {
 	Command.AddCommand(env.Command)
 	Command.AddCommand(network.Command)
 	Command.AddCommand(agentpools.Command)
+	Command.AddCommand(k8sbootstrap.Command)
 	Command.AddCommand(nodebootstrap.Command)
 }
