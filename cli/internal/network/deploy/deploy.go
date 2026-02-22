@@ -3,6 +3,7 @@ package deploy
 import (
 	"context"
 	_ "embed"
+	"log"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armresources/v2"
@@ -41,9 +42,15 @@ func run(ctx context.Context) error {
 		return err
 	}
 
-	return az.Deploy(ctx, credentials, cfg, "network", networkJSON, map[string]*armresources.DeploymentParameter{
+	if err := az.Deploy(ctx, credentials, cfg, "network", networkJSON, map[string]*armresources.DeploymentParameter{
 		"deployGateway": {
 			Value: deployGateway,
 		},
-	})
+	}); err != nil {
+		return err
+	}
+
+	log.Printf("network deployment complete")
+
+	return nil
 }

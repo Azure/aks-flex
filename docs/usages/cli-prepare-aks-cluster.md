@@ -68,9 +68,7 @@ $ aks-flex-cli network deploy
 Expected output:
 
 ```
-2026/02/21 10:00:00 creating resource group rg-aks-flex-<username> in southcentralus
-2026/02/21 10:00:02 starting deployment network in rg-aks-flex-<username>
-2026/02/21 10:00:30 deployment network succeeded
+2026/02/21 19:26:04 network deployment complete
 ```
 
 To also deploy a VPN gateway (for production site-to-site VPN), add the `--gateway` flag:
@@ -81,7 +79,7 @@ $ aks-flex-cli network deploy --gateway
 
 > **Note:** VPN gateway provisioning can take 20-40 minutes.
 
-<!-- TODO: Add Azure portal screenshots of the created network resources. -->
+![](./images/cli-prepare-aks-cluster/resource-network.png)
 
 ## Create AKS Cluster
 
@@ -101,13 +99,16 @@ This command performs the following steps:
 Expected output:
 
 ```
-2026/02/21 10:05:00 starting deployment aks in rg-aks-flex-<username>
-2026/02/21 10:12:00 deployment aks succeeded
-2026/02/21 10:12:01 kubeconfig saved to aks.kubeconfig
-ℹ️  Using Cilium version 1.17.x
+2026/02/21 19:43:58 Deploying AKS cluster "aks" in "rg-aks-flex-<username>"
+2026/02/21 19:46:34 AKS cluster deployment complete
+2026/02/21 19:46:35 kubeconfig saved to "aks.kubeconfig"
+2026/02/21 19:46:38 Kubernetes-side deployment complete
+🔮 Auto-detected Kubernetes kind: AKS
+ℹ️  Using Cilium version 1.18.5
 🔮 Auto-detected cluster name: aks
 ...
-✅ Cilium was successfully installed!
+🔮 Auto-detected kube-proxy has been installed
+2026/02/21 19:46:45 Cilium deployment complete
 ```
 
 You can customize the kubeconfig output path with `--kubeconfig-to-save`:
@@ -116,7 +117,7 @@ You can customize the kubeconfig output path with `--kubeconfig-to-save`:
 $ aks-flex-cli aks deploy --cilium --kubeconfig-to-save ./my-cluster.kubeconfig
 ```
 
-<!-- TODO: Add Azure portal screenshots of the created AKS cluster resources. -->
+![](./images/cli-prepare-aks-cluster/resource-aks.png)
 
 ### Enable with WireGuard
 
@@ -175,6 +176,10 @@ Expected output:
 2026/02/21 10:17:52   WireGuard DaemonSet deployed successfully
 ```
 
+Sample route table after deployment:
+
+![](./images/cli-prepare-aks-cluster/resource-wg-route.png)
+
 ## Connecting to the cluster
 
 After the AKS cluster is created, the CLI saves a kubeconfig file to the working directory (default: `aks.kubeconfig`). Use it to connect to the cluster:
@@ -183,16 +188,16 @@ After the AKS cluster is created, the CLI saves a kubeconfig file to the working
 $ export KUBECONFIG=./aks.kubeconfig
 $ kubectl get nodes
 NAME                             STATUS   ROLES    AGE   VERSION
-aks-system-12345678-vmss000000   Ready    <none>   5m    v1.31.x
-aks-system-12345678-vmss000001   Ready    <none>   5m    v1.31.x
+aks-system-32742974-vmss000000   Ready    <none>   16m   v1.33.6
+aks-system-32742974-vmss000001   Ready    <none>   16m   v1.33.6
 ```
 
 If you deployed with `--wireguard`, you will also see the WireGuard gateway node:
 
 ```bash
 $ kubectl get nodes
-NAME                                 STATUS   ROLES    AGE   VERSION
-aks-system-12345678-vmss000000       Ready    <none>   10m   v1.31.x
-aks-system-12345678-vmss000001       Ready    <none>   10m   v1.31.x
-aks-wireguard-12345678-vmss000000    Ready    <none>   8m    v1.31.x
+NAME                                STATUS   ROLES    AGE   VERSION
+aks-system-32742974-vmss000000      Ready    <none>   19m   v1.33.6
+aks-system-32742974-vmss000001      Ready    <none>   19m   v1.33.6
+aks-wireguard-12237243-vmss000000   Ready    <none>   51s   v1.33.6
 ```

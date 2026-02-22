@@ -51,7 +51,7 @@ Verify the installation:
 
 ```bash
 $ aks-flex-cli version
-aks-flex-cli version dev (commit: unknown, built: unknown)
+aks-flex-cli 2034ea2 (commit: 2034ea244f2bff421a43644a1865b07331d13235, built: 2026-02-22T03:14:16Z)
 ```
 
 ### Download pre-built binaries

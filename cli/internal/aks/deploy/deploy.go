@@ -74,6 +74,7 @@ func run(ctx context.Context) error {
 	}
 
 	if !skipARM {
+		log.Printf("Deploying AKS cluster %q in %q", cfg.ClusterName, cfg.ResourceGroupName)
 		if err := az.Deploy(ctx, credentials, cfg, "aks", aksJSON, map[string]*armresources.DeploymentParameter{
 			"clusterName": {
 				Value: cfg.ClusterName,
@@ -87,33 +88,40 @@ func run(ctx context.Context) error {
 		}); err != nil {
 			return err
 		}
+
+		log.Printf("AKS cluster deployment complete")
 	}
 
 	kubeconfigPath, err := saveKubeconfig(ctx, credentials, cfg)
 	if err != nil {
 		return err
 	}
+	log.Printf("kubeconfig saved to %q", kubeconfigPath)
 
 	if err := deployK8S(ctx, credentials, cfg); err != nil {
 		return err
 	}
+	log.Printf("Kubernetes-side deployment complete")
 
 	if deploycilium {
 		if err := deployCilium(ctx, kubeconfigPath, cfg); err != nil {
 			return err
 		}
+		log.Printf("Cilium deployment complete")
 	}
 
 	if deployWireguard {
 		if err := deployWireGuard(ctx, credentials, cfg); err != nil {
 			return err
 		}
+		log.Printf("WireGuard deployment complete")
 	}
 
 	if deployGPUOperator {
 		if err := installGPUOperator(ctx); err != nil {
 			return err
 		}
+		log.Printf("GPU Operator deployment complete")
 	}
 
 	return nil
@@ -129,6 +137,5 @@ func saveKubeconfig(ctx context.Context, credentials azcore.TokenCredential, cfg
 		return "", fmt.Errorf("failed to save kubeconfig to %s: %w", outputPath, err)
 	}
 
-	log.Printf("kubeconfig saved to %s", outputPath)
 	return outputPath, nil
 }
