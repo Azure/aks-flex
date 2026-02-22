@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 
 	_ "github.com/joho/godotenv/autoload"
@@ -12,9 +13,24 @@ import (
 	"github.com/Azure/aks-flex/cli/internal/plugin"
 )
 
+// Set via ldflags at build time.
+var (
+	version = "dev"
+	commit  = "unknown"
+	date    = "unknown"
+)
+
 var command = &cobra.Command{
-	Use:          "flex-cli",
+	Use:          "aks-flex-cli",
 	SilenceUsage: true,
+}
+
+var versionCmd = &cobra.Command{
+	Use:   "version",
+	Short: "Print the version information",
+	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Printf("aks-flex-cli %s (commit: %s, built: %s)\n", version, commit, date)
+	},
 }
 
 func init() {
@@ -22,6 +38,7 @@ func init() {
 	command.AddCommand(config.Command)
 	command.AddCommand(network.Command)
 	command.AddCommand(plugin.Command)
+	command.AddCommand(versionCmd)
 }
 
 func main() {
