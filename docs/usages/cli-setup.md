@@ -31,6 +31,59 @@ The following tools must be installed and available on your `PATH`:
 - **Cilium CLI (`cilium`)** *(optional)* -- used for managing and validating Cilium networking. See [Cilium install guide](https://docs.cilium.io/en/stable/gettingstarted/k8s-install-default/#install-the-cilium-cli).
 - **Nebius CLI (`nebius`)** *(optional)* -- required only if you plan to integrate with Nebius as a remote cloud provider
 
+### Download pre-built binaries
+
+Pre-built binaries are available for the following platforms:
+
+| Platform      | Architecture | Download |
+| ------------- | ------------ | -------- |
+| macOS (Darwin) | arm64        | [aks-flex-cli_0.0.1-snapshot-910c096_darwin_arm64.tar.gz](https://aksflxcli.z20.web.core.windows.net/aks-flex-cli/aks-flex-cli_0.0.1-snapshot-910c096_darwin_arm64.tar.gz) |
+| Linux          | amd64        | [aks-flex-cli_0.0.1-snapshot-910c096_linux_amd64.tar.gz](https://aksflxcli.z20.web.core.windows.net/aks-flex-cli/aks-flex-cli_0.0.1-snapshot-910c096_linux_amd64.tar.gz) |
+| Linux          | arm64        | [aks-flex-cli_0.0.1-snapshot-910c096_linux_arm64.tar.gz](https://aksflxcli.z20.web.core.windows.net/aks-flex-cli/aks-flex-cli_0.0.1-snapshot-910c096_linux_arm64.tar.gz) |
+
+Download and install the binary for your platform:
+
+```bash
+# Example for macOS (arm64)
+curl -LO https://aksflxcli.z20.web.core.windows.net/aks-flex-cli/aks-flex-cli_0.0.1-snapshot-910c096_darwin_arm64.tar.gz
+tar -xzf aks-flex-cli_0.0.1-snapshot-910c096_darwin_arm64.tar.gz
+chmod +x aks-flex-cli_darwin_arm64
+mkdir -p ~/.local/bin
+mv aks-flex-cli_darwin_arm64 ~/.local/bin/aks-flex-cli
+```
+
+```bash
+# Example for WSL / Linux (amd64)
+curl -LO https://aksflxcli.z20.web.core.windows.net/aks-flex-cli/aks-flex-cli_0.0.1-snapshot-910c096_linux_amd64.tar.gz
+tar -xzf aks-flex-cli_0.0.1-snapshot-910c096_linux_amd64.tar.gz
+chmod +x aks-flex-cli_linux_amd64
+mkdir -p ~/.local/bin
+mv aks-flex-cli_linux_amd64 ~/.local/bin/aks-flex-cli
+```
+
+Make sure `~/.local/bin` is on your `PATH`. If it isn't, add the following to your shell profile (`~/.bashrc`, `~/.zshrc`, etc.):
+
+```bash
+export PATH="$HOME/.local/bin:$PATH"
+```
+
+#### Verify checksums
+
+After downloading, verify the integrity of the archive using SHA-256:
+
+```
+eed0025cff7685578dc0e52febc919f592270a10a55a5e2801f9b1da928ce19d  aks-flex-cli_0.0.1-snapshot-910c096_darwin_arm64.tar.gz
+2f49d97716aed6f99966da8efa70e72dd894efa3312a74f3687ad31da8108103  aks-flex-cli_0.0.1-snapshot-910c096_linux_amd64.tar.gz
+53f5fccf8e7cec4a912254999d7749724b6203c4c0f2fd30c3004e468e8058d0  aks-flex-cli_0.0.1-snapshot-910c096_linux_arm64.tar.gz
+```
+
+```bash
+shasum -a 256 aks-flex-cli_*.tar.gz
+```
+
+> **TODO:** These binaries will be published to [GitHub Releases](https://github.com/Azure/aks-flex/releases) in the future. Once available, download URLs and installation instructions will be updated accordingly.
+
+
 ### Install from source
 
 Clone the repository and build the binary:
@@ -51,12 +104,9 @@ Verify the installation:
 
 ```bash
 $ aks-flex-cli version
-aks-flex-cli 2034ea2 (commit: 2034ea244f2bff421a43644a1865b07331d13235, built: 2026-02-22T03:14:16Z)
+aks-flex-cli <version> (commit: <commit>, built: <build-time>)
 ```
 
-### Download pre-built binaries
-
-<!-- TODO: Add download instructions once release artifacts are published (e.g. GitHub Releases URL, supported platforms, checksums). -->
 
 ## Configuration
 
