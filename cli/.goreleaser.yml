@@ -13,6 +13,7 @@ builds:
       - linux_amd64
       - linux_arm64
       - darwin_arm64
+      # - windows_amd64 # TODO: fix file lock os compatibility
     ldflags:
       - -s -w
       - -X main.version={{.Version}}
@@ -30,6 +31,10 @@ archives:
       {{- .Version }}_
       {{- .Os }}_
       {{- .Arch }}
+    formats: ["tar.gz"]
+    format_overrides:
+      - formats: ["zip"]
+        goos: windows
 
 checksum:
   name_template: "checksums.txt"

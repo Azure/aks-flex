@@ -78,6 +78,10 @@ build-local: fmt vet ## Build CLI binary for the current platform only.
 		-ldflags "$(GO_LDFLAGS) -X main.version=$(GIT_VERSION) -X main.commit=$(GIT_COMMIT) -X main.date=$(BUILD_DATE)" \
 		-o $(LOCALBIN)/$(BINARY_NAME) .
 
+.PHONY: build-archive
+build-archives: ## Build and archive CLI binaries for all platforms using goreleaser.
+	$(GORELEASER) release --snapshot --clean --skip=publish
+
 .PHONY: run
 run: ## Run the CLI from source.
 	go run .
