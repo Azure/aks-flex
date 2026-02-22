@@ -36,7 +36,7 @@ We will join two Nebius nodes to the AKS cluster:
 | Node       | Platform   | Preset       | Image Family                | Purpose                     |
 | ---------- | ---------- | ------------ | --------------------------- | --------------------------- |
 | CPU node   | `cpu-d3`   | `4vcpu-16gb` | `ubuntu24.04-driverless`    | General-purpose workloads   |
-| GPU node   | (GPU platform) | (GPU preset) | (GPU-compatible image)  | GPU-accelerated workloads   |
+| GPU node   | `gpu-h100-sxm` | `1gpu-16vcpu-200gb` | `ubuntu24.04-cuda12`  | GPU-accelerated workloads   |
 
 ## Create Nebius Network Resources
 
@@ -44,10 +44,10 @@ Before creating nodes, you need to provision a VPC network in Nebius that will b
 
 ### Generate the network config
 
-Use `config network` to generate a default Nebius network JSON template:
+Use `config networks` to generate a default Nebius network JSON template:
 
 ```bash
-$ aks-flex-cli config network nebius > nebius-network.json
+$ aks-flex-cli config networks nebius > nebius-network.json
 ```
 
 This produces a JSON file like:
@@ -85,12 +85,10 @@ Pipe the JSON into the `plugin apply` command:
 $ cat nebius-network.json | aks-flex-cli plugin apply networks
 ```
 
-<!-- TODO: Capture actual CLI output from `plugin apply networks` and paste here. -->
-
 Expected output:
 
 ```
-<to be captured>
+2026/02/21 20:07:00 Applied "nebius-default" (type: networks.nebius.network.Network)
 ```
 
 ### Verify the network
@@ -118,7 +116,7 @@ $ aks-flex-cli plugin get networks nebius-default
 }
 ```
 
-<!-- TODO: Add Nebius portal screenshots of the created VPC network and subnet resources. -->
+![](./images/cli-plugin-nebius/resource-nebius-network.png)
 
 ## Nebius - Azure Network Connectivity
 
@@ -220,8 +218,7 @@ $ cat nebius-cpu.json | aks-flex-cli plugin apply agentpools
 Expected output:
 
 ```
-Creating agent pool nebius-cpu...
-Agent pool nebius-cpu created successfully
+2026/02/21 20:10:24 Applied "nebius-cpu" (type: agentpools.nebius.instance.AgentPool)
 ```
 
 ### Verify the node joined the cluster
@@ -234,14 +231,16 @@ $ aks-flex-cli plugin get agentpools nebius-cpu
 
 ```bash
 $ export KUBECONFIG=./aks.kubeconfig
-$ kubectl get nodes
-NAME                                 STATUS   ROLES    AGE   VERSION
-aks-system-12345678-vmss000000       Ready    <none>   1h    v1.31.x
-aks-system-12345678-vmss000001       Ready    <none>   1h    v1.31.x
-nebius-cpu                           Ready    <none>   2m    v1.31.x
+$ kubectl get nodes -o wide
+k get node -o wide
+NAME                                 STATUS     ROLES    AGE   VERSION   INTERNAL-IP    EXTERNAL-IP   OS-IMAGE             KERNEL-VERSION       CONTAINER-RUNTIME
+aks-system-32742974-vmss000000       Ready      <none>   40m   v1.33.6   172.16.1.4     <none>        Ubuntu 22.04.5 LTS   5.15.0-1102-azure    containerd://1.7.30-1
+aks-system-32742974-vmss000001       Ready      <none>   40m   v1.33.6   172.16.1.5     <none>        Ubuntu 22.04.5 LTS   5.15.0-1102-azure    containerd://1.7.30-1
+aks-wireguard-12237243-vmss000000    Ready      <none>   21m   v1.33.6   172.16.2.4     <MASKED>      Ubuntu 22.04.5 LTS   5.15.0-1102-azure    containerd://1.7.30-1
+computeinstance-e00c3m3yvj3rhnvhan   Ready      <none>   58s   v1.33.8   100.96.1.111   <none>        Ubuntu 24.04.4 LTS   6.11.0-1016-nvidia   containerd://1.7.28
 ```
 
-<!-- TODO: Add Nebius portal screenshots of the created CPU instance. -->
+![](./images/cli-plugin-nebius/resource-nebius-instance-cpu.png)
 
 ## Create Nebius GPU Node
 
@@ -259,7 +258,7 @@ Edit the file to configure a GPU node:
 | ------------------- | ------------------------------- | ---------------------------------------------------- |
 | `metadata.id`       | `nebius-gpu`                    | Unique name for this agent pool                      |
 | `spec.subnetId`     | *(from Nebius network output)*  | Same subnet as the CPU node                          |
-| `spec.platform`     | *(GPU platform, e.g. `gpu-h200-sxm`)* | Nebius GPU compute platform                   |
+| `spec.platform`     | *(GPU platform, e.g. `gpu-h100-sxm`)* | Nebius GPU compute platform                   |
 | `spec.preset`       | *(GPU preset, e.g. `1gpu-16vcpu-200gb`)* | GPU VM size preset <!-- TODO: add link to Nebius docs listing available platform/preset values --> |
 | `spec.imageFamily`  | *(GPU image, e.g. `ubuntu24.04-cuda12`)* | OS image with GPU drivers                   |
 | `spec.wireguard.peerIp` | *(unique IP in `100.96.0.0/12`)* | WireGuard peer IP (must differ from CPU node, see [Peer IP assignment](#peer-ip-assignment)) |
@@ -270,6 +269,12 @@ Edit the file to configure a GPU node:
 $ cat nebius-gpu.json | aks-flex-cli plugin apply agentpools
 ```
 
+Expected output:
+
+```
+2026/02/21 20:16:36 Applied "nebius-gpu" (type: agentpools.nebius.instance.AgentPool)
+```
+
 ### Verify the node joined the cluster
 
 ```bash
@@ -277,21 +282,41 @@ $ aks-flex-cli plugin get agentpools nebius-gpu
 ```
 
 ```bash
-$ kubectl get nodes
-NAME                                 STATUS   ROLES    AGE   VERSION
-aks-system-12345678-vmss000000       Ready    <none>   1h    v1.31.x
-aks-system-12345678-vmss000001       Ready    <none>   1h    v1.31.x
-nebius-cpu                           Ready    <none>   10m   v1.31.x
-nebius-gpu                           Ready    <none>   2m    v1.31.x
+$ kubectl get nodes -o wide
+k get node -o wide
+NAME                                 STATUS   ROLES    AGE     VERSION   INTERNAL-IP    EXTERNAL-IP   OS-IMAGE             KERNEL-VERSION       CONTAINER-RUNTIME
+aks-system-32742974-vmss000000       Ready    <none>   50m     v1.33.6   172.16.1.4     <none>        Ubuntu 22.04.5 LTS   5.15.0-1102-azure    containerd://1.7.30-1
+aks-system-32742974-vmss000001       Ready    <none>   50m     v1.33.6   172.16.1.5     <none>        Ubuntu 22.04.5 LTS   5.15.0-1102-azure    containerd://1.7.30-1
+aks-wireguard-12237243-vmss000000    Ready    <none>   31m     v1.33.6   172.16.2.4     <MASKED>      Ubuntu 22.04.5 LTS   5.15.0-1102-azure    containerd://1.7.30-1
+computeinstance-e00c3m3yvj3rhnvhan   Ready    <none>   9m57s   v1.33.8   100.96.1.111   <none>        Ubuntu 24.04.4 LTS   6.11.0-1016-nvidia   containerd://1.7.28
+computeinstance-e00vm3hfp0gac4e5vz   Ready    <none>   117s    v1.33.8   100.96.1.112   <none>        Ubuntu 24.04.4 LTS   6.11.0-1016-nvidia   containerd://1.7.28
 ```
 
-<!-- TODO: Add Nebius portal screenshots of the created GPU instance. -->
+![](./images/cli-plugin-nebius/resource-nebius-instance-gpu.png)
+
+## Validating cross-cloud connectivity
+
+With the WireGuard tunnel and Cilium VXLAN overlay in place, pods running on the Nebius nodes should be able to
+communicate with pods on the AKS nodes, and vice versa. We can validate this by checking the logs
+from pods running on the Nebius nodes:
+
+```
+$ export GPU_NODE_NAME="computeinstance-e00vm3hfp0gac4e5vz"
+$ kubectl -n kube-system logs -f $(kubectl -n kube-system get pod --field-selector spec.nodeName=$GPU_NODE_NAME -l component=kube-proxy -o jsonpath='{.items[*].metadata.name}')
+Defaulted container "kube-proxy" out of: kube-proxy, kube-proxy-bootstrap (init)
+I0222 04:20:45.184240       1 server_linux.go:63] "Using iptables proxy"
+I0222 04:20:45.184345       1 flags.go:64] FLAG: --bind-address="0.0.0.0"
+I0222 04:20:45.184351       1 flags.go:64] FLAG: --bind-address-hard-fail="false"
+I0222 04:20:45.184355       1 flags.go:64] FLAG: --boot-id-file="/proc/sys/kernel/random/boot_id"
+I0222 04:20:45.184357       1 flags.go:64] FLAG: --cleanup="false"
+I0222 04:20:45.184359       1 flags.go:64] FLAG: --cluster-cidr="10.244.0.0/16"
+```
 
 ### GPU Device Plugin
 
-<!-- TODO: GPU workloads require a device plugin to expose GPU resources to the Kubernetes scheduler.
-Currently this must be installed manually. Document the steps for installing the NVIDIA device
-plugin (or GPU operator) on the Nebius GPU node once the process is finalized. -->
+> **TODO:** GPU workloads require a device plugin to expose GPU resources to the Kubernetes scheduler.
+> Currently this must be installed manually. Document the steps for installing the NVIDIA device
+> plugin (or GPU operator) on the Nebius GPU node once the process is finalized.
 
 ## Clean up resources
 
@@ -307,19 +332,21 @@ $ aks-flex-cli plugin delete agentpools nebius-cpu
 Expected output:
 
 ```
-Deleting agent pool nebius-gpu...
-Agent pool nebius-gpu deleted successfully
-Deleting agent pool nebius-cpu...
-Agent pool nebius-cpu deleted successfully
+...
+2026/02/21 20:29:19 Deleting "nebius-cpu"...
+2026/02/21 20:30:47 Successfully deleted "nebius-cpu"
 ```
 
-Verify the nodes have been removed from the cluster:
+Verify the nodes are showing as NotReady in Kubernetes, indicating the kubelet has been stopped.
 
 ```bash
 $ kubectl get nodes
-NAME                                 STATUS   ROLES    AGE   VERSION
-aks-system-12345678-vmss000000       Ready    <none>   2h    v1.31.x
-aks-system-12345678-vmss000001       Ready    <none>   2h    v1.31.x
+NAME                                 STATUS     ROLES    AGE   VERSION
+aks-system-32742974-vmss000000       Ready      <none>   58m   v1.33.6
+aks-system-32742974-vmss000001       Ready      <none>   58m   v1.33.6
+aks-wireguard-12237243-vmss000000    Ready      <none>   39m   v1.33.6
+computeinstance-e00c3m3yvj3rhnvhan   NotReady   <none>   18m   v1.33.8
+computeinstance-e00vm3hfp0gac4e5vz   NotReady   <none>   10m   v1.33.8
 ```
 
 ### Delete the network
@@ -331,8 +358,8 @@ $ aks-flex-cli plugin delete networks nebius-default
 Expected output:
 
 ```
-Deleting network nebius-default...
-Network nebius-default deleted successfully
+2026/02/21 20:31:35 Deleting "nebius-default"...
+2026/02/21 20:31:37 Successfully deleted "nebius-default"
 ```
 
 ### List remaining resources
@@ -341,9 +368,9 @@ Confirm all Nebius resources are cleaned up:
 
 ```bash
 $ aks-flex-cli plugin get networks
+[]
 $ aks-flex-cli plugin get agentpools
+[]
 ```
 
 Both commands should return empty lists.
-
-<!-- TODO: Add Nebius portal screenshots confirming resources are deleted. -->

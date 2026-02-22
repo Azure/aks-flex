@@ -21,7 +21,7 @@ $ aks-flex-cli aks deploy --cilium --wireguard
 ## Initializing Remote Cloud Network
 
 ```
-$ aks-flex-cli config network <remote-cloud> > network.json
+$ aks-flex-cli config networks <remote-cloud> > network.json
 ```
 
 ```
