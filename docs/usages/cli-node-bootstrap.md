@@ -108,7 +108,7 @@ For most clouds (generic Ubuntu VMs):
 $ aks-flex-cli config node-bootstrap generic > user-data.yaml
 ```
 
-For Azure VMs (uses the Flex Node agent):
+For Azure VMs:
 
 ```bash
 $ aks-flex-cli config node-bootstrap azure > user-data.yaml
@@ -209,10 +209,11 @@ After the VM boots and cloud-init completes, the node should appear in the clust
 
 ```bash
 $ kubectl get nodes
-NAME                                 STATUS   ROLES    AGE   VERSION
-aks-system-12345678-vmss000000       Ready    <none>   1h    v1.31.x
-aks-system-12345678-vmss000001       Ready    <none>   1h    v1.31.x
-flex-node-azure                      Ready    <none>   3m    v1.33.x
+NAME                                STATUS   ROLES    AGE     VERSION
+aks-system-32742974-vmss000000      Ready    <none>   4h32m   v1.33.6
+aks-system-32742974-vmss000001      Ready    <none>   4h32m   v1.33.6
+aks-wireguard-12237243-vmss000000   Ready    <none>   4h14m   v1.33.6
+flex-node-azure                     Ready    <none>   102s    v1.33.8
 ```
 
 ### Sample: joining a QEMU VM with the user data
@@ -223,20 +224,30 @@ Generate the generic user data:
 $ aks-flex-cli config node-bootstrap generic > qemu-user-data.yaml
 ```
 
-Launch a QEMU VM with cloud-init support. For example, using a Ubuntu cloud image with `cloud-localds`:
+Launch a QEMU VM with cloud-init support. For example, using a Ubuntu cloud image:
 
 > **Tip:** Download the Ubuntu 24.04 cloud image from
 > <https://cloud-images.ubuntu.com/releases/24.04/release/ubuntu-24.04-server-cloudimg-amd64.img>.
 
 ```bash
+# Create a meta-data file with the instance ID
+$ echo "instance-id: qemu-node" > meta-data
+
 # Create a cloud-init seed image
-$ cloud-localds seed.img qemu-user-data.yaml
+# Linux:
+$ cloud-localds seed.img qemu-user-data.yaml meta-data
+# macOS (install cdrtools via `brew install cdrtools`):
+$ cp qemu-user-data.yaml user-data
+$ mkisofs -output seed.img -volid cidata -joliet -rock user-data meta-data
+
+# Create a qcow2 overlay so the base cloud image stays untouched and reusable
+$ qemu-img create -f qcow2 -b ubuntu-24.04-server-cloudimg-amd64.img -F qcow2 disk.qcow2 20G
 
 # Launch the VM (adjust paths and resources as needed)
 $ qemu-system-x86_64 \
     -m 4096 \
     -smp 2 \
-    -drive file=ubuntu-24.04-server-cloudimg-amd64.img,format=qcow2 \
+    -drive file=disk.qcow2,format=qcow2 \
     -drive file=seed.img,format=raw \
     -netdev user,id=net0,hostfwd=tcp::2222-:22 \
     -device virtio-net-pci,netdev=net0 \
@@ -249,11 +260,15 @@ After cloud-init completes, verify the node joined:
 
 ```bash
 $ kubectl get nodes
-NAME                                 STATUS   ROLES    AGE   VERSION
-aks-system-12345678-vmss000000       Ready    <none>   1h    v1.31.x
-aks-system-12345678-vmss000001       Ready    <none>   1h    v1.31.x
-qemu-node                           Ready    <none>   5m    v1.33.x
+NAME                                STATUS     ROLES    AGE     VERSION
+aks-system-32742974-vmss000000      Ready      <none>   5h19m   v1.33.6
+aks-system-32742974-vmss000001      Ready      <none>   5h19m   v1.33.6
+aks-wireguard-12237243-vmss000000   Ready      <none>   5h1m    v1.33.6
+flex-node-azure                     Ready      <none>   48m     v1.33.8
+ubuntu                              NotReady   <none>   3m15s   v1.33.8
 ```
+
+> **Note:** The QEMU node might not become Ready due to CNI plugin issues.
 
 ## Under the hood
 
