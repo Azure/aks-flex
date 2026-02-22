@@ -37,16 +37,16 @@ Pre-built binaries are available for the following platforms:
 
 | Platform      | Architecture | Download |
 | ------------- | ------------ | -------- |
-| macOS (Darwin) | arm64        | [aks-flex-cli_0.0.1-snapshot-910c096_darwin_arm64.tar.gz](https://aksflxcli.z20.web.core.windows.net/aks-flex-cli/aks-flex-cli_0.0.1-snapshot-910c096_darwin_arm64.tar.gz) |
-| Linux          | amd64        | [aks-flex-cli_0.0.1-snapshot-910c096_linux_amd64.tar.gz](https://aksflxcli.z20.web.core.windows.net/aks-flex-cli/aks-flex-cli_0.0.1-snapshot-910c096_linux_amd64.tar.gz) |
-| Linux          | arm64        | [aks-flex-cli_0.0.1-snapshot-910c096_linux_arm64.tar.gz](https://aksflxcli.z20.web.core.windows.net/aks-flex-cli/aks-flex-cli_0.0.1-snapshot-910c096_linux_arm64.tar.gz) |
+| macOS (Darwin) | arm64        | [aks-flex-cli_0.0.1-snapshot-b1dba55_darwin_arm64.tar.gz](https://aksflxcli.z20.web.core.windows.net/aks-flex-cli/aks-flex-cli_0.0.1-snapshot-b1dba55_darwin_arm64.tar.gz) |
+| Linux          | amd64        | [aks-flex-cli_0.0.1-snapshot-b1dba55_linux_amd64.tar.gz](https://aksflxcli.z20.web.core.windows.net/aks-flex-cli/aks-flex-cli_0.0.1-snapshot-b1dba55_linux_amd64.tar.gz) |
+| Linux          | arm64        | [aks-flex-cli_0.0.1-snapshot-b1dba55_linux_arm64.tar.gz](https://aksflxcli.z20.web.core.windows.net/aks-flex-cli/aks-flex-cli_0.0.1-snapshot-b1dba55_linux_arm64.tar.gz) |
 
 Download and install the binary for your platform:
 
 ```bash
 # Example for macOS (arm64)
-curl -LO https://aksflxcli.z20.web.core.windows.net/aks-flex-cli/aks-flex-cli_0.0.1-snapshot-910c096_darwin_arm64.tar.gz
-tar -xzf aks-flex-cli_0.0.1-snapshot-910c096_darwin_arm64.tar.gz
+curl -LO https://aksflxcli.z20.web.core.windows.net/aks-flex-cli/aks-flex-cli_0.0.1-snapshot-b1dba55_darwin_arm64.tar.gz
+tar -xzf aks-flex-cli_0.0.1-snapshot-b1dba55_darwin_arm64.tar.gz
 chmod +x aks-flex-cli_darwin_arm64
 mkdir -p ~/.local/bin
 mv aks-flex-cli_darwin_arm64 ~/.local/bin/aks-flex-cli
@@ -54,8 +54,8 @@ mv aks-flex-cli_darwin_arm64 ~/.local/bin/aks-flex-cli
 
 ```bash
 # Example for WSL / Linux (amd64)
-curl -LO https://aksflxcli.z20.web.core.windows.net/aks-flex-cli/aks-flex-cli_0.0.1-snapshot-910c096_linux_amd64.tar.gz
-tar -xzf aks-flex-cli_0.0.1-snapshot-910c096_linux_amd64.tar.gz
+curl -LO https://aksflxcli.z20.web.core.windows.net/aks-flex-cli/aks-flex-cli_0.0.1-snapshot-b1dba55_linux_amd64.tar.gz
+tar -xzf aks-flex-cli_0.0.1-snapshot-b1dba55_linux_amd64.tar.gz
 chmod +x aks-flex-cli_linux_amd64
 mkdir -p ~/.local/bin
 mv aks-flex-cli_linux_amd64 ~/.local/bin/aks-flex-cli
@@ -72,9 +72,9 @@ export PATH="$HOME/.local/bin:$PATH"
 After downloading, verify the integrity of the archive using SHA-256:
 
 ```
-eed0025cff7685578dc0e52febc919f592270a10a55a5e2801f9b1da928ce19d  aks-flex-cli_0.0.1-snapshot-910c096_darwin_arm64.tar.gz
-2f49d97716aed6f99966da8efa70e72dd894efa3312a74f3687ad31da8108103  aks-flex-cli_0.0.1-snapshot-910c096_linux_amd64.tar.gz
-53f5fccf8e7cec4a912254999d7749724b6203c4c0f2fd30c3004e468e8058d0  aks-flex-cli_0.0.1-snapshot-910c096_linux_arm64.tar.gz
+65a5f391c8cd9e5d72199ea737c3c73d40a7bad6db1dea1659f50e1e4f6300fd  aks-flex-cli_0.0.1-snapshot-b1dba55_darwin_arm64.tar.gz
+b7b40f2560b03d88daf6d68968a16f000f5067907985fc5aac044b37e5d441a3  aks-flex-cli_0.0.1-snapshot-b1dba55_linux_amd64.tar.gz
+0c6ae69d258f1df27a72b8ff3774e3d1de4dfc4a283aac56ca414a3feb2e6cc5  aks-flex-cli_0.0.1-snapshot-b1dba55_linux_arm64.tar.gz
 ```
 
 ```bash
