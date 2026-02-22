@@ -3,7 +3,7 @@
 //
 // Usage is similar to mounting routes on an HTTP mux:
 //
-//	r := configcmd.NewRouter("network", "Generate a default network config")
+//	r := configcmd.NewRouter("networks", "Generate a default network config")
 //	r.Handle("aws", func(ctx context.Context, w io.Writer) error { ... })
 //	r.Handle("azure", func(ctx context.Context, w io.Writer) error { ... })
 //	var Command = r.Command()

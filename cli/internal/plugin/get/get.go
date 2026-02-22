@@ -35,7 +35,7 @@ func get(ctx context.Context, args []string) error {
 			return err
 		}
 
-		var objs []json.RawMessage
+		objs := make([]json.RawMessage, 0, len(items))
 		for _, item := range items {
 			item.GetMetadata().SetType(server.TypeURL(item))
 

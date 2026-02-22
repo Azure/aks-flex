@@ -1,4 +1,4 @@
-package network
+package networks
 
 import (
 	"github.com/spf13/cobra"
@@ -6,7 +6,7 @@ import (
 	"github.com/Azure/aks-flex/cli/internal/config/configcmd"
 )
 
-var r = configcmd.NewRouter("network", "Generate a default network config for a remote cloud")
+var r = configcmd.NewRouter("networks", "Generate a default network config for a remote cloud")
 
 func init() {
 	r.Handle("aws", configcmd.ProtoHandler(newAWSNetwork))

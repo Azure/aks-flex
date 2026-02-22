@@ -2,6 +2,7 @@ package delete
 
 import (
 	"context"
+	"log"
 
 	"github.com/spf13/cobra"
 
@@ -23,5 +24,13 @@ func delete(ctx context.Context, args []string) error {
 		return err
 	}
 
-	return helper.Delete(client.Delete, ctx, args[1])
+	resourceName := args[1]
+	log.Printf("Deleting %q...", resourceName)
+
+	if err := helper.Delete(client.Delete, ctx, resourceName); err != nil {
+		return err
+	}
+	log.Printf("Successfully deleted %q", resourceName)
+
+	return nil
 }

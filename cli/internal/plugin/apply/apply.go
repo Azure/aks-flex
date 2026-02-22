@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"io"
+	"log"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -51,30 +52,38 @@ func apply(ctx context.Context, args []string) error {
 	}
 
 	for _, b := range bs {
-		if err := applyOne(ctx, client, b); err != nil {
+		obj, err := applyOne(ctx, client, b)
+		if err != nil {
 			return err
 		}
+
+		// TODO: improve UI feedback
+		log.Printf("Applied %q (type: %s)", obj.GetMetadata().GetId(), obj.GetMetadata().GetType())
 	}
 
 	return nil
 }
 
-func applyOne(ctx context.Context, client client.Client, b []byte) error {
+func applyOne(ctx context.Context, client client.Client, b []byte) (*api.Base, error) {
 	obj := &api.Base{}
 	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(b, obj); err != nil {
-		return err
+		return nil, err
 	}
 
 	mt, err := protoregistry.GlobalTypes.FindMessageByURL(obj.GetMetadata().GetType())
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	m := mt.New().Interface()
 	if err := protojson.Unmarshal(b, m); err != nil {
-		return err
+		return nil, err
 	}
 
 	_, err = helper.CreateOrUpdate(client.CreateOrUpdate, ctx, m)
-	return err
+	if err != nil {
+		return nil, err
+	}
+
+	return obj, nil
 }
