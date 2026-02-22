@@ -133,15 +133,15 @@ func nodeClaimToStretchAgentPool(
 	kubeadmConfig.AddK8SRegisterTaints(v1.UnregisteredNoExecuteTaint)
 
 	specBuilder := nebiusinstance.AgentPoolSpec_builder{
-		ProjectId:   lo.ToPtr(nodeClass.Spec.ProjectID),
-		Region:      lo.ToPtr(nodeClass.Spec.Region),
-		SubnetId:    lo.ToPtr(nodeClass.Spec.SubnetID),
-		Platform:    lo.ToPtr(platform.GetMetadata().GetName()),
-		Preset:      lo.ToPtr(platformPreset.preset.GetName()),
-		ImageFamily: lo.ToPtr(imageFamily),
-		OsDiskSize:  lo.ToPtr(osDiskSize),
-		Kubeadm:     kubeadmConfig,
-		Wireguard:   wgConfig,
+		ProjectId:           lo.ToPtr(nodeClass.Spec.ProjectID),
+		Region:              lo.ToPtr(nodeClass.Spec.Region),
+		SubnetId:            lo.ToPtr(nodeClass.Spec.SubnetID),
+		Platform:            lo.ToPtr(platform.GetMetadata().GetName()),
+		Preset:              lo.ToPtr(platformPreset.preset.GetName()),
+		ImageFamily:         lo.ToPtr(imageFamily),
+		OsDiskSizeGibibytes: lo.ToPtr(int64(osDiskSize)),
+		Kubeadm:             kubeadmConfig,
+		Wireguard:           wgConfig,
 	}
 
 	return nebiusinstance.AgentPool_builder{
