@@ -156,7 +156,7 @@ func (c *CloudProvider) Create(ctx context.Context, nodeClaim *v1.NodeClaim) (*v
 		ctx, agentPool,
 	)
 	if err != nil {
-		if isQuotaError(err) {
+		if IsQuotaError(err) {
 			// NOTE: nebius doesn't block creation for quota issues, instead they
 			// create the resource but mark it as failed. This could lead to contention
 			// of other resources (disk, nic, etc). So here we delete the created resource
@@ -208,7 +208,7 @@ func (c *CloudProvider) Delete(ctx context.Context, nodeClaim *v1.NodeClaim) err
 		c.stretchAgentPoolsClient.Get,
 		ctx, agentPoolName,
 	); err != nil {
-		if isNotFound(err) {
+		if IsNotFound(err) {
 			// no longer exists - return NodeClaimNotFoundError to signal deletion later
 			return cloudprovider.NewNodeClaimNotFoundError(err)
 		}
@@ -243,7 +243,7 @@ func (c *CloudProvider) Get(ctx context.Context, providerID string) (*v1.NodeCla
 		ctx, agentPoolName,
 	)
 	if err != nil {
-		if isNotFound(err) {
+		if IsNotFound(err) {
 			// return NodeClaimNotFoundError to signal deletion later
 			return nil, cloudprovider.NewNodeClaimNotFoundError(err)
 		}

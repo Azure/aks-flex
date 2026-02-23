@@ -105,9 +105,14 @@ func main() {
 
 	// kaito
 	{
+		wgAlloc := wireguard.NewIPAllocator(op.Manager.GetCache(), kaito.GroupKind, 30*time.Second)
+		defer wgAlloc.Close()
+
 		err := kaito.Register(
 			ctx,
 			hubCloudProvider,
+			clusterCA,
+			wgAlloc,
 		)
 		lo.Must0(err, "registering kaito cloud provider")
 	}

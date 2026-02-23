@@ -8,6 +8,8 @@ import (
 
 const (
 	ProviderIDScheme = "aks-kaito"
+
+	kaitoNodeClassName = "default"
 )
 
 var GroupKind = schema.GroupKind{
