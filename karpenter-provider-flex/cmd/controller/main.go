@@ -23,8 +23,10 @@ import (
 	"sigs.k8s.io/karpenter/pkg/operator/logging"
 	coreoptions "sigs.k8s.io/karpenter/pkg/operator/options"
 
+	kaitov1alpha1 "github.com/Azure/aks-flex/karpenter-provider-flex/pkg/apis/kaito/v1alpha1"
 	"github.com/Azure/aks-flex/karpenter-provider-flex/pkg/apis/v1alpha1"
 	flexcloudproviders "github.com/Azure/aks-flex/karpenter-provider-flex/pkg/cloudproviders"
+	"github.com/Azure/aks-flex/karpenter-provider-flex/pkg/cloudproviders/kaito"
 	"github.com/Azure/aks-flex/karpenter-provider-flex/pkg/cloudproviders/nebius"
 	flexcontrollers "github.com/Azure/aks-flex/karpenter-provider-flex/pkg/controllers"
 	flexoptions "github.com/Azure/aks-flex/karpenter-provider-flex/pkg/options"
@@ -35,6 +37,7 @@ import (
 func init() {
 	// FIXME: review this logic... are we sure this is the right way?
 	v1alpha1.SchemeBuilder.AddToScheme(scheme.Scheme)
+	kaitov1alpha1.SchemeBuilder.AddToScheme(scheme.Scheme)
 }
 
 func main() {
@@ -44,6 +47,7 @@ func main() {
 		operator.WaitForCRDs(
 			ctx, 2*time.Minute, ctrl.GetConfigOrDie(), logger,
 			&v1alpha1.NebiusNodeClass{},
+			&kaitov1alpha1.KaitoNodeClass{},
 		),
 		"failed waiting for CRDs",
 	)
@@ -97,6 +101,15 @@ func main() {
 			wgAlloc,
 		)
 		lo.Must0(err, "registering nebius cloud provider")
+	}
+
+	// kaito
+	{
+		err := kaito.Register(
+			ctx,
+			hubCloudProvider,
+		)
+		lo.Must0(err, "registering kaito cloud provider")
 	}
 
 	overlayUndecoratedCloudProvider := metrics.Decorate(hubCloudProvider)
