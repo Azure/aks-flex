@@ -1,0 +1,145 @@
+{
+	"AWSTemplateFormatVersion": "2010-09-09",
+	"Parameters": {
+		"CidrBlock": {
+			"Type": "String"
+		}
+	},
+	"Resources": {
+		"VPC": {
+			"Type": "AWS::EC2::VPC",
+			"Properties": {
+				"CidrBlock": {
+					"Ref": "CidrBlock"
+				},
+				"Tags": [
+					{
+						"Key": "Name",
+						"Value": "VPC"
+					}
+				]
+			}
+		},
+		"SecurityGroup": {
+			"Type": "AWS::EC2::SecurityGroup",
+			"Properties": {
+				"GroupDescription": "SecurityGroup",
+				"SecurityGroupIngress": [
+					{
+						"CidrIp": "172.16.0.0/16",
+						"IpProtocol": "-1"
+					}
+				],
+				"VpcId": {
+					"Ref": "VPC"
+				},
+				"Tags": [
+					{
+						"Key": "Name",
+						"Value": "SecurityGroup"
+					}
+				]
+			}
+		},
+		"InternetGateway": {
+			"Type": "AWS::EC2::InternetGateway",
+			"Properties": {
+				"Tags": [
+					{
+						"Key": "Name",
+						"Value": "InternetGateway"
+					}
+				]
+			}
+		},
+		"VPCGatewayAttachmentInternetGateway": {
+			"Type": "AWS::EC2::VPCGatewayAttachment",
+			"Properties": {
+				"InternetGatewayId": {
+					"Ref": "InternetGateway"
+				},
+				"VpcId": {
+					"Ref": "VPC"
+				}
+			}
+		},
+		"RouteTable": {
+			"Type": "AWS::EC2::RouteTable",
+			"Properties": {
+				"VpcId": {
+					"Ref": "VPC"
+				},
+				"Tags": [
+					{
+						"Key": "Name",
+						"Value": "RouteTable"
+					}
+				]
+			}
+		},
+		"Route": {
+			"Type": "AWS::EC2::Route",
+			"DependsOn": "VPCGatewayAttachmentInternetGateway",
+			"Properties": {
+				"RouteTableId": {
+					"Ref": "RouteTable"
+				},
+				"DestinationCidrBlock": "0.0.0.0/0",
+				"GatewayId": {
+					"Ref": "InternetGateway"
+				}
+			}
+		},
+		"Subnet": {
+			"Type": "AWS::EC2::Subnet",
+			"Properties": {
+				"CidrBlock": {
+					"Ref": "CidrBlock"
+				},
+				"MapPublicIpOnLaunch": true,
+				"VpcId": {
+					"Ref": "VPC"
+				},
+				"Tags": [
+					{
+						"Key": "Name",
+						"Value": "Subnet"
+					}
+				]
+			}
+		},
+		"SubnetRouteTableAssociation": {
+			"Type": "AWS::EC2::SubnetRouteTableAssociation",
+			"Properties": {
+				"RouteTableId": {
+					"Ref": "RouteTable"
+				},
+				"SubnetId": {
+					"Ref": "Subnet"
+				}
+			}
+		}
+	},
+	"Outputs": {
+		"RouteTable": {
+			"Value": {
+				"Ref": "RouteTable"
+			}
+		},
+		"SecurityGroup": {
+			"Value": {
+				"Ref": "SecurityGroup"
+			}
+		},
+		"Subnet": {
+			"Value": {
+				"Ref": "Subnet"
+			}
+		},
+		"VPC": {
+			"Value": {
+				"Ref": "VPC"
+			}
+		}
+	}
+}

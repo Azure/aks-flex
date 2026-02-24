@@ -1,0 +1,55 @@
+edition = "2024";
+
+package api;
+
+option go_package = "github.com/Azure/aks-flex/flex-plugin/api";
+
+import "google/protobuf/any.proto";
+
+message Metadata {
+  string type = 1;
+  string id = 2;
+
+  // TODO: what other stuff do we want here?
+  // Etag string
+  // Annotations map[string]string ?
+  // UUID?
+  // DeletePolicy string ?
+}
+
+message Base {
+  Metadata metadata = 1;
+}
+
+// The following messages are used by all service CRUD APIs.
+
+message CreateOrUpdateRequest {
+  google.protobuf.Any item = 1;
+}
+
+message CreateOrUpdateResponse {
+  google.protobuf.Any item = 1;
+}
+
+message ListRequest {
+  string id = 1; // if listing child resource, the parent id, otherwise unused.
+}
+
+message ListResponse {
+  repeated google.protobuf.Any items = 1;
+}
+
+message GetRequest {
+  string id = 1;
+}
+
+message GetResponse {
+  google.protobuf.Any item = 1;
+}
+
+message DeleteRequest {
+  string id = 1;
+}
+
+message DeleteResponse {
+}

@@ -1,0 +1,147 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"deployGateway": {
+			"type": "bool",
+			"defaultValue": false
+		}
+	},
+	"resources": [
+		{
+			"apiVersion": "2025-03-01",
+			"type": "Microsoft.Network/networkSecurityGroups",
+			"name": "nsg",
+			"location": "[resourceGroup().location]",
+			"properties": {
+				"securityRules": [
+					{
+						"name": "NRMS-Rule-103",
+						"properties": {
+							"protocol": "*",
+							"sourcePortRange": "*",
+							"destinationPortRange": "*",
+							"sourceAddressPrefix": "CorpNetPublic",
+							"destinationAddressPrefix": "*",
+							"access": "Allow",
+							"priority": 103,
+							"direction": "Inbound"
+						}
+					}
+				]
+			}
+		},
+		{
+			"apiVersion": "2025-03-01",
+			"type": "Microsoft.Network/virtualNetworks",
+			"name": "vnet",
+			"location": "[resourceGroup().location]",
+			"dependsOn": [
+				"[resourceId('Microsoft.Network/networkSecurityGroups', 'nsg')]"
+			],
+			"properties": {
+				"addressSpace": {
+					"addressPrefixes": [
+						"172.16.0.0/16"
+					]
+				},
+				"subnets": [
+					{
+						"name": "GatewaySubnet",
+						"properties": {
+							"addressPrefixes": [
+								"172.16.0.0/24"
+							]
+						}
+					},
+					{
+						"name": "aks",
+						"properties": {
+							"addressPrefixes": [
+								"172.16.1.0/24"
+							],
+							"networkSecurityGroup": {
+								"id": "[resourceId('Microsoft.Network/networkSecurityGroups', 'nsg')]"
+							}
+						}
+					},
+					{
+						"name": "nodes",
+						"properties": {
+							"addressPrefixes": [
+								"172.16.2.0/24"
+							],
+							"networkSecurityGroup": {
+								"id": "[resourceId('Microsoft.Network/networkSecurityGroups', 'nsg')]"
+							}
+						}
+					}
+				]
+			}
+		},
+		{
+			"apiVersion": "2020-08-01",
+			"type": "Microsoft.Network/publicIPAddresses",
+			"name": "gw",
+			"location": "[resourceGroup().location]",
+			"condition": "[parameters('deployGateway')]",
+			"properties": {
+				"publicIPAllocationMethod": "Static"
+			},
+			"sku": {
+				"name": "Standard"
+			},
+			"zones": [
+				"1",
+				"2",
+				"3"
+			]
+		},
+		{
+			"apiVersion": "2024-05-01",
+			"type": "Microsoft.Network/virtualNetworkGateways",
+			"name": "gw",
+			"location": "[resourceGroup().location]",
+			"condition": "[parameters('deployGateway')]",
+			"dependsOn": [
+				"[resourceId('Microsoft.Network/publicIPAddresses', 'gw')]",
+				"[resourceId('Microsoft.Network/virtualNetworks', 'vnet')]"
+			],
+			"properties": {
+				"bgpSettings": {
+					"asn": 64512,
+					"bgpPeeringAddresses": [
+						{
+							"ipconfigurationId": "[resourceId('Microsoft.Network/virtualNetworkGateways/ipConfigurations', 'gw', 'ipconfig')]",
+							"customBgpIpAddresses": [
+								"169.254.21.2",
+								"169.254.21.6"
+							]
+						}
+					]
+				},
+				"enableBgp": true,
+				"gatewayType": "Vpn",
+				"ipConfigurations": [
+					{
+						"name": "ipconfig",
+						"properties": {
+							"publicIpAddress": {
+								"id": "[resourceId('Microsoft.Network/publicIPAddresses', 'gw')]"
+							},
+							"subnet": {
+								"id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', 'vnet', 'GatewaySubnet')]"
+							}
+						}
+					}
+				],
+				"sku": {
+					"name": "VpnGw2AZ",
+					"tier": "VpnGw2AZ"
+				},
+				"vpnGatewayGeneration": "Generation2",
+				"vpnType": "RouteBased"
+			}
+		}
+	]
+}

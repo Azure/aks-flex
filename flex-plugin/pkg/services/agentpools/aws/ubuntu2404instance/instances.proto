@@ -1,0 +1,21 @@
+edition = "2024";
+
+package agentpools.aws.ubuntu2404instance;
+
+option go_package = "github.com/Azure/aks-flex/flex-plugin/pkg/services/agentpools/aws/ubuntu2404instance";
+
+import "flex-plugin/api/api.proto";
+
+message Instance {
+  api.Metadata metadata = 1;
+
+  InstanceSpec spec = 2;
+
+  InstanceStatus status = 3;
+}
+
+message InstanceSpec {
+}
+
+message InstanceStatus {
+}

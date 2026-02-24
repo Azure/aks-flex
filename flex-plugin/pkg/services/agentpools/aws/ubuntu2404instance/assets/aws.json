@@ -1,0 +1,68 @@
+{
+	"AWSTemplateFormatVersion": "2010-09-09",
+	"Parameters": {
+		"PublicKeyMaterial": {
+			"Type": "String"
+		},
+		"SecurityGroup": {
+			"Type": "String"
+		},
+		"Subnet": {
+			"Type": "String"
+		},
+		"UserData": {
+			"Type": "String"
+		}
+	},
+	"Resources": {
+		"KeyPair": {
+			"Type": "AWS::EC2::KeyPair",
+			"Properties": {
+				"KeyName": "KeyPair",
+				"PublicKeyMaterial": {
+					"Ref": "PublicKeyMaterial"
+				},
+				"Tags": [
+					{
+						"Key": "Name",
+						"Value": "KeyPair"
+					}
+				]
+			}
+		},
+		"Instance": {
+			"Type": "AWS::EC2::Instance",
+			"Properties": {
+				"ImageId": "resolve:ssm:/aws/service/canonical/ubuntu/server/24.04/stable/current/amd64/hvm/ebs-gp3/ami-id",
+				"InstanceType": "m8i.large",
+				"KeyName": {
+					"Ref": "KeyPair"
+				},
+				"SecurityGroupIds": [
+					{
+						"Ref": "SecurityGroup"
+					}
+				],
+				"SubnetId": {
+					"Ref": "Subnet"
+				},
+				"UserData": {
+					"Ref": "UserData"
+				},
+				"Tags": [
+					{
+						"Key": "Name",
+						"Value": "Instance"
+					}
+				]
+			}
+		}
+	},
+	"Outputs": {
+		"Instance": {
+			"Value": {
+				"Ref": "Instance"
+			}
+		}
+	}
+}

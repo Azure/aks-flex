@@ -1,0 +1,125 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: wireguard
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: wireguard-keys
+  namespace: wireguard
+type: Opaque
+data:
+  private.key: {{ .privateKeyBase64 }}
+  public.key: {{ .publicKeyBase64 }}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: wg-kube
+  namespace: wireguard
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: wg-kube
+rules:
+  - apiGroups: [""]
+    resources: ["nodes"]
+    verbs: ["get", "list", "watch", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: wg-kube
+subjects:
+  - kind: ServiceAccount
+    name: wg-kube
+    namespace: wireguard
+roleRef:
+  kind: ClusterRole
+  name: wg-kube
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: wg-kube
+  namespace: wireguard
+  labels:
+    app: wg-kube
+spec:
+  selector:
+    matchLabels:
+      app: wg-kube
+  template:
+    metadata:
+      labels:
+        app: wg-kube
+    spec:
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      serviceAccountName: wg-kube
+      nodeSelector:
+        stretch.azure.com/wireguard-hub: "true"
+      tolerations:
+        - key: stretch.azure.com/wireguard-gateway
+          operator: Equal
+          value: "true"
+          effect: NoSchedule
+      initContainers:
+        - name: load-module
+          image: alpine:3.21
+          command: ["modprobe", "wireguard"]
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - name: lib-modules
+              mountPath: /lib/modules
+              readOnly: true
+      containers:
+        - name: wg-kube
+          image: {{ .wgKubeImage }}
+          args:
+            - --annotation-prefix=stretch.azure.com/wireguard-
+            - --listen-port=51820
+            - --address=100.96.0.1/32
+            - --interface=wg0
+            - --private-key-file=/keys/private.key
+            # Advertise the WireGuard overlay (100.96.0.0/12) and the Azure
+            # VNet range (172.16.0.0/16) so spokes route both through the hub.
+            - --allowed-ips=100.96.0.0/12,172.16.0.0/16
+          env:
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+          securityContext:
+            privileged: true
+          ports:
+            - containerPort: 51820
+              hostPort: 51820
+              protocol: UDP
+              name: wireguard
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
+          volumeMounts:
+            - name: wireguard-keys
+              mountPath: /keys
+              readOnly: true
+            - name: lib-modules
+              mountPath: /lib/modules
+              readOnly: true
+      volumes:
+        - name: wireguard-keys
+          secret:
+            secretName: wireguard-keys
+        - name: lib-modules
+          hostPath:
+            path: /lib/modules
+            type: Directory

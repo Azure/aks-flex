@@ -1,0 +1,9 @@
+edition = "2024";
+
+package vnet;
+
+option go_package = "github.com/Azure/aks-flex/flex-plugin/pkg/services/networks/api/features/vnet";
+
+message Config {
+  string cidr_block = 1;
+}

@@ -1,0 +1,53 @@
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
+version: 2
+
+project_name: aks-flex-cli
+
+builds:
+  - id: aks-flex-cli
+    main: .
+    binary: "aks-flex-cli_{{ .Os }}_{{ .Arch }}"
+    env:
+      - CGO_ENABLED=0
+    targets:
+      - linux_amd64
+      - linux_arm64
+      - darwin_arm64
+      # - windows_amd64 # TODO: fix file lock os compatibility
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
+      - -X main.commit={{.Commit}}
+      - -X main.date={{.Date}}
+    mod_timestamp: "{{ .CommitTimestamp }}"
+    no_unique_dist_dir: true
+
+archives:
+  - id: aks-flex-cli
+    ids:
+      - aks-flex-cli
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- .Version }}_
+      {{- .Os }}_
+      {{- .Arch }}
+    formats: ["tar.gz"]
+    format_overrides:
+      - formats: ["zip"]
+        goos: windows
+
+checksum:
+  name_template: "checksums.txt"
+
+snapshot:
+  version_template: "{{ incpatch .Version }}-snapshot-{{ .ShortCommit }}"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+
+release:
+  disable: true
