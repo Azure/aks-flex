@@ -7,14 +7,14 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-func isNotFound(err error) bool {
+func IsNotFound(err error) bool {
 	if s, ok := status.FromError(err); ok {
 		return s.Code() == codes.NotFound
 	}
 	return false
 }
 
-func isQuotaError(err error) bool {
+func IsQuotaError(err error) bool {
 	if err == nil {
 		return false
 	}
