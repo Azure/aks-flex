@@ -16,7 +16,7 @@ import (
 	"github.com/Azure/aks-flex/flex-plugin/pkg/db"
 	"github.com/Azure/aks-flex/flex-plugin/pkg/helper"
 	agentpools "github.com/Azure/aks-flex/flex-plugin/pkg/services/agentpools/api"
-	"github.com/Azure/aks-flex/flex-plugin/pkg/services/agentpools/userdata/ubuntu"
+	"github.com/Azure/aks-flex/flex-plugin/pkg/services/agentpools/userdata/flex"
 	"github.com/Azure/aks-flex/flex-plugin/pkg/topology"
 	"github.com/Azure/aks-flex/flex-plugin/pkg/util/cloudinit"
 	utilnebius "github.com/Azure/aks-flex/flex-plugin/pkg/util/nebius"
@@ -71,14 +71,16 @@ func (srv *agentPoolsServer) CreateOrUpdate(
 	}
 
 	// TODO: get the k8s version from spec
-	// ud, err := flex.UserData("1.33.3", kubeadmConfig)
-	// if err != nil {
-	// 	return nil, fmt.Errorf("failed to generate userdata: %w", err)
-	// }
-	ud, err := ubuntu.UserData(kubeadmConfig)
+	// TODO: get gpu info from spec (might need to infer from SKU)
+	hasGPU := strings.Contains(apSpec.GetImageFamily(), "cuda")
+	ud, err := flex.UserData(hasGPU, "1.33.3", kubeadmConfig)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate userdata: %w", err)
 	}
+	// ud, err := ubuntu.UserData(kubeadmConfig)
+	// if err != nil {
+	// 	return nil, fmt.Errorf("failed to generate userdata: %w", err)
+	// }
 
 	if wireguardIP != "" {
 		// TODO: this part should move to flex node bootstrap setup task

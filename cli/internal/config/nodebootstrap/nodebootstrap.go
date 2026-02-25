@@ -14,18 +14,20 @@ import (
 )
 
 var r = configcmd.NewRouter("node-bootstrap", "Generate a node bootstrap cloud-init config for a remote cloud")
+var Command *cobra.Command = r.Command()
+var flagHasGPU bool
 
 func init() {
 	r.Handle("generic", writeUbuntuUserData)
 	r.Handle("aws", writeUbuntuUserData)
 	r.Handle("azure", writeFlexUserData)
 	r.Handle("nebius", writeUbuntuUserData)
+
+	Command.Flags().BoolVar(&flagHasGPU, "gpu", false, "Indicates whether the node has GPU. This may affect the generated userdata.")
 }
 
-var Command *cobra.Command = r.Command()
-
 func writeFlexUserData(ctx context.Context, w io.Writer) error {
-	ud, err := flex.UserData("1.33.3", configcmd.DefaultKubeadmConfig(ctx))
+	ud, err := flex.UserData(flagHasGPU, "1.33.3", configcmd.DefaultKubeadmConfig(ctx))
 	if err != nil {
 		return fmt.Errorf("generating flex userdata: %w", err)
 	}

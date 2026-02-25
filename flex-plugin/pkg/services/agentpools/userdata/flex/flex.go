@@ -9,9 +9,35 @@ import (
 )
 
 func resolveFlexComponentConfigs(
+	hasGPU bool,
 	kubeVersion string,
 	kubeadmConfig *kubeadmapi.Config,
 ) []any {
+	startCRI := json.RawMessage(`
+{
+	"metadata": {
+		"type": "aks.flex.components.cri.StartContainerdService",
+		"name": "start-containerd-service"
+	},
+	"spec": {}
+}
+`)
+	if hasGPU {
+		startCRI = json.RawMessage(`
+{
+	"metadata": {
+		"type": "aks.flex.components.cri.StartContainerdService",
+		"name": "start-containerd-service"
+	},
+	"spec": {
+		"gpu_config": {
+		    "nvidia_runtime": {}
+		}
+	}
+}
+`)
+	}
+
 	kubletConfig := map[string]any{
 		"bootstrap_auth_info": map[string]any{
 			"token": kubeadmConfig.GetToken(),
@@ -24,7 +50,7 @@ func resolveFlexComponentConfigs(
 
 	kubeadmNodeJoin := map[string]any{
 		"metadata": map[string]any{
-			"type": "aks.flex.components.kubeadm.v20260301.KubadmNodeJoin", // FIXME: typo
+			"type": "aks.flex.components.kubeadm.KubadmNodeJoin", // FIXME: typo
 			"name": "kubeadm-node-join",
 		},
 		"spec": map[string]any{
@@ -40,7 +66,7 @@ func resolveFlexComponentConfigs(
 		json.RawMessage(`
 {
 	"metadata": {
-		"type": "aks.flex.components.linux.v20260301.ConfigureBaseOS",
+		"type": "aks.flex.components.linux.ConfigureBaseOS",
 		"name": "configure-base-os"
 	},
 	"spec": {}
@@ -49,7 +75,7 @@ func resolveFlexComponentConfigs(
 		json.RawMessage(`
 {
 	"metadata": {
-		"type": "aks.flex.components.cri.v20260301.DownloadCRIBinaries",
+		"type": "aks.flex.components.cri.DownloadCRIBinaries",
 		"name": "download-cri-binaries"
 	},
 	"spec": {
@@ -60,28 +86,20 @@ func resolveFlexComponentConfigs(
 `),
 		map[string]any{
 			"metadata": map[string]any{
-				"type": "aks.flex.components.kubebins.v20260301.DownloadKubeBinaries",
+				"type": "aks.flex.components.kubebins.DownloadKubeBinaries",
 				"name": "download-kube-binaries",
 			},
 			"spec": map[string]any{
 				"kubernetes_version": kubeVersion,
 			},
 		},
-		json.RawMessage(`
-{
-	"metadata": {
-		"type": "aks.flex.components.cri.v20260301.StartContainerdService",
-		"name": "start-containerd-service"
-	},
-	"spec": {}
-}
-`),
+		startCRI,
 		kubeadmNodeJoin,
 	}
 }
 
-func UserData(kubeVersion string, kubeadmConfig *kubeadmapi.Config) (*cloudinit.UserData, error) {
-	componentConfigs := resolveFlexComponentConfigs(kubeVersion, kubeadmConfig)
+func UserData(hasGPU bool, kubeVersion string, kubeadmConfig *kubeadmapi.Config) (*cloudinit.UserData, error) {
+	componentConfigs := resolveFlexComponentConfigs(hasGPU, kubeVersion, kubeadmConfig)
 	componentConfigsJSON, err := json.MarshalIndent(componentConfigs, "", "  ")
 	if err != nil {
 		return nil, err

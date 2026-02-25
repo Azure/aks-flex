@@ -75,7 +75,7 @@ func (srv *agentpoolsServer) CreateOrUpdate(ctx context.Context, req *api.Create
 	// if err != nil {
 	// 	return nil, err
 	// }
-	userData, err := flex.UserData("1.33.3", kubeadmConfig)
+	userData, err := flex.UserData(false, "1.33.3", kubeadmConfig)
 	if err != nil {
 		return nil, err
 	}
