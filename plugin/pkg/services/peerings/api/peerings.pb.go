@@ -21,18 +21,18 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-var File_flex_plugin_pkg_services_peerings_api_peerings_proto protoreflect.FileDescriptor
+var File_plugin_pkg_services_peerings_api_peerings_proto protoreflect.FileDescriptor
 
-const file_flex_plugin_pkg_services_peerings_api_peerings_proto_rawDesc = "" +
+const file_plugin_pkg_services_peerings_api_peerings_proto_rawDesc = "" +
 	"\n" +
-	"4plugin/pkg/services/peerings/api/peerings.proto\x12\bpeerings\x1a\x19plugin/api/api.proto2\xe7\x01\n" +
+	"/plugin/pkg/services/peerings/api/peerings.proto\x12\bpeerings\x1a\x14plugin/api/api.proto2\xe7\x01\n" +
 	"\bPeerings\x12K\n" +
 	"\x0eCreateOrUpdate\x12\x1a.api.CreateOrUpdateRequest\x1a\x1b.api.CreateOrUpdateResponse\"\x00\x12-\n" +
 	"\x04List\x12\x10.api.ListRequest\x1a\x11.api.ListResponse\"\x00\x12*\n" +
 	"\x03Get\x12\x0f.api.GetRequest\x1a\x10.api.GetResponse\"\x00\x123\n" +
-	"\x06Delete\x12\x12.api.DeleteRequest\x1a\x13.api.DeleteResponse\"\x00BAZ?github.com/Azure/aks-flex/plugin/pkg/services/peerings/apib\beditionsp\xe9\a"
+	"\x06Delete\x12\x12.api.DeleteRequest\x1a\x13.api.DeleteResponse\"\x00B<Z:github.com/Azure/aks-flex/plugin/pkg/services/peerings/apib\beditionsp\xe9\a"
 
-var file_flex_plugin_pkg_services_peerings_api_peerings_proto_goTypes = []any{
+var file_plugin_pkg_services_peerings_api_peerings_proto_goTypes = []any{
 	(*api.CreateOrUpdateRequest)(nil),  // 0: api.CreateOrUpdateRequest
 	(*api.ListRequest)(nil),            // 1: api.ListRequest
 	(*api.GetRequest)(nil),             // 2: api.GetRequest
@@ -42,7 +42,7 @@ var file_flex_plugin_pkg_services_peerings_api_peerings_proto_goTypes = []any{
 	(*api.GetResponse)(nil),            // 6: api.GetResponse
 	(*api.DeleteResponse)(nil),         // 7: api.DeleteResponse
 }
-var file_flex_plugin_pkg_services_peerings_api_peerings_proto_depIdxs = []int32{
+var file_plugin_pkg_services_peerings_api_peerings_proto_depIdxs = []int32{
 	0, // 0: peerings.Peerings.CreateOrUpdate:input_type -> api.CreateOrUpdateRequest
 	1, // 1: peerings.Peerings.List:input_type -> api.ListRequest
 	2, // 2: peerings.Peerings.Get:input_type -> api.GetRequest
@@ -58,25 +58,25 @@ var file_flex_plugin_pkg_services_peerings_api_peerings_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for field type_name
 }
 
-func init() { file_flex_plugin_pkg_services_peerings_api_peerings_proto_init() }
-func file_flex_plugin_pkg_services_peerings_api_peerings_proto_init() {
-	if File_flex_plugin_pkg_services_peerings_api_peerings_proto != nil {
+func init() { file_plugin_pkg_services_peerings_api_peerings_proto_init() }
+func file_plugin_pkg_services_peerings_api_peerings_proto_init() {
+	if File_plugin_pkg_services_peerings_api_peerings_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_flex_plugin_pkg_services_peerings_api_peerings_proto_rawDesc), len(file_flex_plugin_pkg_services_peerings_api_peerings_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_plugin_pkg_services_peerings_api_peerings_proto_rawDesc), len(file_plugin_pkg_services_peerings_api_peerings_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   0,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_flex_plugin_pkg_services_peerings_api_peerings_proto_goTypes,
-		DependencyIndexes: file_flex_plugin_pkg_services_peerings_api_peerings_proto_depIdxs,
+		GoTypes:           file_plugin_pkg_services_peerings_api_peerings_proto_goTypes,
+		DependencyIndexes: file_plugin_pkg_services_peerings_api_peerings_proto_depIdxs,
 	}.Build()
-	File_flex_plugin_pkg_services_peerings_api_peerings_proto = out.File
-	file_flex_plugin_pkg_services_peerings_api_peerings_proto_goTypes = nil
-	file_flex_plugin_pkg_services_peerings_api_peerings_proto_depIdxs = nil
+	File_plugin_pkg_services_peerings_api_peerings_proto = out.File
+	file_plugin_pkg_services_peerings_api_peerings_proto_goTypes = nil
+	file_plugin_pkg_services_peerings_api_peerings_proto_depIdxs = nil
 }

@@ -10,7 +10,16 @@ import (
 func preflightGPUOperator() error {
 	_, err := exec.LookPath("helm")
 	if err != nil {
-		return fmt.Errorf("helm not found in PATH, please install Helm to use --enable-gpu-operator: %w", err)
+		return fmt.Errorf("helm not found in PATH, please install Helm to use --gpu-operator: %w", err)
+	}
+
+	return nil
+}
+
+func preflightGPUDevicePlugin() error {
+	_, err := exec.LookPath("helm")
+	if err != nil {
+		return fmt.Errorf("helm not found in PATH, please install Helm to use --gpu-device-plugin: %w", err)
 	}
 
 	return nil
@@ -40,5 +49,32 @@ func installGPUOperator(ctx context.Context) error {
 	}
 
 	log.Print("NVIDIA GPU Operator installed successfully")
+	return nil
+}
+
+// installGPUDevicePlugin installs the NVIDIA GPU Device Plugin via Helm.
+func installGPUDevicePlugin(ctx context.Context) error {
+	log.Print("Installing NVIDIA GPU Device Plugin...")
+
+	commands := []struct {
+		name string
+		args []string
+	}{
+		{"helm", []string{"repo", "add", "nvdp", "https://nvidia.github.io/k8s-device-plugin"}},
+		{"helm", []string{"repo", "update"}},
+		{"helm", []string{"upgrade", "--install", "--wait", "nvidia-device-plugin", "-n", "nvidia-device-plugin", "--create-namespace", "nvdp/nvidia-device-plugin", "--set", "failOnInitError=false", "--set", "affinity=null"}},
+	}
+
+	for _, c := range commands {
+		cmd := exec.CommandContext(ctx, c.name, c.args...)
+		cmd.Stdout = log.Writer()
+		cmd.Stderr = log.Writer()
+		log.Printf("  Running: %s %v", c.name, c.args)
+		if err := cmd.Run(); err != nil {
+			return fmt.Errorf("failed to run %s %v: %w", c.name, c.args, err)
+		}
+	}
+
+	log.Print("NVIDIA GPU Device Plugin installed successfully")
 	return nil
 }
