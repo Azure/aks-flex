@@ -84,7 +84,7 @@ func (srv *agentPoolsServer) CreateOrUpdate(
 
 	if wireguardIP != "" {
 		// TODO: this part should move to flex node bootstrap setup task
-		ud.Packages = append(ud.Packages, "wireguard", "wireguard-tools", "kubectl")
+		ud.Packages = append(ud.Packages, "wireguard", "wireguard-tools")
 		ud.WriteFiles = append(ud.WriteFiles, &cloudinit.WriteFile{
 			Path:        "/root/wg-spoke.sh",
 			Content:     wgSpokeScript,
