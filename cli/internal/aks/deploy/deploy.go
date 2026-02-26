@@ -24,11 +24,12 @@ var (
 		},
 	}
 
-	deploycilium      bool
-	deployWireguard   bool
-	deployGPUOperator bool
-	skipARM           bool
-	kubeconfigToSave  string
+	deploycilium          bool
+	deployWireguard       bool
+	deployGPUOperator     bool
+	deployGPUDevicePlugin bool
+	skipARM               bool
+	kubeconfigToSave      string
 
 	//go:embed assets/aks.json
 	aksJSON []byte
@@ -38,6 +39,7 @@ func init() {
 	Command.Flags().BoolVar(&deploycilium, "cilium", false, "deploy Cilium CNI") // default to true to allow minimal networking to work
 	Command.Flags().BoolVar(&deployWireguard, "wireguard", false, "deploy WireGuard gateway node pool and DaemonSet")
 	Command.Flags().BoolVar(&deployGPUOperator, "gpu-operator", false, "install NVIDIA GPU Operator via Helm")
+	Command.Flags().BoolVar(&deployGPUDevicePlugin, "gpu-device-plugin", false, "install NVIDIA GPU Device Plugin via Helm")
 	Command.Flags().BoolVar(&skipARM, "skip-arm", false, "skip the ARM template deployment step")
 	Command.Flags().MarkHidden("skip-arm")
 	Command.Flags().StringVar(&kubeconfigToSave, "kubeconfig-to-save", "", "file path to save the cluster kubeconfig (defaults to <cluster-name>.kubeconfig)")
@@ -51,6 +53,11 @@ func preflightChecks() error {
 	}
 	if deployGPUOperator {
 		if err := preflightGPUOperator(); err != nil {
+			return err
+		}
+	}
+	if deployGPUDevicePlugin {
+		if err := preflightGPUDevicePlugin(); err != nil {
 			return err
 		}
 	}
@@ -122,6 +129,13 @@ func run(ctx context.Context) error {
 			return err
 		}
 		log.Printf("GPU Operator deployment complete")
+	}
+
+	if deployGPUDevicePlugin {
+		if err := installGPUDevicePlugin(ctx); err != nil {
+			return err
+		}
+		log.Printf("GPU Device Plugin deployment complete")
 	}
 
 	return nil
