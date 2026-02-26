@@ -7,8 +7,8 @@ import (
 	"google.golang.org/protobuf/proto"
 
 	"github.com/Azure/aks-flex/cli/internal/config/configcmd"
-	"github.com/Azure/aks-flex/flex-plugin/api"
-	awsap "github.com/Azure/aks-flex/flex-plugin/pkg/services/agentpools/aws/ubuntu2404instance"
+	"github.com/Azure/aks-flex/plugin/api"
+	awsap "github.com/Azure/aks-flex/plugin/pkg/services/agentpools/aws/ubuntu2404instance"
 )
 
 func newAWSAgentPool(ctx context.Context) proto.Message {

@@ -7,9 +7,9 @@ import (
 	"google.golang.org/protobuf/proto"
 
 	"github.com/Azure/aks-flex/cli/internal/config/configcmd"
-	"github.com/Azure/aks-flex/flex-plugin/api"
-	"github.com/Azure/aks-flex/flex-plugin/pkg/services/networks/api/features/vnet"
-	awsvpc "github.com/Azure/aks-flex/flex-plugin/pkg/services/networks/aws/vpc"
+	"github.com/Azure/aks-flex/plugin/api"
+	"github.com/Azure/aks-flex/plugin/pkg/services/networks/api/features/vnet"
+	awsvpc "github.com/Azure/aks-flex/plugin/pkg/services/networks/aws/vpc"
 )
 
 func newAWSNetwork(_ context.Context) proto.Message {

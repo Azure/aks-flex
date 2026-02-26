@@ -9,8 +9,8 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armresources/v2"
 	"github.com/spf13/cobra"
 
-	"github.com/Azure/aks-flex/flex-plugin/pkg/util/az"
-	"github.com/Azure/aks-flex/flex-plugin/pkg/util/config"
+	"github.com/Azure/aks-flex/plugin/pkg/util/az"
+	"github.com/Azure/aks-flex/plugin/pkg/util/config"
 )
 
 var (

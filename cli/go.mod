@@ -2,10 +2,10 @@ module github.com/Azure/aks-flex/cli
 
 go 1.26.0
 
-replace github.com/Azure/aks-flex/flex-plugin => ../flex-plugin
+replace github.com/Azure/aks-flex/plugin => ../plugin
 
 require (
-	github.com/Azure/aks-flex/flex-plugin v0.0.0-00010101000000-000000000000
+	github.com/Azure/aks-flex/plugin v0.0.0-00010101000000-000000000000
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.21.0
 	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.13.1
 	github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/network/armnetwork/v8 v8.0.0

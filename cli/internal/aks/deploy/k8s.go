@@ -10,9 +10,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/Azure/aks-flex/cli/internal/config/k8sbootstrap"
-	"github.com/Azure/aks-flex/flex-plugin/pkg/util/az"
-	"github.com/Azure/aks-flex/flex-plugin/pkg/util/config"
-	"github.com/Azure/aks-flex/flex-plugin/pkg/util/k8s"
+	"github.com/Azure/aks-flex/plugin/pkg/util/az"
+	"github.com/Azure/aks-flex/plugin/pkg/util/config"
+	"github.com/Azure/aks-flex/plugin/pkg/util/k8s"
 )
 
 const fieldOwner = "aks-flex-cli"

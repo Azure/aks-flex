@@ -14,8 +14,8 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/Azure/aks-flex/cli/internal/config/configcmd"
-	"github.com/Azure/aks-flex/flex-plugin/pkg/util/az"
-	"github.com/Azure/aks-flex/flex-plugin/pkg/util/ssh"
+	"github.com/Azure/aks-flex/plugin/pkg/util/az"
+	"github.com/Azure/aks-flex/plugin/pkg/util/ssh"
 )
 
 var helmTemplate = template.Must(template.New("karpenter-helm").Parse(`helm upgrade --install karpenter charts/karpenter \
@@ -155,8 +155,8 @@ var flagImage string
 
 var helmCmd = &cobra.Command{
 	Use:   "helm",
-	Short: "Print helm install/upgrade command for karpenter-provider-flex",
-	Long: `Print a helm upgrade --install command for deploying karpenter-provider-flex.
+	Short: "Print helm install/upgrade command for karpenter",
+	Long: `Print a helm upgrade --install command for deploying karpenter.
 
 Values are resolved from the shared config (environment variables) and the
 Azure ManagedCluster resource. Any value that cannot be resolved is replaced

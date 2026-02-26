@@ -1,0 +1,21 @@
+edition = "2024";
+
+package agentpools.azure.ubuntu2404vmss;
+
+option go_package = "github.com/Azure/aks-flex/plugin/pkg/services/agentpools/azure/ubuntu2404vmss";
+
+import "plugin/api/api.proto";
+
+message Instance {
+  api.Metadata metadata = 1;
+
+  InstanceSpec spec = 2;
+
+  InstanceStatus status = 3;
+}
+
+message InstanceSpec {
+}
+
+message InstanceStatus {
+}

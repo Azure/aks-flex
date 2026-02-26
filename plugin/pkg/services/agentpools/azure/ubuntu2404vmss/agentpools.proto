@@ -1,0 +1,39 @@
+edition = "2024";
+
+package agentpools.azure.ubuntu2404vmss;
+
+option go_package = "github.com/Azure/aks-flex/plugin/pkg/services/agentpools/azure/ubuntu2404vmss";
+
+import "plugin/api/api.proto";
+import "plugin/pkg/services/agentpools/api/features/capacity/capacity.proto";
+import "plugin/pkg/services/agentpools/api/features/kubeadm/kubeadm.proto";
+
+message AgentPool {
+  api.Metadata metadata = 1;
+
+  AgentPoolSpec spec = 2;
+
+  AgentPoolStatus status = 3;
+}
+
+message AgentPoolSpec {
+  string resource_id = 1;
+  string location    = 2;
+
+  string subnet_id = 3;
+
+  string sku      = 4;
+
+  capacity.Config capacity = 5;
+
+  kubeadm.Config kubeadm = 6;
+
+  repeated string zones = 7;  // Optional: Availability zones (e.g., ["1", "2", "3"]). Empty = no zone pinning.
+
+  // DeletePolicy string ?
+}
+
+message AgentPoolStatus {
+  // ProvisioningState string
+  // LastError         error
+}

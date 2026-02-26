@@ -8,9 +8,9 @@ import (
 	"google.golang.org/protobuf/proto"
 
 	"github.com/Azure/aks-flex/cli/internal/config/configcmd"
-	"github.com/Azure/aks-flex/flex-plugin/api"
-	"github.com/Azure/aks-flex/flex-plugin/pkg/services/agentpools/api/features/capacity"
-	azureap "github.com/Azure/aks-flex/flex-plugin/pkg/services/agentpools/azure/ubuntu2404vmss"
+	"github.com/Azure/aks-flex/plugin/api"
+	"github.com/Azure/aks-flex/plugin/pkg/services/agentpools/api/features/capacity"
+	azureap "github.com/Azure/aks-flex/plugin/pkg/services/agentpools/azure/ubuntu2404vmss"
 )
 
 func newAzureAgentPool(ctx context.Context) proto.Message {
