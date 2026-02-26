@@ -7,8 +7,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/Azure/aks-flex/flex-plugin/pkg/services/agentpools/userdata/flex"
-	"github.com/Azure/aks-flex/flex-plugin/pkg/services/agentpools/userdata/ubuntu"
+	"github.com/Azure/aks-flex/plugin/pkg/services/agentpools/userdata/flex"
+	"github.com/Azure/aks-flex/plugin/pkg/services/agentpools/userdata/ubuntu"
 
 	"github.com/Azure/aks-flex/cli/internal/config/configcmd"
 )

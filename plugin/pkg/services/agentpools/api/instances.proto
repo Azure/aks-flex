@@ -1,0 +1,23 @@
+edition = "2024";
+
+package agentpools;
+
+option go_package = "github.com/Azure/aks-flex/plugin/pkg/services/agentpools/api";
+
+import "plugin/api/api.proto";
+
+service Instances {
+  rpc CreateOrUpdate(api.CreateOrUpdateRequest) returns (api.CreateOrUpdateResponse) {} // TODO: will be LRO
+  rpc List(api.ListRequest) returns (api.ListResponse) {}
+  rpc Get(api.GetRequest) returns (api.GetResponse) {}
+  rpc Delete(api.DeleteRequest) returns (api.DeleteResponse) {} // TODO: will be LRO
+
+  rpc Restart(InstanceRestartRequest) returns (InstanceRestartResponse) {}
+}
+
+message InstanceRestartRequest {
+    string id = 1;
+}
+
+message InstanceRestartResponse {
+}

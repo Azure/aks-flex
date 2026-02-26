@@ -10,8 +10,8 @@ import (
 	"github.com/Azure/aks-flex/cli/internal/plugin/apply"
 	"github.com/Azure/aks-flex/cli/internal/plugin/delete"
 	"github.com/Azure/aks-flex/cli/internal/plugin/get"
-	utilconfig "github.com/Azure/aks-flex/flex-plugin/pkg/util/config"
-	utilnebius "github.com/Azure/aks-flex/flex-plugin/pkg/util/nebius"
+	utilconfig "github.com/Azure/aks-flex/plugin/pkg/util/config"
+	utilnebius "github.com/Azure/aks-flex/plugin/pkg/util/nebius"
 )
 
 var Command = &cobra.Command{

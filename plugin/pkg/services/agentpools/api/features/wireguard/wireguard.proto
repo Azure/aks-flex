@@ -1,0 +1,11 @@
+edition = "2024";
+
+package wireguard;
+
+option go_package = "github.com/Azure/aks-flex/plugin/pkg/services/agentpools/api/features/wireguard";
+
+message Config {
+  // The IP address to use for this peer.
+  string peer_ip = 1;
+  // NOTE: the hub peer ip is discovered within the cluster automatically
+}

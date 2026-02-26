@@ -12,9 +12,9 @@ import (
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/reflect/protoregistry"
 
-	"github.com/Azure/aks-flex/flex-plugin/api"
-	"github.com/Azure/aks-flex/flex-plugin/pkg/client"
-	"github.com/Azure/aks-flex/flex-plugin/pkg/helper"
+	"github.com/Azure/aks-flex/plugin/api"
+	"github.com/Azure/aks-flex/plugin/pkg/client"
+	"github.com/Azure/aks-flex/plugin/pkg/helper"
 )
 
 var Command = &cobra.Command{

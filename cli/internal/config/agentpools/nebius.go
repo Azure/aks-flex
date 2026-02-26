@@ -7,9 +7,9 @@ import (
 	"google.golang.org/protobuf/proto"
 
 	"github.com/Azure/aks-flex/cli/internal/config/configcmd"
-	"github.com/Azure/aks-flex/flex-plugin/api"
-	"github.com/Azure/aks-flex/flex-plugin/pkg/services/agentpools/api/features/wireguard"
-	nebiusap "github.com/Azure/aks-flex/flex-plugin/pkg/services/agentpools/nebius/instance"
+	"github.com/Azure/aks-flex/plugin/api"
+	"github.com/Azure/aks-flex/plugin/pkg/services/agentpools/api/features/wireguard"
+	nebiusap "github.com/Azure/aks-flex/plugin/pkg/services/agentpools/nebius/instance"
 )
 
 func newNebiusAgentPool(ctx context.Context) proto.Message {

@@ -1,0 +1,34 @@
+diff --git a/karpenter/vendor/sigs.k8s.io/karpenter/pkg/controllers/nodeclaim/lifecycle/initialization.go.orig b/karpenter/vendor/sigs.k8s.io/karpenter/pkg/controllers/nodeclaim/lifecycle/initialization.go
+index d748ca6..182741e 100644
+--- a/karpenter/vendor/sigs.k8s.io/karpenter/pkg/controllers/nodeclaim/lifecycle/initialization.go
++++ b/karpenter/vendor/sigs.k8s.io/karpenter/pkg/controllers/nodeclaim/lifecycle/initialization.go
+@@ -114,6 +114,19 @@ func StartupTaintsRemoved(node *corev1.Node, nodeClaim *v1.NodeClaim) (*corev1.T
+ 	return nil, true
+ }
+
++func isKaitoStorageRequest(resourceName string, nodeClaim *v1.NodeClaim) bool {
++	if resourceName != "storage" {
++		return false
++	}
++
++	if nodeClaim.Spec.NodeClassRef.Group == "kaito.sh" &&
++		nodeClaim.Spec.NodeClassRef.Kind == "KaitoNodeClass" {
++		return true
++	}
++
++	return false
++}
++
+ // RequestedResourcesRegistered returns true if there are no extended resources on the node, or they have all been
+ // registered by device plugins
+ func RequestedResourcesRegistered(node *corev1.Node, nodeClaim *v1.NodeClaim) (corev1.ResourceName, bool) {
+@@ -121,6 +134,9 @@ func RequestedResourcesRegistered(node *corev1.Node, nodeClaim *v1.NodeClaim) (c
+ 		if quantity.IsZero() {
+ 			continue
+ 		}
++		if isKaitoStorageRequest(string(resourceName), nodeClaim) {
++			continue
++		}
+ 		// kubelet will zero out both the capacity and allocatable for an extended resource on startup, so if our
+ 		// annotation says the resource should be there, but it's zero'd in both then the device plugin hasn't
+ 		// registered it yet.

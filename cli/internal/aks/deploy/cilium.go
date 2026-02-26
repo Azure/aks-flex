@@ -6,7 +6,7 @@ import (
 	"os"
 	"os/exec"
 
-	"github.com/Azure/aks-flex/flex-plugin/pkg/util/config"
+	"github.com/Azure/aks-flex/plugin/pkg/util/config"
 )
 
 var ciliumInstallInstruction = errors.New(
