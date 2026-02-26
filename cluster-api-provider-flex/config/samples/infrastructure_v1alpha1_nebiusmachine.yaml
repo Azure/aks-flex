@@ -1,0 +1,9 @@
+apiVersion: infrastructure.flex-capi.aks.azure.com/v1alpha1
+kind: NebiusMachine
+metadata:
+  labels:
+    app.kubernetes.io/name: cluster-api-provider-flex
+    app.kubernetes.io/managed-by: kustomize
+  name: nebiusmachine-sample
+spec:
+  # TODO(user): Add fields here

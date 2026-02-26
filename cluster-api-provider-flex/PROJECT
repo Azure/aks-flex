@@ -8,4 +8,22 @@ layout:
 - go.kubebuilder.io/v4
 projectName: cluster-api-provider-flex
 repo: github.com/Azure/aks-flex/cluster-api-provider-flex
+resources:
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: flex-capi.aks.azure.com
+  group: infrastructure
+  kind: NebiusMachine
+  path: github.com/Azure/aks-flex/cluster-api-provider-flex/api/v1alpha1
+  version: v1alpha1
+- api:
+    crdVersion: v1
+    namespaced: true
+  domain: flex-capi.aks.azure.com
+  group: infrastructure
+  kind: NebiusMachineTemplate
+  path: github.com/Azure/aks-flex/cluster-api-provider-flex/api/v1alpha1
+  version: v1alpha1
 version: "3"
