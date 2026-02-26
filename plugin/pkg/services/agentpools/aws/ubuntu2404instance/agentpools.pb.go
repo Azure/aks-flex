@@ -33,7 +33,7 @@ type AgentPool struct {
 
 func (x *AgentPool) Reset() {
 	*x = AgentPool{}
-	mi := &file_flex_plugin_pkg_services_agentpools_aws_ubuntu2404instance_agentpools_proto_msgTypes[0]
+	mi := &file_plugin_pkg_services_agentpools_aws_ubuntu2404instance_agentpools_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -45,7 +45,7 @@ func (x *AgentPool) String() string {
 func (*AgentPool) ProtoMessage() {}
 
 func (x *AgentPool) ProtoReflect() protoreflect.Message {
-	mi := &file_flex_plugin_pkg_services_agentpools_aws_ubuntu2404instance_agentpools_proto_msgTypes[0]
+	mi := &file_plugin_pkg_services_agentpools_aws_ubuntu2404instance_agentpools_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -154,7 +154,7 @@ type AgentPoolSpec struct {
 
 func (x *AgentPoolSpec) Reset() {
 	*x = AgentPoolSpec{}
-	mi := &file_flex_plugin_pkg_services_agentpools_aws_ubuntu2404instance_agentpools_proto_msgTypes[1]
+	mi := &file_plugin_pkg_services_agentpools_aws_ubuntu2404instance_agentpools_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -166,7 +166,7 @@ func (x *AgentPoolSpec) String() string {
 func (*AgentPoolSpec) ProtoMessage() {}
 
 func (x *AgentPoolSpec) ProtoReflect() protoreflect.Message {
-	mi := &file_flex_plugin_pkg_services_agentpools_aws_ubuntu2404instance_agentpools_proto_msgTypes[1]
+	mi := &file_plugin_pkg_services_agentpools_aws_ubuntu2404instance_agentpools_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -320,7 +320,7 @@ type AgentPoolStatus struct {
 
 func (x *AgentPoolStatus) Reset() {
 	*x = AgentPoolStatus{}
-	mi := &file_flex_plugin_pkg_services_agentpools_aws_ubuntu2404instance_agentpools_proto_msgTypes[2]
+	mi := &file_plugin_pkg_services_agentpools_aws_ubuntu2404instance_agentpools_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -332,7 +332,7 @@ func (x *AgentPoolStatus) String() string {
 func (*AgentPoolStatus) ProtoMessage() {}
 
 func (x *AgentPoolStatus) ProtoReflect() protoreflect.Message {
-	mi := &file_flex_plugin_pkg_services_agentpools_aws_ubuntu2404instance_agentpools_proto_msgTypes[2]
+	mi := &file_plugin_pkg_services_agentpools_aws_ubuntu2404instance_agentpools_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -387,11 +387,11 @@ func (b0 AgentPoolStatus_builder) Build() *AgentPoolStatus {
 	return m0
 }
 
-var File_flex_plugin_pkg_services_agentpools_aws_ubuntu2404instance_agentpools_proto protoreflect.FileDescriptor
+var File_plugin_pkg_services_agentpools_aws_ubuntu2404instance_agentpools_proto protoreflect.FileDescriptor
 
-const file_flex_plugin_pkg_services_agentpools_aws_ubuntu2404instance_agentpools_proto_rawDesc = "" +
+const file_plugin_pkg_services_agentpools_aws_ubuntu2404instance_agentpools_proto_rawDesc = "" +
 	"\n" +
-	"Kplugin/pkg/services/agentpools/aws/ubuntu2404instance/agentpools.proto\x12!agentpools.aws.ubuntu2404instance\x1a\x19plugin/api/api.proto\x1aFplugin/pkg/services/agentpools/api/features/kubeadm/kubeadm.proto\"\xc8\x01\n" +
+	"Fplugin/pkg/services/agentpools/aws/ubuntu2404instance/agentpools.proto\x12!agentpools.aws.ubuntu2404instance\x1a\x14plugin/api/api.proto\x1aAplugin/pkg/services/agentpools/api/features/kubeadm/kubeadm.proto\"\xc8\x01\n" +
 	"\tAgentPool\x12)\n" +
 	"\bmetadata\x18\x01 \x01(\v2\r.api.MetadataR\bmetadata\x12D\n" +
 	"\x04spec\x18\x02 \x01(\v20.agentpools.aws.ubuntu2404instance.AgentPoolSpecR\x04spec\x12J\n" +
@@ -402,17 +402,17 @@ const file_flex_plugin_pkg_services_agentpools_aws_ubuntu2404instance_agentpools
 	"\x0esecurity_group\x18\x03 \x01(\tR\rsecurityGroup\x12)\n" +
 	"\akubeadm\x18\x04 \x01(\v2\x0f.kubeadm.ConfigR\akubeadm\"-\n" +
 	"\x0fAgentPoolStatus\x12\x1a\n" +
-	"\binstance\x18\x01 \x01(\tR\binstanceBVZTgithub.com/Azure/aks-flex/plugin/pkg/services/agentpools/aws/ubuntu2404instanceb\beditionsp\xe9\a"
+	"\binstance\x18\x01 \x01(\tR\binstanceBQZOgithub.com/Azure/aks-flex/plugin/pkg/services/agentpools/aws/ubuntu2404instanceb\beditionsp\xe9\a"
 
-var file_flex_plugin_pkg_services_agentpools_aws_ubuntu2404instance_agentpools_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
-var file_flex_plugin_pkg_services_agentpools_aws_ubuntu2404instance_agentpools_proto_goTypes = []any{
+var file_plugin_pkg_services_agentpools_aws_ubuntu2404instance_agentpools_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_plugin_pkg_services_agentpools_aws_ubuntu2404instance_agentpools_proto_goTypes = []any{
 	(*AgentPool)(nil),       // 0: agentpools.aws.ubuntu2404instance.AgentPool
 	(*AgentPoolSpec)(nil),   // 1: agentpools.aws.ubuntu2404instance.AgentPoolSpec
 	(*AgentPoolStatus)(nil), // 2: agentpools.aws.ubuntu2404instance.AgentPoolStatus
 	(*api.Metadata)(nil),    // 3: api.Metadata
 	(*kubeadm.Config)(nil),  // 4: kubeadm.Config
 }
-var file_flex_plugin_pkg_services_agentpools_aws_ubuntu2404instance_agentpools_proto_depIdxs = []int32{
+var file_plugin_pkg_services_agentpools_aws_ubuntu2404instance_agentpools_proto_depIdxs = []int32{
 	3, // 0: agentpools.aws.ubuntu2404instance.AgentPool.metadata:type_name -> api.Metadata
 	1, // 1: agentpools.aws.ubuntu2404instance.AgentPool.spec:type_name -> agentpools.aws.ubuntu2404instance.AgentPoolSpec
 	2, // 2: agentpools.aws.ubuntu2404instance.AgentPool.status:type_name -> agentpools.aws.ubuntu2404instance.AgentPoolStatus
@@ -424,26 +424,26 @@ var file_flex_plugin_pkg_services_agentpools_aws_ubuntu2404instance_agentpools_p
 	0, // [0:4] is the sub-list for field type_name
 }
 
-func init() { file_flex_plugin_pkg_services_agentpools_aws_ubuntu2404instance_agentpools_proto_init() }
-func file_flex_plugin_pkg_services_agentpools_aws_ubuntu2404instance_agentpools_proto_init() {
-	if File_flex_plugin_pkg_services_agentpools_aws_ubuntu2404instance_agentpools_proto != nil {
+func init() { file_plugin_pkg_services_agentpools_aws_ubuntu2404instance_agentpools_proto_init() }
+func file_plugin_pkg_services_agentpools_aws_ubuntu2404instance_agentpools_proto_init() {
+	if File_plugin_pkg_services_agentpools_aws_ubuntu2404instance_agentpools_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_flex_plugin_pkg_services_agentpools_aws_ubuntu2404instance_agentpools_proto_rawDesc), len(file_flex_plugin_pkg_services_agentpools_aws_ubuntu2404instance_agentpools_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_plugin_pkg_services_agentpools_aws_ubuntu2404instance_agentpools_proto_rawDesc), len(file_plugin_pkg_services_agentpools_aws_ubuntu2404instance_agentpools_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_flex_plugin_pkg_services_agentpools_aws_ubuntu2404instance_agentpools_proto_goTypes,
-		DependencyIndexes: file_flex_plugin_pkg_services_agentpools_aws_ubuntu2404instance_agentpools_proto_depIdxs,
-		MessageInfos:      file_flex_plugin_pkg_services_agentpools_aws_ubuntu2404instance_agentpools_proto_msgTypes,
+		GoTypes:           file_plugin_pkg_services_agentpools_aws_ubuntu2404instance_agentpools_proto_goTypes,
+		DependencyIndexes: file_plugin_pkg_services_agentpools_aws_ubuntu2404instance_agentpools_proto_depIdxs,
+		MessageInfos:      file_plugin_pkg_services_agentpools_aws_ubuntu2404instance_agentpools_proto_msgTypes,
 	}.Build()
-	File_flex_plugin_pkg_services_agentpools_aws_ubuntu2404instance_agentpools_proto = out.File
-	file_flex_plugin_pkg_services_agentpools_aws_ubuntu2404instance_agentpools_proto_goTypes = nil
-	file_flex_plugin_pkg_services_agentpools_aws_ubuntu2404instance_agentpools_proto_depIdxs = nil
+	File_plugin_pkg_services_agentpools_aws_ubuntu2404instance_agentpools_proto = out.File
+	file_plugin_pkg_services_agentpools_aws_ubuntu2404instance_agentpools_proto_goTypes = nil
+	file_plugin_pkg_services_agentpools_aws_ubuntu2404instance_agentpools_proto_depIdxs = nil
 }

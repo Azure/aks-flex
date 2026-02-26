@@ -33,7 +33,7 @@ type Network struct {
 
 func (x *Network) Reset() {
 	*x = Network{}
-	mi := &file_flex_plugin_pkg_services_networks_aws_vpc_vpc_proto_msgTypes[0]
+	mi := &file_plugin_pkg_services_networks_aws_vpc_vpc_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -45,7 +45,7 @@ func (x *Network) String() string {
 func (*Network) ProtoMessage() {}
 
 func (x *Network) ProtoReflect() protoreflect.Message {
-	mi := &file_flex_plugin_pkg_services_networks_aws_vpc_vpc_proto_msgTypes[0]
+	mi := &file_plugin_pkg_services_networks_aws_vpc_vpc_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -152,7 +152,7 @@ type NetworkSpec struct {
 
 func (x *NetworkSpec) Reset() {
 	*x = NetworkSpec{}
-	mi := &file_flex_plugin_pkg_services_networks_aws_vpc_vpc_proto_msgTypes[1]
+	mi := &file_plugin_pkg_services_networks_aws_vpc_vpc_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -164,7 +164,7 @@ func (x *NetworkSpec) String() string {
 func (*NetworkSpec) ProtoMessage() {}
 
 func (x *NetworkSpec) ProtoReflect() protoreflect.Message {
-	mi := &file_flex_plugin_pkg_services_networks_aws_vpc_vpc_proto_msgTypes[1]
+	mi := &file_plugin_pkg_services_networks_aws_vpc_vpc_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -257,7 +257,7 @@ type NetworkStatus struct {
 
 func (x *NetworkStatus) Reset() {
 	*x = NetworkStatus{}
-	mi := &file_flex_plugin_pkg_services_networks_aws_vpc_vpc_proto_msgTypes[2]
+	mi := &file_plugin_pkg_services_networks_aws_vpc_vpc_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -269,7 +269,7 @@ func (x *NetworkStatus) String() string {
 func (*NetworkStatus) ProtoMessage() {}
 
 func (x *NetworkStatus) ProtoReflect() protoreflect.Message {
-	mi := &file_flex_plugin_pkg_services_networks_aws_vpc_vpc_proto_msgTypes[2]
+	mi := &file_plugin_pkg_services_networks_aws_vpc_vpc_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -420,11 +420,11 @@ func (b0 NetworkStatus_builder) Build() *NetworkStatus {
 	return m0
 }
 
-var File_flex_plugin_pkg_services_networks_aws_vpc_vpc_proto protoreflect.FileDescriptor
+var File_plugin_pkg_services_networks_aws_vpc_vpc_proto protoreflect.FileDescriptor
 
-const file_flex_plugin_pkg_services_networks_aws_vpc_vpc_proto_rawDesc = "" +
+const file_plugin_pkg_services_networks_aws_vpc_vpc_proto_rawDesc = "" +
 	"\n" +
-	"3plugin/pkg/services/networks/aws/vpc/vpc.proto\x12\x10networks.aws.vpc\x1a\x19plugin/api/api.proto\x1a>plugin/pkg/services/networks/api/features/vnet/vnet.proto\"\xa0\x01\n" +
+	".plugin/pkg/services/networks/aws/vpc/vpc.proto\x12\x10networks.aws.vpc\x1a\x14plugin/api/api.proto\x1a9plugin/pkg/services/networks/api/features/vnet/vnet.proto\"\xa0\x01\n" +
 	"\aNetwork\x12)\n" +
 	"\bmetadata\x18\x01 \x01(\v2\r.api.MetadataR\bmetadata\x121\n" +
 	"\x04spec\x18\x02 \x01(\v2\x1d.networks.aws.vpc.NetworkSpecR\x04spec\x127\n" +
@@ -437,17 +437,17 @@ const file_flex_plugin_pkg_services_networks_aws_vpc_vpc_proto_rawDesc = "" +
 	"\x06subnet\x18\x03 \x01(\tR\x06subnet\x12\x1f\n" +
 	"\vroute_table\x18\x04 \x01(\tR\n" +
 	"routeTable\x12%\n" +
-	"\x0esecurity_group\x18\x05 \x01(\tR\rsecurityGroupBEZCgithub.com/Azure/aks-flex/plugin/pkg/services/networks/aws/vpcb\beditionsp\xe9\a"
+	"\x0esecurity_group\x18\x05 \x01(\tR\rsecurityGroupB@Z>github.com/Azure/aks-flex/plugin/pkg/services/networks/aws/vpcb\beditionsp\xe9\a"
 
-var file_flex_plugin_pkg_services_networks_aws_vpc_vpc_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
-var file_flex_plugin_pkg_services_networks_aws_vpc_vpc_proto_goTypes = []any{
+var file_plugin_pkg_services_networks_aws_vpc_vpc_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_plugin_pkg_services_networks_aws_vpc_vpc_proto_goTypes = []any{
 	(*Network)(nil),       // 0: networks.aws.vpc.Network
 	(*NetworkSpec)(nil),   // 1: networks.aws.vpc.NetworkSpec
 	(*NetworkStatus)(nil), // 2: networks.aws.vpc.NetworkStatus
 	(*api.Metadata)(nil),  // 3: api.Metadata
 	(*vnet.Config)(nil),   // 4: vnet.Config
 }
-var file_flex_plugin_pkg_services_networks_aws_vpc_vpc_proto_depIdxs = []int32{
+var file_plugin_pkg_services_networks_aws_vpc_vpc_proto_depIdxs = []int32{
 	3, // 0: networks.aws.vpc.Network.metadata:type_name -> api.Metadata
 	1, // 1: networks.aws.vpc.Network.spec:type_name -> networks.aws.vpc.NetworkSpec
 	2, // 2: networks.aws.vpc.Network.status:type_name -> networks.aws.vpc.NetworkStatus
@@ -459,26 +459,26 @@ var file_flex_plugin_pkg_services_networks_aws_vpc_vpc_proto_depIdxs = []int32{
 	0, // [0:4] is the sub-list for field type_name
 }
 
-func init() { file_flex_plugin_pkg_services_networks_aws_vpc_vpc_proto_init() }
-func file_flex_plugin_pkg_services_networks_aws_vpc_vpc_proto_init() {
-	if File_flex_plugin_pkg_services_networks_aws_vpc_vpc_proto != nil {
+func init() { file_plugin_pkg_services_networks_aws_vpc_vpc_proto_init() }
+func file_plugin_pkg_services_networks_aws_vpc_vpc_proto_init() {
+	if File_plugin_pkg_services_networks_aws_vpc_vpc_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_flex_plugin_pkg_services_networks_aws_vpc_vpc_proto_rawDesc), len(file_flex_plugin_pkg_services_networks_aws_vpc_vpc_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_plugin_pkg_services_networks_aws_vpc_vpc_proto_rawDesc), len(file_plugin_pkg_services_networks_aws_vpc_vpc_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_flex_plugin_pkg_services_networks_aws_vpc_vpc_proto_goTypes,
-		DependencyIndexes: file_flex_plugin_pkg_services_networks_aws_vpc_vpc_proto_depIdxs,
-		MessageInfos:      file_flex_plugin_pkg_services_networks_aws_vpc_vpc_proto_msgTypes,
+		GoTypes:           file_plugin_pkg_services_networks_aws_vpc_vpc_proto_goTypes,
+		DependencyIndexes: file_plugin_pkg_services_networks_aws_vpc_vpc_proto_depIdxs,
+		MessageInfos:      file_plugin_pkg_services_networks_aws_vpc_vpc_proto_msgTypes,
 	}.Build()
-	File_flex_plugin_pkg_services_networks_aws_vpc_vpc_proto = out.File
-	file_flex_plugin_pkg_services_networks_aws_vpc_vpc_proto_goTypes = nil
-	file_flex_plugin_pkg_services_networks_aws_vpc_vpc_proto_depIdxs = nil
+	File_plugin_pkg_services_networks_aws_vpc_vpc_proto = out.File
+	file_plugin_pkg_services_networks_aws_vpc_vpc_proto_goTypes = nil
+	file_plugin_pkg_services_networks_aws_vpc_vpc_proto_depIdxs = nil
 }

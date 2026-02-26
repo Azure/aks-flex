@@ -31,7 +31,7 @@ type Config struct {
 
 func (x *Config) Reset() {
 	*x = Config{}
-	mi := &file_flex_plugin_pkg_services_networks_api_features_vnet_vnet_proto_msgTypes[0]
+	mi := &file_plugin_pkg_services_networks_api_features_vnet_vnet_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -43,7 +43,7 @@ func (x *Config) String() string {
 func (*Config) ProtoMessage() {}
 
 func (x *Config) ProtoReflect() protoreflect.Message {
-	mi := &file_flex_plugin_pkg_services_networks_api_features_vnet_vnet_proto_msgTypes[0]
+	mi := &file_plugin_pkg_services_networks_api_features_vnet_vnet_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -98,20 +98,20 @@ func (b0 Config_builder) Build() *Config {
 	return m0
 }
 
-var File_flex_plugin_pkg_services_networks_api_features_vnet_vnet_proto protoreflect.FileDescriptor
+var File_plugin_pkg_services_networks_api_features_vnet_vnet_proto protoreflect.FileDescriptor
 
-const file_flex_plugin_pkg_services_networks_api_features_vnet_vnet_proto_rawDesc = "" +
+const file_plugin_pkg_services_networks_api_features_vnet_vnet_proto_rawDesc = "" +
 	"\n" +
-	">plugin/pkg/services/networks/api/features/vnet/vnet.proto\x12\x04vnet\"'\n" +
+	"9plugin/pkg/services/networks/api/features/vnet/vnet.proto\x12\x04vnet\"'\n" +
 	"\x06Config\x12\x1d\n" +
 	"\n" +
-	"cidr_block\x18\x01 \x01(\tR\tcidrBlockBOZMgithub.com/Azure/aks-flex/plugin/pkg/services/networks/api/features/vnetb\beditionsp\xe9\a"
+	"cidr_block\x18\x01 \x01(\tR\tcidrBlockBJZHgithub.com/Azure/aks-flex/plugin/pkg/services/networks/api/features/vnetb\beditionsp\xe9\a"
 
-var file_flex_plugin_pkg_services_networks_api_features_vnet_vnet_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
-var file_flex_plugin_pkg_services_networks_api_features_vnet_vnet_proto_goTypes = []any{
+var file_plugin_pkg_services_networks_api_features_vnet_vnet_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
+var file_plugin_pkg_services_networks_api_features_vnet_vnet_proto_goTypes = []any{
 	(*Config)(nil), // 0: vnet.Config
 }
-var file_flex_plugin_pkg_services_networks_api_features_vnet_vnet_proto_depIdxs = []int32{
+var file_plugin_pkg_services_networks_api_features_vnet_vnet_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for method output_type
 	0, // [0:0] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
@@ -119,26 +119,26 @@ var file_flex_plugin_pkg_services_networks_api_features_vnet_vnet_proto_depIdxs 
 	0, // [0:0] is the sub-list for field type_name
 }
 
-func init() { file_flex_plugin_pkg_services_networks_api_features_vnet_vnet_proto_init() }
-func file_flex_plugin_pkg_services_networks_api_features_vnet_vnet_proto_init() {
-	if File_flex_plugin_pkg_services_networks_api_features_vnet_vnet_proto != nil {
+func init() { file_plugin_pkg_services_networks_api_features_vnet_vnet_proto_init() }
+func file_plugin_pkg_services_networks_api_features_vnet_vnet_proto_init() {
+	if File_plugin_pkg_services_networks_api_features_vnet_vnet_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_flex_plugin_pkg_services_networks_api_features_vnet_vnet_proto_rawDesc), len(file_flex_plugin_pkg_services_networks_api_features_vnet_vnet_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_plugin_pkg_services_networks_api_features_vnet_vnet_proto_rawDesc), len(file_plugin_pkg_services_networks_api_features_vnet_vnet_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   1,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_flex_plugin_pkg_services_networks_api_features_vnet_vnet_proto_goTypes,
-		DependencyIndexes: file_flex_plugin_pkg_services_networks_api_features_vnet_vnet_proto_depIdxs,
-		MessageInfos:      file_flex_plugin_pkg_services_networks_api_features_vnet_vnet_proto_msgTypes,
+		GoTypes:           file_plugin_pkg_services_networks_api_features_vnet_vnet_proto_goTypes,
+		DependencyIndexes: file_plugin_pkg_services_networks_api_features_vnet_vnet_proto_depIdxs,
+		MessageInfos:      file_plugin_pkg_services_networks_api_features_vnet_vnet_proto_msgTypes,
 	}.Build()
-	File_flex_plugin_pkg_services_networks_api_features_vnet_vnet_proto = out.File
-	file_flex_plugin_pkg_services_networks_api_features_vnet_vnet_proto_goTypes = nil
-	file_flex_plugin_pkg_services_networks_api_features_vnet_vnet_proto_depIdxs = nil
+	File_plugin_pkg_services_networks_api_features_vnet_vnet_proto = out.File
+	file_plugin_pkg_services_networks_api_features_vnet_vnet_proto_goTypes = nil
+	file_plugin_pkg_services_networks_api_features_vnet_vnet_proto_depIdxs = nil
 }

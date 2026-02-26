@@ -34,7 +34,7 @@ type AgentPool struct {
 
 func (x *AgentPool) Reset() {
 	*x = AgentPool{}
-	mi := &file_flex_plugin_pkg_services_agentpools_azure_ubuntu2404vmss_agentpools_proto_msgTypes[0]
+	mi := &file_plugin_pkg_services_agentpools_azure_ubuntu2404vmss_agentpools_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -46,7 +46,7 @@ func (x *AgentPool) String() string {
 func (*AgentPool) ProtoMessage() {}
 
 func (x *AgentPool) ProtoReflect() protoreflect.Message {
-	mi := &file_flex_plugin_pkg_services_agentpools_azure_ubuntu2404vmss_agentpools_proto_msgTypes[0]
+	mi := &file_plugin_pkg_services_agentpools_azure_ubuntu2404vmss_agentpools_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -158,7 +158,7 @@ type AgentPoolSpec struct {
 
 func (x *AgentPoolSpec) Reset() {
 	*x = AgentPoolSpec{}
-	mi := &file_flex_plugin_pkg_services_agentpools_azure_ubuntu2404vmss_agentpools_proto_msgTypes[1]
+	mi := &file_plugin_pkg_services_agentpools_azure_ubuntu2404vmss_agentpools_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -170,7 +170,7 @@ func (x *AgentPoolSpec) String() string {
 func (*AgentPoolSpec) ProtoMessage() {}
 
 func (x *AgentPoolSpec) ProtoReflect() protoreflect.Message {
-	mi := &file_flex_plugin_pkg_services_agentpools_azure_ubuntu2404vmss_agentpools_proto_msgTypes[1]
+	mi := &file_plugin_pkg_services_agentpools_azure_ubuntu2404vmss_agentpools_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -390,7 +390,7 @@ type AgentPoolStatus struct {
 
 func (x *AgentPoolStatus) Reset() {
 	*x = AgentPoolStatus{}
-	mi := &file_flex_plugin_pkg_services_agentpools_azure_ubuntu2404vmss_agentpools_proto_msgTypes[2]
+	mi := &file_plugin_pkg_services_agentpools_azure_ubuntu2404vmss_agentpools_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -402,7 +402,7 @@ func (x *AgentPoolStatus) String() string {
 func (*AgentPoolStatus) ProtoMessage() {}
 
 func (x *AgentPoolStatus) ProtoReflect() protoreflect.Message {
-	mi := &file_flex_plugin_pkg_services_agentpools_azure_ubuntu2404vmss_agentpools_proto_msgTypes[2]
+	mi := &file_plugin_pkg_services_agentpools_azure_ubuntu2404vmss_agentpools_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -425,11 +425,11 @@ func (b0 AgentPoolStatus_builder) Build() *AgentPoolStatus {
 	return m0
 }
 
-var File_flex_plugin_pkg_services_agentpools_azure_ubuntu2404vmss_agentpools_proto protoreflect.FileDescriptor
+var File_plugin_pkg_services_agentpools_azure_ubuntu2404vmss_agentpools_proto protoreflect.FileDescriptor
 
-const file_flex_plugin_pkg_services_agentpools_azure_ubuntu2404vmss_agentpools_proto_rawDesc = "" +
+const file_plugin_pkg_services_agentpools_azure_ubuntu2404vmss_agentpools_proto_rawDesc = "" +
 	"\n" +
-	"Iplugin/pkg/services/agentpools/azure/ubuntu2404vmss/agentpools.proto\x12\x1fagentpools.azure.ubuntu2404vmss\x1a\x19plugin/api/api.proto\x1aHplugin/pkg/services/agentpools/api/features/capacity/capacity.proto\x1aFplugin/pkg/services/agentpools/api/features/kubeadm/kubeadm.proto\"\xc4\x01\n" +
+	"Dplugin/pkg/services/agentpools/azure/ubuntu2404vmss/agentpools.proto\x12\x1fagentpools.azure.ubuntu2404vmss\x1a\x14plugin/api/api.proto\x1aCplugin/pkg/services/agentpools/api/features/capacity/capacity.proto\x1aAplugin/pkg/services/agentpools/api/features/kubeadm/kubeadm.proto\"\xc4\x01\n" +
 	"\tAgentPool\x12)\n" +
 	"\bmetadata\x18\x01 \x01(\v2\r.api.MetadataR\bmetadata\x12B\n" +
 	"\x04spec\x18\x02 \x01(\v2..agentpools.azure.ubuntu2404vmss.AgentPoolSpecR\x04spec\x12H\n" +
@@ -443,10 +443,10 @@ const file_flex_plugin_pkg_services_agentpools_azure_ubuntu2404vmss_agentpools_p
 	"\bcapacity\x18\x05 \x01(\v2\x10.capacity.ConfigR\bcapacity\x12)\n" +
 	"\akubeadm\x18\x06 \x01(\v2\x0f.kubeadm.ConfigR\akubeadm\x12\x14\n" +
 	"\x05zones\x18\a \x03(\tR\x05zones\"\x11\n" +
-	"\x0fAgentPoolStatusBTZRgithub.com/Azure/aks-flex/plugin/pkg/services/agentpools/azure/ubuntu2404vmssb\beditionsp\xe9\a"
+	"\x0fAgentPoolStatusBOZMgithub.com/Azure/aks-flex/plugin/pkg/services/agentpools/azure/ubuntu2404vmssb\beditionsp\xe9\a"
 
-var file_flex_plugin_pkg_services_agentpools_azure_ubuntu2404vmss_agentpools_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
-var file_flex_plugin_pkg_services_agentpools_azure_ubuntu2404vmss_agentpools_proto_goTypes = []any{
+var file_plugin_pkg_services_agentpools_azure_ubuntu2404vmss_agentpools_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_plugin_pkg_services_agentpools_azure_ubuntu2404vmss_agentpools_proto_goTypes = []any{
 	(*AgentPool)(nil),       // 0: agentpools.azure.ubuntu2404vmss.AgentPool
 	(*AgentPoolSpec)(nil),   // 1: agentpools.azure.ubuntu2404vmss.AgentPoolSpec
 	(*AgentPoolStatus)(nil), // 2: agentpools.azure.ubuntu2404vmss.AgentPoolStatus
@@ -454,7 +454,7 @@ var file_flex_plugin_pkg_services_agentpools_azure_ubuntu2404vmss_agentpools_pro
 	(*capacity.Config)(nil), // 4: capacity.Config
 	(*kubeadm.Config)(nil),  // 5: kubeadm.Config
 }
-var file_flex_plugin_pkg_services_agentpools_azure_ubuntu2404vmss_agentpools_proto_depIdxs = []int32{
+var file_plugin_pkg_services_agentpools_azure_ubuntu2404vmss_agentpools_proto_depIdxs = []int32{
 	3, // 0: agentpools.azure.ubuntu2404vmss.AgentPool.metadata:type_name -> api.Metadata
 	1, // 1: agentpools.azure.ubuntu2404vmss.AgentPool.spec:type_name -> agentpools.azure.ubuntu2404vmss.AgentPoolSpec
 	2, // 2: agentpools.azure.ubuntu2404vmss.AgentPool.status:type_name -> agentpools.azure.ubuntu2404vmss.AgentPoolStatus
@@ -467,26 +467,26 @@ var file_flex_plugin_pkg_services_agentpools_azure_ubuntu2404vmss_agentpools_pro
 	0, // [0:5] is the sub-list for field type_name
 }
 
-func init() { file_flex_plugin_pkg_services_agentpools_azure_ubuntu2404vmss_agentpools_proto_init() }
-func file_flex_plugin_pkg_services_agentpools_azure_ubuntu2404vmss_agentpools_proto_init() {
-	if File_flex_plugin_pkg_services_agentpools_azure_ubuntu2404vmss_agentpools_proto != nil {
+func init() { file_plugin_pkg_services_agentpools_azure_ubuntu2404vmss_agentpools_proto_init() }
+func file_plugin_pkg_services_agentpools_azure_ubuntu2404vmss_agentpools_proto_init() {
+	if File_plugin_pkg_services_agentpools_azure_ubuntu2404vmss_agentpools_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_flex_plugin_pkg_services_agentpools_azure_ubuntu2404vmss_agentpools_proto_rawDesc), len(file_flex_plugin_pkg_services_agentpools_azure_ubuntu2404vmss_agentpools_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_plugin_pkg_services_agentpools_azure_ubuntu2404vmss_agentpools_proto_rawDesc), len(file_plugin_pkg_services_agentpools_azure_ubuntu2404vmss_agentpools_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_flex_plugin_pkg_services_agentpools_azure_ubuntu2404vmss_agentpools_proto_goTypes,
-		DependencyIndexes: file_flex_plugin_pkg_services_agentpools_azure_ubuntu2404vmss_agentpools_proto_depIdxs,
-		MessageInfos:      file_flex_plugin_pkg_services_agentpools_azure_ubuntu2404vmss_agentpools_proto_msgTypes,
+		GoTypes:           file_plugin_pkg_services_agentpools_azure_ubuntu2404vmss_agentpools_proto_goTypes,
+		DependencyIndexes: file_plugin_pkg_services_agentpools_azure_ubuntu2404vmss_agentpools_proto_depIdxs,
+		MessageInfos:      file_plugin_pkg_services_agentpools_azure_ubuntu2404vmss_agentpools_proto_msgTypes,
 	}.Build()
-	File_flex_plugin_pkg_services_agentpools_azure_ubuntu2404vmss_agentpools_proto = out.File
-	file_flex_plugin_pkg_services_agentpools_azure_ubuntu2404vmss_agentpools_proto_goTypes = nil
-	file_flex_plugin_pkg_services_agentpools_azure_ubuntu2404vmss_agentpools_proto_depIdxs = nil
+	File_plugin_pkg_services_agentpools_azure_ubuntu2404vmss_agentpools_proto = out.File
+	file_plugin_pkg_services_agentpools_azure_ubuntu2404vmss_agentpools_proto_goTypes = nil
+	file_plugin_pkg_services_agentpools_azure_ubuntu2404vmss_agentpools_proto_depIdxs = nil
 }
