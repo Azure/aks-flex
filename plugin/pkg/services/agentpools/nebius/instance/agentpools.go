@@ -70,17 +70,13 @@ func (srv *agentPoolsServer) CreateOrUpdate(
 		kubeadmConfig.SetNodeIp(wireguardIP)
 	}
 
-	// TODO: get the k8s version from spec
 	// TODO: get gpu info from spec (might need to infer from SKU)
 	hasGPU := strings.Contains(apSpec.GetImageFamily(), "cuda")
+	// TODO: get the k8s version from spec
 	ud, err := flex.UserData(hasGPU, "1.33.3", kubeadmConfig)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate userdata: %w", err)
 	}
-	// ud, err := ubuntu.UserData(kubeadmConfig)
-	// if err != nil {
-	// 	return nil, fmt.Errorf("failed to generate userdata: %w", err)
-	// }
 
 	if wireguardIP != "" {
 		// TODO: this part should move to flex node bootstrap setup task
