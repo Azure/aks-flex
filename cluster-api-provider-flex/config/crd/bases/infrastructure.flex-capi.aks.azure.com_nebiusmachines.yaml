@@ -39,10 +39,30 @@ spec:
           spec:
             description: spec defines the desired state of NebiusMachine
             properties:
-              foo:
-                description: foo is an example field of NebiusMachine. Edit nebiusmachine_types.go
-                  to remove/update
+              imageFamily:
+                description: |-
+                  ImageFamily is the nebius image family to use for this machine.
+                  Defaults to infer from platform and preset if not specified.
                 type: string
+              osDiskSizeGibibytes:
+                default: 100
+                description: OSDiskSizeGibibytes is the size of the OS disk in GiB.
+                format: int32
+                minimum: 1
+                type: integer
+              platform:
+                description: Platform is the nebius platform to use for this machine.
+                type: string
+              preset:
+                description: Preset is the nebius preset to use for this machine.
+                type: string
+              providerID:
+                maxLength: 512
+                minLength: 1
+                type: string
+            required:
+            - platform
+            - preset
             type: object
           status:
             description: status defines the observed state of NebiusMachine
@@ -116,6 +136,17 @@ spec:
                 x-kubernetes-list-map-keys:
                 - type
                 x-kubernetes-list-type: map
+              initialization:
+                description: |-
+                  initialization provides observations of the NebiusMachine initialization process.
+                  NOTE: Fields in this struct are part of the Cluster API contract, and they are used to orchestrate initial Machine provisioning.
+                properties:
+                  provisioned:
+                    description: |-
+                      provisioned is true when the infrastructure provider reports that the Machine's infrastructure is fully provisioned.
+                      NOTE: this field is part of the Cluster API contract, and it is used to orchestrate initial Machine provisioning.
+                    type: boolean
+                type: object
             type: object
         required:
         - spec

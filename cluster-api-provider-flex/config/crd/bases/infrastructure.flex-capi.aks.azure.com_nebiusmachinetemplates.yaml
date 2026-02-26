@@ -1,0 +1,87 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.20.1
+  name: nebiusmachinetemplates.infrastructure.flex-capi.aks.azure.com
+spec:
+  group: infrastructure.flex-capi.aks.azure.com
+  names:
+    kind: NebiusMachineTemplate
+    listKind: NebiusMachineTemplateList
+    plural: nebiusmachinetemplates
+    singular: nebiusmachinetemplate
+  scope: Namespaced
+  versions:
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: NebiusMachineTemplate is the Schema for the nebiusmachinetemplates
+          API
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: spec defines the desired state of NebiusMachineTemplate
+            properties:
+              template:
+                properties:
+                  metadata:
+                    type: object
+                  spec:
+                    description: NebiusMachineSpec defines the desired state of NebiusMachine
+                    properties:
+                      imageFamily:
+                        description: |-
+                          ImageFamily is the nebius image family to use for this machine.
+                          Defaults to infer from platform and preset if not specified.
+                        type: string
+                      osDiskSizeGibibytes:
+                        default: 100
+                        description: OSDiskSizeGibibytes is the size of the OS disk
+                          in GiB.
+                        format: int32
+                        minimum: 1
+                        type: integer
+                      platform:
+                        description: Platform is the nebius platform to use for this
+                          machine.
+                        type: string
+                      preset:
+                        description: Preset is the nebius preset to use for this machine.
+                        type: string
+                      providerID:
+                        maxLength: 512
+                        minLength: 1
+                        type: string
+                    required:
+                    - platform
+                    - preset
+                    type: object
+                type: object
+            required:
+            - template
+            type: object
+        required:
+        - spec
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}

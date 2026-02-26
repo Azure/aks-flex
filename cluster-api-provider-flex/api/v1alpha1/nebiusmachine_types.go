@@ -11,7 +11,23 @@ type NebiusMachineSpec struct {
 	// +kubebuilder:validation:MaxLength=512
 	ProviderID string `json:"providerID,omitempty"`
 
-	// addresses
+	// TODO: addresses
+
+	// Platform is the nebius platform to use for this machine.
+	// +required
+	Platform string `json:"platform,omitempty"`
+	// Preset is the nebius preset to use for this machine.
+	// +required
+	Preset string `json:"preset,omitempty"`
+	// ImageFamily is the nebius image family to use for this machine.
+	// Defaults to infer from platform and preset if not specified.
+	// +optional
+	ImageFamily string `json:"imageFamily,omitempty"`
+	// OSDiskSizeGibibytes is the size of the OS disk in GiB.
+	// +optional
+	// +kubebuilder:validation:Minimum=1
+	// +kubebuilder:default:=100
+	OSDiskSizeGibibytes int32 `json:"osDiskSizeGibibytes,omitempty"`
 }
 
 type NebiusMachineInitializationStatus struct {
