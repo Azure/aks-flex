@@ -91,32 +91,142 @@ secret/bootstrap-token-<token-id> created
 
 The `config node-bootstrap` command generates a cloud-init user data script that, when applied to a VM at boot, installs the required packages and joins the node to the AKS cluster via `kubeadm join`.
 
-The command supports multiple cloud targets:
+The command supports two bootstrap targets:
 
-| Target    | Purpose                             |
-| --------- | ----------------------------------- |
-| `generic` | General-purpose Linux VMs           |
-| `aws`     | AWS EC2 instances                   |
-| `nebius`  | Nebius Cloud VMs                    |
-| `azure`   | Azure VMs                           |
+| Target   | Purpose                                                                                              |
+| -------- | ---------------------------------------------------------------------------------------------------- |
+| `flex`   | **(Recommended)** Uses the `aks-flex-node` agent to bootstrap the node with a component-based lifecycle manager |
+| `ubuntu` | Traditional bootstrap using APT packages and direct `kubeadm join`                                    |
+
+### Flags
+
+| Flag    | Type   | Default | Description                                                                 |
+| ------- | ------ | ------- | --------------------------------------------------------------------------- |
+| `--gpu` | `bool` | `false` | Indicates whether the node has a GPU. Affects the generated userdata (flex only). |
 
 ### Generate user data
 
-For most clouds (generic Ubuntu VMs):
+Using the recommended `flex` target:
 
 ```bash
-$ aks-flex-cli config node-bootstrap generic > user-data.yaml
+$ aks-flex-cli config node-bootstrap flex > user-data.yaml
 ```
 
-For Azure VMs:
+For GPU nodes:
 
 ```bash
-$ aks-flex-cli config node-bootstrap azure > user-data.yaml
+$ aks-flex-cli config node-bootstrap flex --gpu > user-data.yaml
+```
+
+Using the `ubuntu` target (traditional `kubeadm join`):
+
+```bash
+$ aks-flex-cli config node-bootstrap ubuntu > user-data.yaml
 ```
 
 ### Sample output
 
-The generated output is a [cloud-init](https://cloud-init.io/) YAML document. Here is a representative example for the `generic` target:
+The generated output is a [cloud-init](https://cloud-init.io/) YAML document.
+
+#### `flex` target (recommended)
+
+The `flex` target generates a cloud-init config that downloads the `aks-flex-node` agent and applies a component-based configuration:
+
+```yaml
+#cloud-config
+package_update: true
+packages:
+    - curl
+write_files:
+    - path: /tmp/flex-config.json
+      permissions: "0644"
+      content: |
+        [
+          {
+            "metadata": {
+              "type": "aks.flex.components.linux.ConfigureBaseOS",
+              "name": "configure-base-os"
+            },
+            "spec": {}
+          },
+          {
+            "metadata": {
+              "type": "aks.flex.components.cri.DownloadCRIBinaries",
+              "name": "download-cri-binaries"
+            },
+            "spec": {
+              "containerd_version": "2.0.4",
+              "runc_version": "1.2.5"
+            }
+          },
+          {
+            "metadata": {
+              "type": "aks.flex.components.kubebins.DownloadKubeBinaries",
+              "name": "download-kube-binaries"
+            },
+            "spec": {
+              "kubernetes_version": "1.33.3"
+            }
+          },
+          {
+            "metadata": {
+              "type": "aks.flex.components.cri.StartContainerdService",
+              "name": "start-containerd-service"
+            },
+            "spec": {}
+          },
+          {
+            "metadata": {
+              "type": "aks.flex.components.kubeadm.KubadmNodeJoin",
+              "name": "kubeadm-node-join"
+            },
+            "spec": {
+              "control_plane": {
+                "server": "https://<api-server-fqdn>:443",
+                "certificate_authority_data": "<base64-encoded-ca-cert>"
+              },
+              "kubelet": {
+                "bootstrap_auth_info": {
+                  "token": "<bootstrap-token>"
+                },
+                "node_labels": {
+                  "aks.azure.com/stretch-managed": "true"
+                }
+              }
+            }
+          }
+        ]
+runcmd:
+    - - set
+      - -e
+    - |-
+      mkdir -p /tmp/flex
+      curl -L -o /tmp/flex/aks-flex-node https://bahestoragetest.z13.web.core.windows.net/flex/aks-flex-node-linux-amd64
+      chmod +x /tmp/flex/aks-flex-node
+      /tmp/flex/aks-flex-node apply -f /tmp/flex-config.json
+```
+
+The `aks-flex-node` agent takes care of installing and configuring containerd, kubelet, kubeadm, and joining the cluster.
+
+When `--gpu` is passed, the `StartContainerdService` component includes GPU configuration to enable the NVIDIA container runtime:
+
+```json
+{
+  "metadata": {
+    "type": "aks.flex.components.cri.StartContainerdService",
+    "name": "start-containerd-service"
+  },
+  "spec": {
+    "gpu_config": {
+      "nvidia_runtime": {}
+    }
+  }
+}
+```
+
+#### `ubuntu` target
+
+The `ubuntu` target generates a traditional cloud-init config that installs packages via APT and runs `kubeadm join` directly:
 
 ```yaml
 #cloud-config
@@ -180,14 +290,14 @@ runcmd:
       - /root/.kube/config
 ```
 
-In short, the user data prepares the container runtime (containerd) and kubelet, then uses `kubeadm join` to register the node as a worker in the AKS cluster.
+In short, the `ubuntu` target prepares the container runtime (containerd) and kubelet, then uses `kubeadm join` to register the node as a worker in the AKS cluster.
 
 ### Sample: joining an Azure VM with the user data
 
-Generate the Azure-flavored user data:
+Generate the user data (using the recommended `flex` target):
 
 ```bash
-$ aks-flex-cli config node-bootstrap azure > azure-user-data.yaml
+$ aks-flex-cli config node-bootstrap flex > azure-user-data.yaml
 ```
 
 Create an Azure VM with the user data as custom data:
@@ -218,10 +328,10 @@ flex-node-azure                     Ready    <none>   102s    v1.33.8
 
 ### Sample: joining a QEMU VM with the user data
 
-Generate the generic user data:
+Generate the user data:
 
 ```bash
-$ aks-flex-cli config node-bootstrap generic > qemu-user-data.yaml
+$ aks-flex-cli config node-bootstrap flex > qemu-user-data.yaml
 ```
 
 Launch a QEMU VM with cloud-init support. For example, using a Ubuntu cloud image:
@@ -284,10 +394,34 @@ The flex CLI prepares a bootstrap token for the node join process. This token is
 
 When a new VM boots with the generated cloud-init user data, the following steps happen:
 
+#### `flex` target (recommended)
+
 ```
   New VM (cloud-init)
   │
-  ├─ 1. Install packages (containerd, kubeadm, kubelet)
+  ├─ 1. Install curl
+  │
+  ├─ 2. Write component config JSON to /tmp/flex-config.json
+  │     └─ Contains: base OS config, CRI binaries, kube binaries,
+  │        containerd service config (with optional GPU support),
+  │        kubeadm join config (CA cert, API server URL, bootstrap token)
+  │
+  ├─ 3. Download aks-flex-node agent
+  │
+  └─ 4. aks-flex-node apply -f /tmp/flex-config.json
+        ├─ ConfigureBaseOS
+        ├─ DownloadCRIBinaries (containerd, runc)
+        ├─ DownloadKubeBinaries (kubeadm, kubelet)
+        ├─ StartContainerdService (with NVIDIA runtime if --gpu)
+        └─ KubeadmNodeJoin → node registers with API server
+```
+
+#### `ubuntu` target
+
+```
+  New VM (cloud-init)
+  │
+  ├─ 1. Install packages (containerd, kubeadm, kubelet) via APT
   │
   ├─ 2. Write bootstrap kubeconfig
   │     └─ Contains: CA cert, API server URL, bootstrap token
@@ -313,9 +447,3 @@ Key settings in the kubeadm `JoinConfiguration`:
 | `discovery.file.kubeConfigPath`  | Points to the bootstrap kubeconfig for cluster discovery   |
 | `nodeRegistration.kubeletExtraArgs.node-labels` | Applies labels such as `aks.azure.com/stretch-managed=true` |
 | `nodeRegistration.kubeletExtraArgs.node-ip`     | Sets the node's InternalIP (used with WireGuard tunnels)   |
-
-> **Note:** The node-side bootstrapping will transition to use the
-> `AKSFlexNode` agent in the future, which provides a
-> component-based lifecycle manager. The `azure` target already uses this
-> agent. Documentation for the AKSFlexNode agent architecture will be
-> added once it is stabilized and enabled for all targets.
