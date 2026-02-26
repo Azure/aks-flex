@@ -18,10 +18,8 @@ var Command *cobra.Command = r.Command()
 var flagHasGPU bool
 
 func init() {
-	r.Handle("generic", writeUbuntuUserData)
-	r.Handle("aws", writeUbuntuUserData)
-	r.Handle("azure", writeFlexUserData)
-	r.Handle("nebius", writeUbuntuUserData)
+	r.Handle("ubuntu", writeUbuntuUserData)
+	r.Handle("flex", writeFlexUserData)
 
 	Command.Flags().BoolVar(&flagHasGPU, "gpu", false, "Indicates whether the node has GPU. This may affect the generated userdata.")
 }
