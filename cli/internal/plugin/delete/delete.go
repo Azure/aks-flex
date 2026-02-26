@@ -6,8 +6,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/Azure/aks-flex/flex-plugin/pkg/client"
-	"github.com/Azure/aks-flex/flex-plugin/pkg/helper"
+	"github.com/Azure/aks-flex/plugin/pkg/client"
+	"github.com/Azure/aks-flex/plugin/pkg/helper"
 )
 
 var Command = &cobra.Command{

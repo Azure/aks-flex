@@ -7,9 +7,9 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 
-	"github.com/Azure/aks-flex/flex-plugin/pkg/services/agentpools/api/features/kubeadm"
-	"github.com/Azure/aks-flex/flex-plugin/pkg/util/config"
-	kubeadmutil "github.com/Azure/aks-flex/flex-plugin/pkg/util/kubeadm"
+	"github.com/Azure/aks-flex/plugin/pkg/services/agentpools/api/features/kubeadm"
+	"github.com/Azure/aks-flex/plugin/pkg/util/config"
+	kubeadmutil "github.com/Azure/aks-flex/plugin/pkg/util/kubeadm"
 )
 
 const placeholder = "<replace-with-actual-value>"

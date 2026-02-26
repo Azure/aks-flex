@@ -2,14 +2,14 @@
 
 ## Overview
 
-This guide walks through deploying `karpenter-provider-flex` to an AKS Flex cluster and using Karpenter to automatically provision and deprovision Nebius cloud nodes. By the end you will have:
+This guide walks through deploying `karpenter` to an AKS Flex cluster and using Karpenter to automatically provision and deprovision Nebius cloud nodes. By the end you will have:
 
-- The karpenter-provider-flex controller running in the cluster
+- The karpenter controller running in the cluster
 - A `NebiusNodeClass` and `NodePool` configured for Nebius compute instances
 - Workloads that trigger automatic node scale-up on Nebius
 - An understanding of how to scale down and clean up provisioned nodes
 
-Karpenter watches for unschedulable pods and automatically provisions new nodes to meet demand. The `karpenter-provider-flex` extends Karpenter with a Nebius cloud provider, allowing it to create and manage Nebius VMs that join the AKS cluster as worker nodes.
+Karpenter watches for unschedulable pods and automatically provisions new nodes to meet demand. The `karpenter` extends Karpenter with a Nebius cloud provider, allowing it to create and manage Nebius VMs that join the AKS cluster as worker nodes.
 
 ## Getting Started
 
@@ -18,7 +18,7 @@ Karpenter watches for unschedulable pods and automatically provisions new nodes 
 - **AKS Flex CLI** -- installed and configured with a `.env` file. See [CLI Setup](cli-setup.md).
 - **AKS cluster with WireGuard** -- the cluster must have WireGuard enabled for cross-cloud node connectivity. See [AKS Cluster Setup](cli-prepare-aks-cluster.md) (specifically the [Enable with WireGuard](cli-prepare-aks-cluster.md#enable-with-wireguard) section).
 - **Nebius service account credentials** -- a Nebius credentials JSON file for the karpenter controller. See the [Nebius authorized keys documentation](https://docs.nebius.com/iam/service-accounts/authorized-keys).
-- **Helm** -- required for installing the karpenter-provider-flex chart.
+- **Helm** -- required for installing the karpenter chart.
 
 ### Configuration
 
@@ -46,7 +46,7 @@ $ kubectl create namespace karpenter
 The karpenter controller needs Nebius API credentials to provision VMs. Upload your credentials file as a Kubernetes secret using the provided helper script:
 
 ```bash
-$ ./karpenter-provider-flex/hack/upload-nebius-credentials.sh <path-to-credentials-json>
+$ ./karpenter/hack/upload-nebius-credentials.sh <path-to-credentials-json>
 ```
 
 This creates a secret named `nebius-credentials` in the `karpenter` namespace with the credentials file stored under the key `credentials.json`.
@@ -91,7 +91,7 @@ helm upgrade --install karpenter charts/karpenter \
 
 If any value cannot be resolved (e.g. the cluster is not reachable), it is replaced with `<replace-with-actual-value>`. Edit these placeholders before running the command.
 
-Copy the output and run it from the `karpenter-provider-flex/` directory:
+Copy the output and run it from the `karpenter/` directory:
 
 ```bash
 $ helm upgrade --install karpenter charts/karpenter \
@@ -104,10 +104,10 @@ $ helm upgrade --install karpenter charts/karpenter \
 To use a custom controller image instead of the chart default, pass the `--image` flag:
 
 ```bash
-$ aks-flex-cli config karpenter helm --image myregistry.io/karpenter-provider-flex:v0.2.0
+$ aks-flex-cli config karpenter helm --image myregistry.io/karpenter:v0.2.0
 ```
 
-This adds `--set controller.image.repository=myregistry.io/karpenter-provider-flex` and `--set controller.image.tag=v0.2.0` to the generated command.
+This adds `--set controller.image.repository=myregistry.io/karpenter` and `--set controller.image.tag=v0.2.0` to the generated command.
 
 ### 4. Verify the controller is running
 
@@ -119,7 +119,7 @@ karpenter-6b55df659d-m2d5g   1/1     Running   7 (13m ago)   20m
 
 ## Creating Nodes on Nebius via Karpenter
 
-With the karpenter-provider-flex controller running, you can define a `NebiusNodeClass` and `NodePool` to tell Karpenter how and when to provision Nebius nodes.
+With the karpenter controller running, you can define a `NebiusNodeClass` and `NodePool` to tell Karpenter how and when to provision Nebius nodes.
 
 ### Creating a NebiusNodeClass
 

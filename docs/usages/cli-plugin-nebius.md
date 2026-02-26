@@ -11,7 +11,7 @@ This guide walks through joining nodes from Nebius cloud to an existing AKS Flex
 The workflow uses two CLI command groups:
 
 - `aks-flex-cli config` -- generates JSON configuration templates for Nebius resources
-- `aks-flex-cli plugin` -- applies, queries, and deletes Nebius resources via the flex-plugin backend
+- `aks-flex-cli plugin` -- applies, queries, and deletes Nebius resources via the plugin backend
 
 ## Setup
 

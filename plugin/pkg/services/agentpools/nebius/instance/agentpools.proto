@@ -1,0 +1,38 @@
+edition = "2024";
+
+package agentpools.nebius.instance;
+
+option go_package = "github.com/Azure/aks-flex/plugin/pkg/services/agentpools/nebius/instance";
+
+import "google/protobuf/timestamp.proto";
+import "plugin/api/api.proto";
+import "plugin/pkg/services/agentpools/api/features/kubeadm/kubeadm.proto";
+import "plugin/pkg/services/agentpools/api/features/wireguard/wireguard.proto";
+
+message AgentPool {
+  api.Metadata metadata = 1;
+
+  AgentPoolSpec spec = 2;
+
+  AgentPoolStatus status = 3;
+}
+
+message AgentPoolSpec {
+  string project_id = 1;
+  string region = 2;
+  string subnet_id = 3;
+  string platform = 4;
+  string preset = 5;
+  string image_family = 6;
+  int64 os_disk_size_gibibytes = 7;
+  kubeadm.Config kubeadm = 8;
+  wireguard.Config wireguard = 9;
+}
+
+message AgentPoolStatus {
+  // instance id is the nebius side id of the instance.
+  string instance_id = 1;
+  // os disk id is the nebius side id of the os disk attached to the instance.
+  string os_disk_id = 2;
+  google.protobuf.Timestamp created_at = 3;
+}

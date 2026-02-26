@@ -25,11 +25,11 @@ Use the `aks-flex-cli plugin` commands to declaratively manage networks and agen
 
 ### 2. Karpenter autoscaling
 
-Use Karpenter with the `karpenter-provider-flex` to automatically provision and deprovision remote cloud nodes based on workload demand. Karpenter watches for unschedulable pods and creates nodes as needed.
+Use Karpenter with the `karpenter` to automatically provision and deprovision remote cloud nodes based on workload demand. Karpenter watches for unschedulable pods and creates nodes as needed.
 
 | Guide | Description |
 | ----- | ----------- |
-| [Karpenter Provider Flex](karpenter.md) | Deploy karpenter-provider-flex and use NodePools to autoscale Nebius nodes |
+| [Karpenter Provider Flex](karpenter.md) | Deploy karpenter and use NodePools to autoscale Nebius nodes |
 
 ### 3. Manual node bootstrapping
 
