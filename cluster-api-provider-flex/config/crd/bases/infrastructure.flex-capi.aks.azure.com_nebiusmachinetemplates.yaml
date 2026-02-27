@@ -14,7 +14,7 @@ spec:
     singular: nebiusmachinetemplate
   scope: Namespaced
   versions:
-  - name: v1alpha1
+  - name: v1beta2
     schema:
       openAPIV3Schema:
         description: NebiusMachineTemplate is the Schema for the nebiusmachinetemplates
@@ -45,34 +45,52 @@ spec:
                   metadata:
                     type: object
                   spec:
-                    description: NebiusMachineSpec defines the desired state of NebiusMachine
+                    description: NebiusMachineSpec defines the desired state of NebiusMachine.
                     properties:
                       imageFamily:
                         description: |-
-                          ImageFamily is the nebius image family to use for this machine.
+                          imageFamily is the Nebius image family to use for this machine (e.g. "ubuntu24.04-driverless").
                           Defaults to infer from platform and preset if not specified.
                         type: string
                       osDiskSizeGibibytes:
                         default: 100
-                        description: OSDiskSizeGibibytes is the size of the OS disk
+                        description: osDiskSizeGibibytes is the size of the OS disk
                           in GiB.
                         format: int32
                         minimum: 1
                         type: integer
                       platform:
-                        description: Platform is the nebius platform to use for this
-                          machine.
+                        description: platform is the Nebius platform to use for this
+                          machine (e.g. "cpu-d3", "gpu-h200-sxm").
                         type: string
                       preset:
-                        description: Preset is the nebius preset to use for this machine.
+                        description: preset is the Nebius preset to use for this machine
+                          (e.g. "4vcpu-16gb", "1gpu-128vcpu-1600gb").
+                        type: string
+                      projectID:
+                        description: projectID is the Nebius project ID where the
+                          instance should be created.
                         type: string
                       providerID:
+                        description: providerID is the unique identifier as specified
+                          by the cloud provider.
                         maxLength: 512
                         minLength: 1
+                        type: string
+                      region:
+                        description: region is the Nebius region where the instance
+                          should be created.
+                        type: string
+                      subnetID:
+                        description: subnetID is the Nebius subnet ID to attach the
+                          instance to.
                         type: string
                     required:
                     - platform
                     - preset
+                    - projectID
+                    - region
+                    - subnetID
                     type: object
                 type: object
             required:

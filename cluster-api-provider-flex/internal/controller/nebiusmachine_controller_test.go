@@ -11,7 +11,7 @@ import (
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	infrastructurev1alpha1 "github.com/Azure/aks-flex/cluster-api-provider-flex/api/v1alpha1"
+	infrastructurev1beta2 "github.com/Azure/aks-flex/cluster-api-provider-flex/api/v1beta2"
 )
 
 var _ = Describe("NebiusMachine Controller", func() {
@@ -24,13 +24,13 @@ var _ = Describe("NebiusMachine Controller", func() {
 			Name:      resourceName,
 			Namespace: "default", // TODO(user):Modify as needed
 		}
-		nebiusmachine := &infrastructurev1alpha1.NebiusMachine{}
+		nebiusmachine := &infrastructurev1beta2.NebiusMachine{}
 
 		BeforeEach(func() {
 			By("creating the custom resource for the Kind NebiusMachine")
 			err := k8sClient.Get(ctx, typeNamespacedName, nebiusmachine)
 			if err != nil && errors.IsNotFound(err) {
-				resource := &infrastructurev1alpha1.NebiusMachine{
+				resource := &infrastructurev1beta2.NebiusMachine{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      resourceName,
 						Namespace: "default",
@@ -43,7 +43,7 @@ var _ = Describe("NebiusMachine Controller", func() {
 
 		AfterEach(func() {
 			// TODO(user): Cleanup logic after each test, like removing the resource instance.
-			resource := &infrastructurev1alpha1.NebiusMachine{}
+			resource := &infrastructurev1beta2.NebiusMachine{}
 			err := k8sClient.Get(ctx, typeNamespacedName, resource)
 			Expect(err).NotTo(HaveOccurred())
 

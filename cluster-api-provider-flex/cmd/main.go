@@ -17,6 +17,7 @@ limitations under the License.
 package main
 
 import (
+	"context"
 	"crypto/tls"
 	"flag"
 	"os"
@@ -25,9 +26,12 @@ import (
 	// to ensure that exec-entrypoint and run can make use of them.
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
+	"github.com/nebius/gosdk"
+	"github.com/nebius/gosdk/auth"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
+	clusterv1 "sigs.k8s.io/cluster-api/api/core/v1beta2"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
@@ -35,8 +39,9 @@ import (
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
-	infrastructurev1alpha1 "github.com/Azure/aks-flex/cluster-api-provider-flex/api/v1alpha1"
+	infrastructurev1beta2 "github.com/Azure/aks-flex/cluster-api-provider-flex/api/v1beta2"
 	"github.com/Azure/aks-flex/cluster-api-provider-flex/internal/controller"
+	"github.com/Azure/aks-flex/cluster-api-provider-flex/internal/service"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -48,7 +53,8 @@ var (
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 
-	utilruntime.Must(infrastructurev1alpha1.AddToScheme(scheme))
+	utilruntime.Must(clusterv1.AddToScheme(scheme))
+	utilruntime.Must(infrastructurev1beta2.AddToScheme(scheme))
 	// +kubebuilder:scaffold:scheme
 }
 
@@ -61,6 +67,8 @@ func main() {
 	var probeAddr string
 	var secureMetrics bool
 	var enableHTTP2 bool
+	var nebiusCredentialsFile string
+	var watchFilterValue string
 	var tlsOpts []func(*tls.Config)
 	flag.StringVar(&metricsAddr, "metrics-bind-address", "0", "The address the metrics endpoint binds to. "+
 		"Use :8443 for HTTPS or :8080 for HTTP, or leave as 0 to disable the metrics service.")
@@ -79,6 +87,10 @@ func main() {
 	flag.StringVar(&metricsCertKey, "metrics-cert-key", "tls.key", "The name of the metrics server key file.")
 	flag.BoolVar(&enableHTTP2, "enable-http2", false,
 		"If set, HTTP/2 will be enabled for the metrics and webhook servers")
+	flag.StringVar(&nebiusCredentialsFile, "nebius-credentials-file", "",
+		"The path to the Nebius service account credentials file.")
+	flag.StringVar(&watchFilterValue, "watch-filter-value", "",
+		"The label value used to filter events for watched resources.")
 	opts := zap.Options{
 		Development: true,
 	}
@@ -86,6 +98,26 @@ func main() {
 	flag.Parse()
 
 	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
+
+	// Initialize the Nebius SDK.
+	if nebiusCredentialsFile == "" {
+		setupLog.Error(nil, "Missing required flag --nebius-credentials-file")
+		os.Exit(1)
+	}
+
+	ctx := context.Background()
+	nebiusSDK, err := gosdk.New(ctx,
+		gosdk.WithCredentials(
+			gosdk.ServiceAccountReader(
+				auth.NewServiceAccountCredentialsFileParser(nil, nebiusCredentialsFile),
+			),
+		),
+	)
+	if err != nil {
+		setupLog.Error(err, "Failed to initialize Nebius SDK")
+		os.Exit(1)
+	}
+	instanceService := service.NewNebiusInstanceService(nebiusSDK)
 
 	// if the enable-http2 flag is false (the default), http/2 should be disabled
 	// due to its vulnerabilities. More specifically, disabling http/2 will
@@ -179,8 +211,10 @@ func main() {
 	}
 
 	if err := (&controller.NebiusMachineReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
+		Client:           mgr.GetClient(),
+		Scheme:           mgr.GetScheme(),
+		InstanceService:  instanceService,
+		WatchFilterValue: watchFilterValue,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "Failed to create controller", "controller", "NebiusMachine")
 		os.Exit(1)

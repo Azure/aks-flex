@@ -14,10 +14,20 @@ spec:
     singular: nebiusmachine
   scope: Namespaced
   versions:
-  - name: v1alpha1
+  - additionalPrinterColumns:
+    - jsonPath: .spec.providerID
+      name: ProviderID
+      type: string
+    - jsonPath: .status.instanceState
+      name: State
+      type: string
+    - jsonPath: .status.initialization.provisioned
+      name: Ready
+      type: string
+    name: v1beta2
     schema:
       openAPIV3Schema:
-        description: NebiusMachine is the Schema for the nebiusmachines API
+        description: NebiusMachine is the Schema for the nebiusmachines API.
         properties:
           apiVersion:
             description: |-
@@ -41,43 +51,71 @@ spec:
             properties:
               imageFamily:
                 description: |-
-                  ImageFamily is the nebius image family to use for this machine.
+                  imageFamily is the Nebius image family to use for this machine (e.g. "ubuntu24.04-driverless").
                   Defaults to infer from platform and preset if not specified.
                 type: string
               osDiskSizeGibibytes:
                 default: 100
-                description: OSDiskSizeGibibytes is the size of the OS disk in GiB.
+                description: osDiskSizeGibibytes is the size of the OS disk in GiB.
                 format: int32
                 minimum: 1
                 type: integer
               platform:
-                description: Platform is the nebius platform to use for this machine.
+                description: platform is the Nebius platform to use for this machine
+                  (e.g. "cpu-d3", "gpu-h200-sxm").
                 type: string
               preset:
-                description: Preset is the nebius preset to use for this machine.
+                description: preset is the Nebius preset to use for this machine (e.g.
+                  "4vcpu-16gb", "1gpu-128vcpu-1600gb").
+                type: string
+              projectID:
+                description: projectID is the Nebius project ID where the instance
+                  should be created.
                 type: string
               providerID:
+                description: providerID is the unique identifier as specified by the
+                  cloud provider.
                 maxLength: 512
                 minLength: 1
+                type: string
+              region:
+                description: region is the Nebius region where the instance should
+                  be created.
+                type: string
+              subnetID:
+                description: subnetID is the Nebius subnet ID to attach the instance
+                  to.
                 type: string
             required:
             - platform
             - preset
+            - projectID
+            - region
+            - subnetID
             type: object
           status:
             description: status defines the observed state of NebiusMachine
             properties:
+              addresses:
+                description: addresses contains the machine's associated addresses.
+                items:
+                  description: MachineAddress contains information for the machine's
+                    address.
+                  properties:
+                    address:
+                      description: address is the machine address.
+                      type: string
+                    type:
+                      description: type is the type of the machine address.
+                      type: string
+                  required:
+                  - address
+                  - type
+                  type: object
+                type: array
               conditions:
-                description: |-
-                  conditions represent the current state of the NebiusMachine resource.
-                  Each condition has a unique type and reflects the status of a specific aspect of the resource.
-
-                  Standard condition types include:
-                  - "Available": the resource is fully functional
-                  - "Progressing": the resource is being created or updated
-                  - "Degraded": the resource failed to reach or maintain its desired state
-
-                  The status of each condition is one of True, False, or Unknown.
+                description: conditions represent the current state of the NebiusMachine
+                  resource.
                 items:
                   description: Condition contains details for one aspect of the current
                     state of this API Resource.
@@ -136,6 +174,16 @@ spec:
                 x-kubernetes-list-map-keys:
                 - type
                 x-kubernetes-list-type: map
+              failureMessage:
+                description: |-
+                  failureMessage will be set in the event that there is a terminal problem
+                  reconciling the Machine and will contain a more verbose string suitable for logging and human consumption.
+                type: string
+              failureReason:
+                description: |-
+                  failureReason will be set in the event that there is a terminal problem
+                  reconciling the Machine and will contain a succinct value suitable for machine interpretation.
+                type: string
               initialization:
                 description: |-
                   initialization provides observations of the NebiusMachine initialization process.
@@ -147,6 +195,16 @@ spec:
                       NOTE: this field is part of the Cluster API contract, and it is used to orchestrate initial Machine provisioning.
                     type: boolean
                 type: object
+              instanceID:
+                description: instanceID is the Nebius instance ID of the machine.
+                type: string
+              instanceState:
+                description: instanceState is the state of the Nebius instance.
+                type: string
+              osDiskID:
+                description: osDiskID is the Nebius disk ID of the OS disk attached
+                  to the instance.
+                type: string
             type: object
         required:
         - spec
