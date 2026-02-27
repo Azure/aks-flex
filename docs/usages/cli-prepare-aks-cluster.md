@@ -31,17 +31,19 @@ The following environment variables are relevant to cluster creation:
 
 | Variable                 | Description                            | Default              |
 | ------------------------ | -------------------------------------- | -------------------- |
-| `LOCATION`               | Azure region for all resources         | `southcentralus`     |
+| `LOCATION`               | Azure region for all resources         | (required)           |
 | `AZURE_SUBSCRIPTION_ID`  | Azure subscription ID                  | auto-detected        |
-| `RESOURCE_GROUP_NAME`    | Resource group name                    | `rg-aks-flex-<user>` |
-| `CLUSTER_NAME`           | Name of the AKS cluster               | `aks`                |
-| `AKS_NODE_VM_SIZE`       | VM size for the system node pool       | `Standard_D2s_v3`    |
+| `RESOURCE_GROUP_NAME`    | Resource group name                    | `$USER`              |
+| `CLUSTER_NAME`           | Name of the AKS cluster                | `flex`               |
+| `CLUSTER_VERSION`        | Kubernetes version for the AKS cluster | `1.34.2`             |
+| `SYSTEM_VM_SIZE`         | VM size for the system node pool       | `Standard_D8ds_v5`   |
+| `WIREGUARD_VM_SIZE`      | VM size for the WireGuard gateway node | `Standard_D16ds_v5`  |
 
 ### Desired Cluster Setup
 
 The CLI creates an AKS cluster with `networkPlugin: none`, which disables the built-in Azure CNI so that Cilium can be installed as the cluster's CNI instead. The cluster is deployed with:
 
-- A **system** node pool (2 nodes) in the `aks` subnet (`172.16.1.0/24`)
+- A **system** node pool (3 nodes) in the `aks` subnet (`172.16.1.0/24`)
 - **Cilium CNI** installed via the Cilium CLI after the cluster is provisioned
 - A system-assigned managed identity
 
@@ -92,7 +94,7 @@ $ aks-flex-cli aks deploy --cilium
 This command performs the following steps:
 
 1. Deploys the AKS cluster via an ARM template into the existing VNet
-2. Downloads the cluster kubeconfig (saved as `<cluster-name>.kubeconfig`, e.g. `aks.kubeconfig`)
+2. Downloads the cluster kubeconfig and merges it into `~/.kube/config` (created if it does not exist), setting the cluster as the current context
 3. Applies baseline Kubernetes resources
 4. Installs Cilium CNI using the `cilium install` CLI
 
@@ -101,7 +103,7 @@ Expected output:
 ```
 2026/02/21 19:43:58 Deploying AKS cluster "aks" in "rg-aks-flex-<username>"
 2026/02/21 19:46:34 AKS cluster deployment complete
-2026/02/21 19:46:35 kubeconfig saved to "aks.kubeconfig"
+2026/02/21 19:46:35 kubeconfig saved to "/home/<username>/.kube/config"
 2026/02/21 19:46:38 Kubernetes-side deployment complete
 🔮 Auto-detected Kubernetes kind: AKS
 ℹ️  Using Cilium version 1.18.5
@@ -111,10 +113,10 @@ Expected output:
 2026/02/21 19:46:45 Cilium deployment complete
 ```
 
-You can customize the kubeconfig output path with `--kubeconfig-to-save`:
+To write the kubeconfig to a different path instead, use `--kubeconfig` (merge-or-create behavior applies to that path as well):
 
 ```bash
-$ aks-flex-cli aks deploy --cilium --kubeconfig-to-save ./my-cluster.kubeconfig
+$ aks-flex-cli aks deploy --cilium --kubeconfig ./my-cluster.kubeconfig
 ```
 
 ![](./images/cli-prepare-aks-cluster/resource-aks.png)
@@ -139,7 +141,7 @@ In addition to the standard AKS resources, the `--wireguard` flag provisions:
 | ------------------------ | ----------------------- | ------------------------------------------------ |
 | NSG rule                 | `AllowWireGuard`        | Allows inbound UDP/51820                         |
 | Public IP prefix         | `nebius-wg-pip-prefix`  | Static public IP prefix for the gateway node     |
-| Agent pool               | `wireguard`             | 1-node pool in the `nodes` subnet with public IP |
+| Agent pool               | `wireguard`             | 1-node pool in the `nodes` subnet with public IP (size: `$WIREGUARD_VM_SIZE`) |
 | Route table              | `nebius-routes`         | Routes remote cloud traffic through the gateway  |
 
 After the ARM deployment, the CLI automatically:
@@ -155,7 +157,7 @@ Expected output:
 ```
 2026/02/21 10:05:00 starting deployment aks in rg-aks-flex-<username>
 2026/02/21 10:15:00 deployment aks succeeded
-2026/02/21 10:15:01 kubeconfig saved to aks.kubeconfig
+2026/02/21 10:15:01 kubeconfig saved to "/home/<username>/.kube/config"
 ...
 ✅ Cilium was successfully installed!
 2026/02/21 10:16:00 Getting WireGuard keys...
@@ -182,10 +184,9 @@ Sample route table after deployment:
 
 ## Connecting to the cluster
 
-After the AKS cluster is created, the CLI saves a kubeconfig file to the working directory (default: `aks.kubeconfig`). Use it to connect to the cluster:
+After the AKS cluster is created, the CLI merges the kubeconfig into `~/.kube/config` and sets the cluster as the current context. You can connect immediately without any extra steps:
 
 ```bash
-$ export KUBECONFIG=./aks.kubeconfig
 $ kubectl get nodes
 NAME                             STATUS   ROLES    AGE   VERSION
 aks-system-32742974-vmss000000   Ready    <none>   16m   v1.33.6

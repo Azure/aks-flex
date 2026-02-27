@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"gopkg.in/ini.v1"
@@ -22,7 +23,10 @@ type Config struct {
 	ResourceGroupName string
 	Location          string
 	ClusterName       string
-	AKSNodeVMSize     string
+	ClusterVersion    string
+	SystemPoolSize    int
+	SystemVMSize      string
+	WireguardVMSize   string
 	StretchNodeVMSize string
 	StretchNodeZones  []string
 
@@ -50,7 +54,10 @@ func New() (*Config, error) {
 		ResourceGroupName: defaultResourceGroupName(),
 		Location:          defaultLocation(),
 		ClusterName:       defaultClusterName(),
-		AKSNodeVMSize:     defaultAKSNodeVMSize(),
+		ClusterVersion:    defaultClusterVersion(),
+		SystemPoolSize:    defaultSystemPoolSize(),
+		SystemVMSize:      defaultSystemVMSize(),
+		WireguardVMSize:   defaultWireguardVMSize(),
 		StretchNodeVMSize: defaultStretchNodeVMSize(),
 		StretchNodeZones:  defaultStretchNodeZones(),
 
@@ -129,11 +136,34 @@ func defaultClusterName() string {
 	if clusterName := os.Getenv("CLUSTER_NAME"); clusterName != "" {
 		return clusterName
 	}
-	return "aks"
+	return "flex"
 }
 
-func defaultAKSNodeVMSize() string {
-	if vmSize := os.Getenv("AKS_NODE_VM_SIZE"); vmSize != "" {
+func defaultClusterVersion() string {
+	if v := os.Getenv("CLUSTER_VERSION"); v != "" {
+		return v
+	}
+	return "1.34.2"
+}
+
+func defaultSystemPoolSize() int {
+	if s := os.Getenv("SYSTEM_POOL_SIZE"); s != "" {
+		if n, err := strconv.Atoi(s); err == nil {
+			return n
+		}
+	}
+	return 3
+}
+
+func defaultWireguardVMSize() string {
+	if vmSize := os.Getenv("WIREGUARD_VM_SIZE"); vmSize != "" {
+		return vmSize
+	}
+	return "Standard_D16ds_v5"
+}
+
+func defaultSystemVMSize() string {
+	if vmSize := os.Getenv("SYSTEM_VM_SIZE"); vmSize != "" {
 		return vmSize
 	}
 	return "Standard_D2s_v3"
