@@ -12,12 +12,12 @@ metadata:
     app.kubernetes.io/name: cluster-api-provider-flex
     app.kubernetes.io/managed-by: kustomize
     cluster.x-k8s.io/aggregate-to-manager: "true"
-  name: nebiusmachine-viewer-role
+  name: akscluster-viewer-role
 rules:
   - apiGroups:
       - infrastructure.flex-capi.aks.azure.com
     resources:
-      - nebiusmachines
+      - aksclusters
     verbs:
       - get
       - list
@@ -25,6 +25,6 @@ rules:
   - apiGroups:
       - infrastructure.flex-capi.aks.azure.com
     resources:
-      - nebiusmachines/status
+      - aksclusters/status
     verbs:
       - get

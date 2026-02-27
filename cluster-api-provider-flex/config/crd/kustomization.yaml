@@ -4,9 +4,10 @@
 resources:
   - bases/infrastructure.flex-capi.aks.azure.com_nebiusmachines.yaml
   - bases/infrastructure.flex-capi.aks.azure.com_nebiusmachinetemplates.yaml
+  - bases/infrastructure.flex-capi.aks.azure.com_aksclusters.yaml
 # +kubebuilder:scaffold:crdkustomizeresource
 
-patches:
+patches: []
 # [WEBHOOK] To enable webhook, uncomment all the sections with [WEBHOOK] prefix.
 # patches here are for enabling the conversion webhook for each CRD
 # +kubebuilder:scaffold:crdkustomizewebhookpatch

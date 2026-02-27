@@ -11,23 +11,24 @@ metadata:
   labels:
     app.kubernetes.io/name: cluster-api-provider-flex
     app.kubernetes.io/managed-by: kustomize
+    cluster.x-k8s.io/aggregate-to-manager: "true"
   name: nebiusmachine-editor-role
 rules:
-- apiGroups:
-  - infrastructure.flex-capi.aks.azure.com
-  resources:
-  - nebiusmachines
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - infrastructure.flex-capi.aks.azure.com
-  resources:
-  - nebiusmachines/status
-  verbs:
-  - get
+  - apiGroups:
+      - infrastructure.flex-capi.aks.azure.com
+    resources:
+      - nebiusmachines
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - infrastructure.flex-capi.aks.azure.com
+    resources:
+      - nebiusmachines/status
+    verbs:
+      - get

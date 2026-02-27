@@ -11,17 +11,18 @@ metadata:
   labels:
     app.kubernetes.io/name: cluster-api-provider-flex
     app.kubernetes.io/managed-by: kustomize
+    cluster.x-k8s.io/aggregate-to-manager: "true"
   name: nebiusmachine-admin-role
 rules:
-- apiGroups:
-  - infrastructure.flex-capi.aks.azure.com
-  resources:
-  - nebiusmachines
-  verbs:
-  - '*'
-- apiGroups:
-  - infrastructure.flex-capi.aks.azure.com
-  resources:
-  - nebiusmachines/status
-  verbs:
-  - get
+  - apiGroups:
+      - infrastructure.flex-capi.aks.azure.com
+    resources:
+      - nebiusmachines
+    verbs:
+      - "*"
+  - apiGroups:
+      - infrastructure.flex-capi.aks.azure.com
+    resources:
+      - nebiusmachines/status
+    verbs:
+      - get

@@ -219,6 +219,13 @@ func main() {
 		setupLog.Error(err, "Failed to create controller", "controller", "NebiusMachine")
 		os.Exit(1)
 	}
+	if err := (&controller.AKSClusterReconciler{
+		Client: mgr.GetClient(),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "Failed to create controller", "controller", "AKSCluster")
+		os.Exit(1)
+	}
 	// +kubebuilder:scaffold:builder
 
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {

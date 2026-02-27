@@ -2,4 +2,5 @@
 resources:
 - infrastructure_v1beta2_nebiusmachine.yaml
 - infrastructure_v1beta2_nebiusmachinetemplate.yaml
+- infrastructure_v1beta2_akscluster.yaml
 # +kubebuilder:scaffold:manifestskustomizesamples

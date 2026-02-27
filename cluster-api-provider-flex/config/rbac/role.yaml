@@ -33,6 +33,7 @@ rules:
 - apiGroups:
   - infrastructure.flex-capi.aks.azure.com
   resources:
+  - aksclusters
   - nebiusmachines
   verbs:
   - create
@@ -45,12 +46,14 @@ rules:
 - apiGroups:
   - infrastructure.flex-capi.aks.azure.com
   resources:
+  - aksclusters/finalizers
   - nebiusmachines/finalizers
   verbs:
   - update
 - apiGroups:
   - infrastructure.flex-capi.aks.azure.com
   resources:
+  - aksclusters/status
   - nebiusmachines/status
   verbs:
   - get
