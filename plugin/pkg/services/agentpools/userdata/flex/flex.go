@@ -125,7 +125,9 @@ func UserData(hasGPU bool, kubeVersion string, kubeadmConfig *kubeadmapi.Config)
 			[]string{"set", "-e"},
 			strings.Join([]string{
 				"mkdir -p /tmp/flex",
-				"curl -L -o /tmp/flex/aks-flex-node https://bahestoragetest.z13.web.core.windows.net/flex/aks-flex-node-linux-amd64",
+				// TODO: this should be overridable
+				"curl -L -o /tmp/flex/aks-flex-node-linux-amd64.tar.gz https://github.com/Azure/AKSFlexNode/releases/download/v0.0.12/aks-flex-node-linux-amd64.tar.gz",
+				"tar -xzf /tmp/flex/aks-flex-node-linux-amd64.tar.gz -C /tmp/flex",
 				"chmod +x /tmp/flex/aks-flex-node",
 				"/tmp/flex/aks-flex-node apply -f /tmp/flex-config.json",
 			}, "\n"),
