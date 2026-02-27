@@ -106,6 +106,10 @@ func (hc *helmContext) resolve(ctx context.Context) {
 	hc.NodeResourceGroup = configcmd.OrPlaceholder("")
 	hc.VNETSubnetID = configcmd.OrPlaceholder("")
 
+	if cfg == nil {
+		return
+	}
+
 	credentials, err := azidentity.NewDefaultAzureCredential(nil)
 	if err != nil {
 		warn("could not obtain Azure credentials: %v", err)

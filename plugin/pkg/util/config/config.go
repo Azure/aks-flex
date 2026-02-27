@@ -77,19 +77,19 @@ func New() (*Config, error) {
 
 func (c *Config) validate() error {
 	if !rxSubscriptionID.MatchString(c.SubscriptionID) {
-		return fmt.Errorf("invalid subscription")
+		return fmt.Errorf("AZURE_SUBSCRIPTION_ID is missing or invalid (expected a UUID)")
 	}
 
 	if !rxResourceGroupName.MatchString(c.ResourceGroupName) {
-		return fmt.Errorf("invalid resource group")
+		return fmt.Errorf("RESOURCE_GROUP_NAME is missing or invalid")
 	}
 
 	if !rxLocation.MatchString(c.Location) {
-		return fmt.Errorf("invalid location")
+		return fmt.Errorf("LOCATION is missing or invalid (e.g. eastus, westeurope)")
 	}
 
 	if c.ClusterName == "" {
-		return fmt.Errorf("cluster name cannot be empty")
+		return fmt.Errorf("CLUSTER_NAME is empty")
 	}
 
 	return nil
