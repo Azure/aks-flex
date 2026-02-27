@@ -85,7 +85,7 @@
 			"condition": "[parameters('deployWireguard')]",
 			"apiVersion": "2023-09-01",
 			"type": "Microsoft.Network/publicIPPrefixes",
-			"name": "nebius-wg-pip-prefix",
+			"name": "wg-pips",
 			"location": "[resourceGroup().location]",
 			"sku": {
 				"name": "Standard"
@@ -107,7 +107,7 @@
 				"osType": "Linux",
 				"vnetSubnetId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', 'vnet', 'nodes')]",
 				"enableNodePublicIP": true,
-				"nodePublicIPPrefixID": "[resourceId('Microsoft.Network/publicIPPrefixes', 'nebius-wg-pip-prefix')]",
+				"nodePublicIPPrefixID": "[resourceId('Microsoft.Network/publicIPPrefixes', 'wg-pips')]",
 				"networkProfile": {
 					"allowedHostPorts": [
 						{
@@ -127,14 +127,14 @@
 			},
 			"dependsOn": [
 				"[resourceId('Microsoft.ContainerService/managedClusters', parameters('clusterName'))]",
-				"[resourceId('Microsoft.Network/publicIPPrefixes', 'nebius-wg-pip-prefix')]"
+				"[resourceId('Microsoft.Network/publicIPPrefixes', 'wg-pips')]"
 			]
 		},
 		{
 			"condition": "[parameters('deployWireguard')]",
 			"apiVersion": "2023-09-01",
 			"type": "Microsoft.Network/routeTables",
-			"name": "nebius-routes",
+			"name": "wg-routes",
 			"location": "[resourceGroup().location]",
 			"properties": {
 				"routes": []
@@ -150,12 +150,12 @@
 		"publicIpPrefixId": {
 			"condition": "[parameters('deployWireguard')]",
 			"type": "string",
-			"value": "[resourceId('Microsoft.Network/publicIPPrefixes', 'nebius-wg-pip-prefix')]"
+			"value": "[resourceId('Microsoft.Network/publicIPPrefixes', 'wg-pips')]"
 		},
 		"routeTableId": {
 			"condition": "[parameters('deployWireguard')]",
 			"type": "string",
-			"value": "[resourceId('Microsoft.Network/routeTables', 'nebius-routes')]"
+			"value": "[resourceId('Microsoft.Network/routeTables', 'wg-routes')]"
 		}
 	}
 }

@@ -225,7 +225,7 @@ func updateRouteTable(ctx context.Context, credentials *azidentity.DefaultAzureC
 		return err
 	}
 
-	routeTable, err := routeTablesClient.Get(ctx, cfg.ResourceGroupName, "nebius-routes", nil)
+	routeTable, err := routeTablesClient.Get(ctx, cfg.ResourceGroupName, "wg-routes", nil)
 	if err != nil {
 		return fmt.Errorf("failed to get route table: %w", err)
 	}
@@ -242,7 +242,7 @@ func updateRouteTable(ctx context.Context, credentials *azidentity.DefaultAzureC
 		},
 	}
 
-	poller, err := routeTablesClient.BeginCreateOrUpdate(ctx, cfg.ResourceGroupName, "nebius-routes", routeTable.RouteTable, nil)
+	poller, err := routeTablesClient.BeginCreateOrUpdate(ctx, cfg.ResourceGroupName, "wg-routes", routeTable.RouteTable, nil)
 	if err != nil {
 		return fmt.Errorf("failed to update route table: %w", err)
 	}
@@ -255,14 +255,14 @@ func updateRouteTable(ctx context.Context, credentials *azidentity.DefaultAzureC
 	return nil
 }
 
-// associateRouteTableWithSubnets associates the nebius-routes route table with the aks and nodes subnets.
+// associateRouteTableWithSubnets associates the wg-routes route table with the aks and nodes subnets.
 func associateRouteTableWithSubnets(ctx context.Context, credentials *azidentity.DefaultAzureCredential, cfg *utilconfig.Config) error {
 	subnetsClient, err := armnetwork.NewSubnetsClient(cfg.SubscriptionID, credentials, nil)
 	if err != nil {
 		return err
 	}
 
-	routeTableID := fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/routeTables/nebius-routes",
+	routeTableID := fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/routeTables/wg-routes",
 		cfg.SubscriptionID, cfg.ResourceGroupName)
 
 	// Subnets to update
