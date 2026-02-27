@@ -140,15 +140,15 @@ In addition to the standard AKS resources, the `--wireguard` flag provisions:
 | Resource                 | Name                    | Details                                          |
 | ------------------------ | ----------------------- | ------------------------------------------------ |
 | NSG rule                 | `AllowWireGuard`        | Allows inbound UDP/51820                         |
-| Public IP prefix         | `nebius-wg-pip-prefix`  | Static public IP prefix for the gateway node     |
+| Public IP prefix         | `wg-pips`  | Static public IP prefix for the gateway node     |
 | Agent pool               | `wireguard`             | 1-node pool in the `nodes` subnet with public IP (size: `$WIREGUARD_VM_SIZE`) |
-| Route table              | `nebius-routes`         | Routes remote cloud traffic through the gateway  |
+| Route table              | `wg-routes`         | Routes remote cloud traffic through the gateway  |
 
 After the ARM deployment, the CLI automatically:
 
 1. Generates (or reuses) a WireGuard key pair stored as a Kubernetes secret
 2. Waits for the WireGuard gateway node to register and receive its public IP
-3. Updates the `nebius-routes` route table to forward remote cloud traffic (`100.96.0.0/12`) through the gateway node
+3. Updates the `wg-routes` route table to forward remote cloud traffic (`100.96.0.0/12`) through the gateway node
 4. Associates the route table with the `aks` and `nodes` subnets
 5. Deploys the WireGuard DaemonSet to the cluster
 
