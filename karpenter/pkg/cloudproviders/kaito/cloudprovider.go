@@ -79,6 +79,9 @@ func (c *CloudProvider) Create(ctx context.Context, nodeClaim *v1.NodeClaim) (*v
 	}
 
 	kaitoOpts := flexopts.MustGetKaitoOptionsFromContext(ctx)
+	if err := kaitoOpts.Validate(); err != nil {
+		return nil, fmt.Errorf("kaito options not configured: %w", err)
+	}
 
 	nebiusAgentPoolSettings, err := resolveNebiusAgentPoolSettings(
 		ctx, kaitoOpts, c.wgAllocator,
