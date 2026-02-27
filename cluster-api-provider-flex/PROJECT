@@ -35,4 +35,13 @@ resources:
   kind: AKSCluster
   path: github.com/Azure/aks-flex/cluster-api-provider-flex/api/v1beta2
   version: v1beta2
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: flex-capi.aks.azure.com
+  group: infrastructure
+  kind: FlexNodeConfigTemplate
+  path: github.com/Azure/aks-flex/cluster-api-provider-flex/api/v1beta2
+  version: v1beta2
 version: "3"
