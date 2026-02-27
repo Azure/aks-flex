@@ -21,6 +21,7 @@ func DefaultConfig() *config.Config {
 	cfg, err := config.New()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Warning: could not load config from environment: %v\n", err)
+		fmt.Fprintln(os.Stderr, "Ensure your .env file is sourced: source .env")
 		fmt.Fprintln(os.Stderr, "Using placeholder values — edit the output before applying.")
 		return nil
 	}
