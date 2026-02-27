@@ -92,7 +92,7 @@ extraVolumes: []
 controller:
   image:
     # -- Repository path to the controller image.
-    repository: ghcr.io/bahe-msft/karpenter-provider-flex
+    repository: ghcr.io/bahe-msft/karpenter
     # -- Tag of the controller image.
     tag: hbc-gpu-a399b53
     # -- SHA256 digest of the controller image.
