@@ -3,12 +3,14 @@ package controller
 import (
 	"context"
 
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/utils/ptr"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
-	infrastructurev1beta2 "github.com/Azure/aks-flex/cluster-api-provider-flex/api/v1beta2"
+	infrav1 "github.com/Azure/aks-flex/cluster-api-provider-flex/api/v1beta2"
 )
 
 // AKSClusterReconciler reconciles a AKSCluster object
@@ -21,19 +23,29 @@ type AKSClusterReconciler struct {
 // +kubebuilder:rbac:groups=infrastructure.flex-capi.aks.azure.com,resources=aksclusters/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=infrastructure.flex-capi.aks.azure.com,resources=aksclusters/finalizers,verbs=update
 
-// Reconcile is part of the main kubernetes reconciliation loop which aims to
-// move the current state of the cluster closer to the desired state.
-// TODO(user): Modify the Reconcile function to compare the state specified by
-// the AKSCluster object against the actual cluster state, and then
-// perform operations to make the cluster state reflect the state specified by
-// the user.
-//
-// For more details, check Reconcile and its Result here:
-// - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.23.1/pkg/reconcile
 func (r *AKSClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = logf.FromContext(ctx)
+	log := logf.FromContext(ctx)
 
-	// TODO(user): your logic here
+	aksCluster := &infrav1.AKSCluster{}
+	err := r.Get(ctx, req.NamespacedName, aksCluster)
+	if err != nil {
+		if apierrors.IsNotFound(err) {
+			log.Info("AKSCluster resource not found or already deleted")
+			return ctrl.Result{}, nil
+		}
+
+		log.Error(err, "Unable to fetch AKSCluster resource")
+		return ctrl.Result{}, err
+	}
+
+	// TODO: fetch and resolve cluster data/kubeconfig from resource id
+	// publish kubeconfig as secret
+
+	aksCluster.Status.Initialization.Provisioned = ptr.To(true)
+	if err := r.Status().Update(ctx, aksCluster); err != nil {
+		log.Error(err, "Unable to update AKSCluster status")
+		return ctrl.Result{}, err
+	}
 
 	return ctrl.Result{}, nil
 }
@@ -41,7 +53,7 @@ func (r *AKSClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 // SetupWithManager sets up the controller with the Manager.
 func (r *AKSClusterReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&infrastructurev1beta2.AKSCluster{}).
+		For(&infrav1.AKSCluster{}).
 		Named("akscluster").
 		Complete(r)
 }
