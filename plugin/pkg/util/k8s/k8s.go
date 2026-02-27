@@ -3,6 +3,7 @@ package k8s
 import (
 	"context"
 	"os"
+	"path/filepath"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/containerservice/armcontainerservice/v8"
@@ -70,6 +71,48 @@ func SaveKubeconfigTo(ctx context.Context, credentials azcore.TokenCredential, c
 	}
 
 	content, err := clientcmd.Write(*kubeconfig)
+	if err != nil {
+		return err
+	}
+
+	return os.WriteFile(path, content, 0600)
+}
+
+// MergeKubeconfigInto merges the cluster admin kubeconfig into the kubeconfig file at path,
+// adding/overwriting its clusters, users, and contexts, and setting the current context.
+// If the file does not exist it is created.
+func MergeKubeconfigInto(ctx context.Context, credentials azcore.TokenCredential, cfg *config.Config, path string) error {
+	newKubeconfig, err := Kubeconfig(ctx, credentials, cfg)
+	if err != nil {
+		return err
+	}
+
+	existing, err := clientcmd.LoadFromFile(path)
+	if err != nil && !os.IsNotExist(err) {
+		return err
+	}
+	if os.IsNotExist(err) {
+		existing = api.NewConfig()
+	}
+
+	for k, v := range newKubeconfig.Clusters {
+		existing.Clusters[k] = v
+	}
+	for k, v := range newKubeconfig.AuthInfos {
+		existing.AuthInfos[k] = v
+	}
+	for k, v := range newKubeconfig.Contexts {
+		existing.Contexts[k] = v
+	}
+	if newKubeconfig.CurrentContext != "" {
+		existing.CurrentContext = newKubeconfig.CurrentContext
+	}
+
+	if err := os.MkdirAll(filepath.Dir(path), 0750); err != nil {
+		return err
+	}
+
+	content, err := clientcmd.Write(*existing)
 	if err != nil {
 		return err
 	}

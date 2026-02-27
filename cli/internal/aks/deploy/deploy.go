@@ -10,6 +10,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armresources/v2"
 	"github.com/spf13/cobra"
+	"k8s.io/client-go/tools/clientcmd"
 
 	"github.com/Azure/aks-flex/plugin/pkg/util/az"
 	"github.com/Azure/aks-flex/plugin/pkg/util/config"
@@ -42,7 +43,7 @@ func init() {
 	Command.Flags().BoolVar(&deployGPUDevicePlugin, "gpu-device-plugin", false, "install NVIDIA GPU Device Plugin via Helm")
 	Command.Flags().BoolVar(&skipARM, "skip-arm", false, "skip the ARM template deployment step")
 	Command.Flags().MarkHidden("skip-arm")
-	Command.Flags().StringVar(&kubeconfigToSave, "kubeconfig-to-save", "", "file path to save the cluster kubeconfig (defaults to <cluster-name>.kubeconfig)")
+	Command.Flags().StringVar(&kubeconfigToSave, "kubeconfig", "", "file path to write the cluster kubeconfig (default: ~/.kube/config, merged if already exists)")
 }
 
 func preflightChecks() error {
@@ -86,8 +87,17 @@ func run(ctx context.Context) error {
 			"clusterName": {
 				Value: cfg.ClusterName,
 			},
+			"kubernetesVersion": {
+				Value: cfg.ClusterVersion,
+			},
+			"systemPoolSize": {
+				Value: cfg.SystemPoolSize,
+			},
 			"vmSize": {
-				Value: cfg.AKSNodeVMSize,
+				Value: cfg.SystemVMSize,
+			},
+			"wireguardVMSize": {
+				Value: cfg.WireguardVMSize,
 			},
 			"deployWireguard": {
 				Value: deployWireguard,
@@ -144,10 +154,10 @@ func run(ctx context.Context) error {
 func saveKubeconfig(ctx context.Context, credentials azcore.TokenCredential, cfg *config.Config) (string, error) {
 	outputPath := kubeconfigToSave
 	if outputPath == "" {
-		outputPath = fmt.Sprintf("%s.kubeconfig", cfg.ClusterName)
+		outputPath = clientcmd.RecommendedHomeFile
 	}
 
-	if err := k8s.SaveKubeconfigTo(ctx, credentials, cfg, outputPath); err != nil {
+	if err := k8s.MergeKubeconfigInto(ctx, credentials, cfg, outputPath); err != nil {
 		return "", fmt.Errorf("failed to save kubeconfig to %s: %w", outputPath, err)
 	}
 
