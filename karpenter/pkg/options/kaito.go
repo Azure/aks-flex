@@ -34,8 +34,10 @@ func (k *KaitoOptions) AddFlags(fs *options.FlagSet) {
 }
 
 func (k *KaitoOptions) Parse(fs *options.FlagSet, args ...string) error {
-	// NOTE: just assume other options have been parsed
+	return nil
+}
 
+func (k *KaitoOptions) Validate() error {
 	if k.NebiusProjectID == "" {
 		return fmt.Errorf("flex-kaito.nebius-project-id is required")
 	}
@@ -45,7 +47,6 @@ func (k *KaitoOptions) Parse(fs *options.FlagSet, args ...string) error {
 	if k.NebiusSubnetID == "" {
 		return fmt.Errorf("flex-kaito.nebius-subnet-id is required")
 	}
-
 	return nil
 }
 
