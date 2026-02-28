@@ -58,6 +58,7 @@ func resolveFlexComponentConfigs(
 				Server:                   proto.String(kubeadmConfig.GetServer()),
 				CertificateAuthorityData: kubeadmConfig.GetCertificateAuthorityData(),
 			}.Build(),
+			Kubelet: kubletConfig,
 		}.Build(),
 	}.Build()
 
