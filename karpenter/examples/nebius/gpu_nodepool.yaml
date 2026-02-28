@@ -1,0 +1,22 @@
+apiVersion: karpenter.sh/v1
+kind: NodePool
+metadata:
+  name: nebius-gpu-nodepool
+spec:
+  template:
+    metadata:
+      labels:
+        nodepool: nebius-gpu-nodepool
+    spec:
+      nodeClassRef:
+        group: flex.aks.azure.com
+        kind: NebiusNodeClass
+        name: nebius
+      requirements:
+        - key: kubernetes.io/os
+          operator: In
+          values: ["linux"]
+  limits:
+    cpu: "1000"
+    memory: 10000Gi
+    nvidia.com/gpu: "64"

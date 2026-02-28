@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sample-cpu-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sample-cpu-app
+  template:
+    metadata:
+      labels:
+        app: sample-cpu-app
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: kubernetes.azure.com/mode
+                    operator: NotIn
+                    values:
+                      - system
+      containers:
+        - name: app-container
+          image: nginx:1.21
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "250m"
+            limits:
+              memory: "128Mi"
+              cpu: "500m"

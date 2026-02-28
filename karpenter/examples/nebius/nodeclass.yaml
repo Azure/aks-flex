@@ -1,0 +1,10 @@
+apiVersion: flex.aks.azure.com/v1alpha1
+kind: NebiusNodeClass
+metadata:
+  name: nebius
+spec:
+  projectID: "<your-nebius-project-id>"
+  region: "<your-nebius-region>"
+  subnetID: "<your-nebius-subnet-id>"
+  osDiskSizeGB: 128
+  wireguardPeerCIDR: "<your-wireguard-peer-cidr>"

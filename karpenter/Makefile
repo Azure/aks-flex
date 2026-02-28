@@ -1,6 +1,6 @@
 
 # Image URL to use all building/pushing image targets
-IMG ?= ghcr.io/bahe-msft/karpenter
+IMG ?= ghcr.io/azure/aks-flex/karpenter
 # Image tag: branch name + short commit hash (e.g. main-abc1234)
 GIT_BRANCH := $(shell git rev-parse --abbrev-ref HEAD | sed 's/[^a-zA-Z0-9._-]/-/g')
 GIT_SHORT_SHA := $(shell git rev-parse --short HEAD)
