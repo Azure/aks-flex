@@ -57,7 +57,55 @@ This creates a secret named `nebius-credentials` in the `karpenter` namespace wi
 | `namespace` *(optional)*      | Target Kubernetes namespace              | `karpenter`          |
 | `secret-name` *(optional)*    | Name of the created Secret               | `nebius-credentials` |
 
-### 3. Generate and run the Helm install command
+### 3. Grant the kubelet identity required Azure permissions
+
+The karpenter controller uses the AKS kubelet identity for two Azure operations that require explicit role assignments:
+
+- **VNET read** — reads the cluster VNET GUID at startup
+- **Azure Resource Graph** — manages Azure VM instances lifecycle
+
+First, retrieve the kubelet identity object ID and the relevant resource IDs:
+
+```bash
+# Get the kubelet identity object ID
+KUBELET_OBJECT_ID=$(az aks show \
+  --name $CLUSTER_NAME \
+  --resource-group $RESOURCE_GROUP_NAME \
+  --query "identityProfile.kubeletidentity.objectId" \
+  -o tsv)
+
+# Get the node resource group scope (where karpenter-managed VMs live)
+NODE_RESOURCE_GROUP_ID=$(az aks show \
+  --name $CLUSTER_NAME \
+  --resource-group $RESOURCE_GROUP_NAME \
+  --query "nodeResourceGroup" \
+  -o tsv | xargs -I{} echo "/subscriptions/$AZURE_SUBSCRIPTION_ID/resourceGroups/{}")
+
+# Get the VNET resource ID (adjust resource group if VNET is in a different RG)
+VNET_ID=$(az network vnet list \
+  --resource-group $RESOURCE_GROUP_NAME \
+  --query "[0].id" \
+  -o tsv)
+```
+
+Then create the two role assignments:
+
+```bash
+# 1. Reader on the VNET (for VNET GUID resolution at startup)
+az role assignment create \
+  --assignee "$KUBELET_OBJECT_ID" \
+  --role "Reader" \
+  --scope "$VNET_ID"
+
+# 2. Contributor on the node resource group (for VM/NIC/disk create and delete,
+#    and Azure Resource Graph VM enumeration)
+az role assignment create \
+  --assignee "$KUBELET_OBJECT_ID" \
+  --role "Contributor" \
+  --scope "$NODE_RESOURCE_GROUP_ID"
+```
+
+### 4. Generate and run the Helm install command
 
 Use the CLI to generate a `helm upgrade --install` command with all required values pre-populated:
 
@@ -109,7 +157,7 @@ $ aks-flex-cli config karpenter helm --image myregistry.io/karpenter:v0.2.0
 
 This adds `--set controller.image.repository=myregistry.io/karpenter` and `--set controller.image.tag=v0.2.0` to the generated command.
 
-### 4. Verify the controller is running
+### 5. Verify the controller is running
 
 ```bash
 $ kubectl -n karpenter get pods
@@ -125,31 +173,8 @@ With the karpenter controller running, you can define a `NebiusNodeClass` and `N
 
 The `NebiusNodeClass` defines the Nebius-specific configuration for provisioned nodes:
 
-```yaml
-apiVersion: flex.aks.azure.com/v1alpha1
-kind: NebiusNodeClass
-metadata:
-  name: nebius
-spec:
-  projectID: "<your-nebius-project-id>"
-  region: "eu-north1"
-  subnetID: "<your-nebius-subnet-id>"
-  osDiskSizeGB: 128
-  wireguardPeerCIDR: "100.96.1.0/24"
-```
-
-| Field                  | Description                                                        |
-| ---------------------- | ------------------------------------------------------------------ |
-| `projectID`            | Nebius project ID where VMs will be created                        |
-| `region`               | Nebius region for the VMs                                          |
-| `subnetID`             | Nebius VPC subnet ID (from the network created via `plugin apply`) |
-| `osDiskSizeGB`         | OS disk size in GB                                                 |
-| `wireguardPeerCIDR`    | CIDR range for WireGuard peer IPs assigned to provisioned nodes    |
-
-Apply the node class:
-
 ```bash
-$ kubectl apply -f nebius_nodeclass.yaml
+$ kubectl apply -f examples/nebius/nodeclass.yaml
 ```
 
 Verify the node class is ready:
@@ -164,40 +189,8 @@ nebius   True    3s
 
 The `NodePool` defines scheduling constraints and references the `NebiusNodeClass`:
 
-```yaml
-apiVersion: karpenter.sh/v1
-kind: NodePool
-metadata:
-  name: nebius-nodepool
-spec:
-  template:
-    metadata:
-      labels:
-        nodepool: nebius-nodepool
-    spec:
-      nodeClassRef:
-        group: flex.aks.azure.com
-        kind: NebiusNodeClass
-        name: nebius
-      requirements:
-        - key: karpenter.azure.com/sku-cpu
-          operator: Gt
-          values: ["2"]
-  limits:
-    cpu: "1000"
-    memory: 1000Gi
-```
-
-| Field                        | Description                                                    |
-| ---------------------------- | -------------------------------------------------------------- |
-| `spec.template.spec.nodeClassRef` | Reference to the `NebiusNodeClass` resource                |
-| `spec.template.spec.requirements` | Scheduling requirements (e.g. minimum CPU count)           |
-| `spec.limits`                | Maximum aggregate resources the pool can provision             |
-
-Apply the node pool:
-
 ```bash
-$ kubectl apply -f nebius_nodepool.yaml
+$ kubectl apply -f examples/nebius/cpu_nodepool.yaml
 ```
 
 Verify the node pool is ready:
@@ -205,92 +198,72 @@ Verify the node pool is ready:
 ```bash
 $ kubectl get nodepool
 NAME                  NODECLASS   NODES   READY   AGE
-nebius-nodepool       nebius      0       True    2s
+nebius-cpu-nodepool   nebius      0       True    4s
+```
+
+### Creating a GPU NodePool
+
+For GPU workloads, create a separate NodePool that does not restrict by CPU SKU. The `karpenter.azure.com/sku-cpu` label is not present on GPU instance types, so the CPU NodePool's `Gt` requirement would prevent GPU instances from ever being selected. The GPU NodePool omits that constraint and relies on the workload's node affinity (via `node.kubernetes.io/instance-type`) to select the appropriate GPU instance:
+
+```bash
+$ kubectl apply -f examples/nebius/gpu_nodepool.yaml
+```
+
+Both node pools should now be ready:
+
+```bash
+$ kubectl get nodepool
+NAME                  NODECLASS   NODES   READY   AGE
+nebius-cpu-nodepool   nebius      0       True    4s
+nebius-gpu-nodepool   nebius      0       True    2s
 ```
 
 ### Deploy a workload to trigger scale-up
 
 Create a deployment that schedules pods away from system nodes. Karpenter will detect the unschedulable pods and provision a new Nebius node:
 
-```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: sample-app
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: sample-app
-  template:
-    metadata:
-      labels:
-        app: sample-app
-    spec:
-      affinity:
-        nodeAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
-              - matchExpressions:
-                  - key: kubernetes.azure.com/mode
-                    operator: NotIn
-                    values:
-                      - system
-      containers:
-        - name: app-container
-          image: nginx:1.21
-          resources:
-            requests:
-              memory: "64Mi"
-              cpu: "250m"
-            limits:
-              memory: "128Mi"
-              cpu: "500m"
-```
-
-Apply the deployment:
-
 ```bash
-$ kubectl apply -f nebius_deployment.yaml
+$ kubectl apply -f examples/nebius/cpu_deployment.yaml
 ```
 
 The pod will initially be in `Pending` state while Karpenter provisions a new node:
 
 ```bash
 $ kubectl get pods
-NAME                          READY   STATUS    RESTARTS   AGE
-sample-app-66986dd6c6-jkj2n   0/1     Pending   0          10s
+NAME                             READY   STATUS    RESTARTS   AGE
+sample-cpu-app-6c7bb4ccb-wbl5h   1/1     Running   0          9m51s
 ```
 
 Karpenter creates a `NodeClaim` to request a new node from Nebius:
 
 ```bash
 $ kubectl get nodeclaims
-NAME                    TYPE                CAPACITY    ZONE   NODE   READY     AGE
-nebius-nodepool-95cgr   cpu-d3-4vcpu-16gb   on-demand   1             Unknown   68s
+NAME                        TYPE                 CAPACITY    ZONE   NODE                                 READY   AGE
+nebius-cpu-nodepool-6g8v8   cpu-d3-16vcpu-64gb   on-demand   1      computeinstance-e00a4p0rrnms9n24jp   True    9m35s
 ```
 
 After a few minutes, the new Nebius node should appear:
 
 ```bash
 $ kubectl get nodes -o wide
-NAME                                 STATUS   ROLES    AGE    VERSION   INTERNAL-IP   EXTERNAL-IP   OS-IMAGE             KERNEL-VERSION       CONTAINER-RUNTIME
-aks-system-32742974-vmss000000       Ready    <none>   18h    v1.33.6   172.16.1.4    <none>        Ubuntu 22.04.5 LTS   5.15.0-1102-azure    containerd://1.7.30-1
-aks-system-32742974-vmss000001       Ready    <none>   18h    v1.33.6   172.16.1.5    <none>        Ubuntu 22.04.5 LTS   5.15.0-1102-azure    containerd://1.7.30-1
-aks-wireguard-12237243-vmss000000    Ready    <none>   18h    v1.33.6   172.16.2.4    20.45.48.98   Ubuntu 22.04.5 LTS   5.15.0-1102-azure    containerd://1.7.30-1
-computeinstance-e00q0graeft51gp340   Ready    <none>   108s   v1.33.8   100.96.1.73   <none>        Ubuntu 24.04.4 LTS   6.11.0-1016-nvidia   containerd://1.7.28
+NAME                                 STATUS   ROLES    AGE     VERSION   INTERNAL-IP    EXTERNAL-IP     OS-IMAGE             KERNEL-VERSION       CONTAINER-RUNTIME
+aks-system-94214615-vmss000000       Ready    <none>   3h13m   v1.34.2   172.16.1.4     <none>          Ubuntu 22.04.5 LTS   5.15.0-1102-azure    containerd://1.7.30-1
+aks-system-94214615-vmss000001       Ready    <none>   3h13m   v1.34.2   172.16.1.5     <none>          Ubuntu 22.04.5 LTS   5.15.0-1102-azure    containerd://1.7.30-1
+aks-system-94214615-vmss000002       Ready    <none>   3h13m   v1.34.2   172.16.1.6     <none>          Ubuntu 22.04.5 LTS   5.15.0-1102-azure    containerd://1.7.30-1
+aks-wireguard-23306360-vmss000000    Ready    <none>   3h9m    v1.34.2   172.16.2.4     20.91.194.208   Ubuntu 22.04.5 LTS   5.15.0-1102-azure    containerd://1.7.30-1
+computeinstance-e00a4p0rrnms9n24jp   Ready    <none>   8m30s   v1.33.3   100.96.1.237   <none>          Ubuntu 24.04.4 LTS   6.11.0-1016-nvidia   containerd://2.0.4
 ```
 
 The pod is now running on the Nebius node:
 
 ```bash
-$ kubectl get pods -o wide
-NAME                          READY   STATUS    RESTARTS   AGE    IP          NODE                                 NOMINATED NODE   READINESS GATES
-sample-app-66986dd6c6-jkj2n   1/1     Running   0          4m8s   10.0.7.16   computeinstance-e00q0graeft51gp340   <none>           <none>
+$ kubectl get pod -o wide
+NAME                             READY   STATUS    RESTARTS   AGE   IP            NODE                                 NOMINATED NODE   READINESS GATES
+sample-cpu-app-6c7bb4ccb-wbl5h   1/1     Running   0          10m   10.0.10.159   computeinstance-e00a4p0rrnms9n24jp   <none>           <none>
 ```
 
 ```bash
-$ kubectl logs -f sample-app-66986dd6c6-jkj2n
+$ kubectl logs -f sample-cpu-app-6c7bb4ccb-wbl5h
 /docker-entrypoint.sh: /docker-entrypoint.d/ is not empty, will attempt to perform configuration
 /docker-entrypoint.sh: Looking for shell scripts in /docker-entrypoint.d/
 /docker-entrypoint.sh: Launching /docker-entrypoint.d/10-listen-on-ipv6-by-default.sh
@@ -299,7 +272,11 @@ $ kubectl logs -f sample-app-66986dd6c6-jkj2n
 /docker-entrypoint.sh: Launching /docker-entrypoint.d/20-envsubst-on-templates.sh
 /docker-entrypoint.sh: Launching /docker-entrypoint.d/30-tune-worker-processes.sh
 /docker-entrypoint.sh: Configuration complete; ready for start up
-2026/02/22 21:52:28 [notice] 1#1: using the "epoll" event method
+2026/02/27 20:37:12 [notice] 1#1: using the "epoll" event method
+2026/02/27 20:37:12 [notice] 1#1: nginx/1.21.6
+2026/02/27 20:37:12 [notice] 1#1: built by gcc 10.2.1 20210110 (Debian 10.2.1-6) 
+2026/02/27 20:37:12 [notice] 1#1: OS: Linux 6.11.0-1016-nvidia
+2026/02/27 20:37:12 [notice] 1#1: getrlimit(RLIMIT_NOFILE): 1048576:1048576
 ```
 
 ![](./images/karpenter/node-cpu.png)
@@ -308,53 +285,8 @@ $ kubectl logs -f sample-app-66986dd6c6-jkj2n
 
 For GPU workloads, create a deployment that requests GPU resources and targets GPU instance types:
 
-```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: sample-gpu-app
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: sample-gpu-app
-  template:
-    metadata:
-      labels:
-        app: sample-gpu-app
-    spec:
-      affinity:
-        nodeAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
-              - matchExpressions:
-                  - key: kubernetes.azure.com/mode
-                    operator: NotIn
-                    values:
-                      - system
-                  - key: node.kubernetes.io/instance-type
-                    operator: In
-                    values:
-                      - gpu-h100-sxm-1gpu-16vcpu-200gb
-      containers:
-        - name: gpu-container
-          image: nvidia/cuda:12.4.0-base-ubuntu22.04
-          command: ["nvidia-smi", "-l", "60"]
-          resources:
-            requests:
-              memory: "512Mi"
-              cpu: "250m"
-              nvidia.com/gpu: "1"
-            limits:
-              memory: "1Gi"
-              cpu: "500m"
-              nvidia.com/gpu: "1"
-```
-
-Apply the GPU deployment:
-
 ```bash
-$ kubectl apply -f nebius_deployment_gpu.yaml
+$ kubectl apply -f examples/nebius/gpu_deployment.yaml
 ```
 
 The GPU pod will be pending while Karpenter provisions a GPU node:
@@ -362,38 +294,43 @@ The GPU pod will be pending while Karpenter provisions a GPU node:
 ```bash
 $ kubectl get pods
 NAME                              READY   STATUS    RESTARTS   AGE
-sample-app-66986dd6c6-jkj2n       1/1     Running   0          11m
-sample-gpu-app-76b4884cbd-m8bft   0/1     Pending   0          66s
+sample-cpu-app-6c7bb4ccb-wbl5h    1/1     Running   0          11m
+sample-gpu-app-5d8b85c989-5l9zt   0/1     Pending   0          5s
 ```
 
 Karpenter creates a new `NodeClaim` for the GPU instance:
 
 ```bash
 $ kubectl get nodeclaims
-NAME                    TYPE                             CAPACITY    ZONE   NODE                                 READY     AGE
-nebius-nodepool-95cgr   cpu-d3-4vcpu-16gb                on-demand   1      computeinstance-e00q0graeft51gp340   True      11m
-nebius-nodepool-dfpmw   gpu-h100-sxm-1gpu-16vcpu-200gb   on-demand   1                                           Unknown   67s
+NAME                        TYPE                               CAPACITY    ZONE   NODE                                 READY     AGE
+nebius-cpu-nodepool-6g8v8   cpu-d3-16vcpu-64gb                 on-demand   1      computeinstance-e00a4p0rrnms9n24jp   True      11m
+nebius-gpu-nodepool-r2qwq   gpu-h100-sxm-8gpu-128vcpu-1600gb   on-demand                                              Unknown   16s
 ```
 
-> **Note:** GPU workloads require the NVIDIA device plugin to be installed on the GPU node so that `nvidia.com/gpu` resources are advertised to the scheduler. Ensure the device plugin is deployed before creating GPU workloads.
+> **Note:** GPU workloads require the NVIDIA device plugin to be installed so that `nvidia.com/gpu` resources are advertised to the scheduler. Install it with the CLI before creating GPU workloads:
+>
+> ```bash
+> aks-flex-cli aks deploy --gpu-device-plugin --skip-arm
+> ```
 
 After the GPU node is provisioned, both nodes and pods should be running:
 
 ```bash
 $ kubectl get nodes
 NAME                                 STATUS   ROLES    AGE     VERSION
-aks-system-32742974-vmss000000       Ready    <none>   18h     v1.33.6
-aks-system-32742974-vmss000001       Ready    <none>   18h     v1.33.6
-aks-wireguard-12237243-vmss000000    Ready    <none>   18h     v1.33.6
-computeinstance-e00q0graeft51gp340   Ready    <none>   14m     v1.33.8
-computeinstance-e00vjnc596x541fkc4   Ready    <none>   2m49s   v1.33.8
+aks-system-94214615-vmss000000       Ready    <none>   3h19m   v1.34.2
+aks-system-94214615-vmss000001       Ready    <none>   3h19m   v1.34.2
+aks-system-94214615-vmss000002       Ready    <none>   3h18m   v1.34.2
+aks-wireguard-23306360-vmss000000    Ready    <none>   3h14m   v1.34.2
+computeinstance-e00a4p0rrnms9n24jp   Ready    <none>   13m     v1.33.3
+computeinstance-e00zjdx1e50bxcfekk   Ready    <none>   107s    v1.33.3
 ```
 
 ```bash
 $ kubectl get pods -o wide
-NAME                              READY   STATUS    RESTARTS   AGE     IP          NODE                                 NOMINATED NODE   READINESS GATES
-sample-app-66986dd6c6-qs6gt       1/1     Running   0          21s     10.0.9.90   computeinstance-e00vjnc596x541fkc4   <none>           <none>
-sample-gpu-app-76b4884cbd-m8bft   1/1     Running   0          7m37s   10.0.9.88   computeinstance-e00vjnc596x541fkc4   <none>           <none>
+NAME                              READY   STATUS    RESTARTS   AGE     IP            NODE                                 NOMINATED NODE   READINESS GATES
+sample-cpu-app-6c7bb4ccb-7dg9t    1/1     Running   0          75s     10.0.12.199   computeinstance-e00zjdx1e50bxcfekk   <none>           <none>
+sample-gpu-app-5d8b85c989-5l9zt   1/1     Running   0          4m17s   10.0.12.66    computeinstance-e00zjdx1e50bxcfekk   <none>           <none>
 ```
 
 ```bash
@@ -427,7 +364,7 @@ Sun Feb 22 22:05:49 2026
 When demand decreases, Karpenter automatically deprovisions nodes that are no longer needed. To test this, scale the deployments down:
 
 ```bash
-$ kubectl scale deployment sample-app --replicas=0
+$ kubectl scale deployment sample-cpu-app --replicas=0
 $ kubectl scale deployment sample-gpu-app --replicas=0
 ```
 
