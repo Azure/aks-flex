@@ -47,7 +47,6 @@ func main() {
 		operator.WaitForCRDs(
 			ctx, 2*time.Minute, ctrl.GetConfigOrDie(), logger,
 			&v1alpha1.NebiusNodeClass{},
-			&kaitov1alpha1.KaitoNodeClass{},
 		),
 		"failed waiting for CRDs",
 	)
