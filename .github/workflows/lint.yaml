@@ -1,0 +1,95 @@
+name: Lint
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  detect-modules:
+    runs-on: ubuntu-latest
+    outputs:
+      modules: ${{ steps.detect.outputs.modules }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect changed Go modules
+        id: detect
+        run: |
+          if [[ "${{ github.event_name }}" == "push" && "${{ github.ref }}" == "refs/heads/main" ]] || [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            # On push to main or manual trigger, lint all modules
+            changed_dirs="plugin cli karpenter"
+          else
+            # On PR, detect which modules have changes
+            base="${{ github.event.pull_request.base.sha }}"
+            head="${{ github.event.pull_request.head.sha }}"
+            changed_files=$(git diff --name-only "$base" "$head")
+
+            changed_dirs=""
+            for dir in plugin cli karpenter; do
+              if echo "$changed_files" | grep -q "^${dir}/"; then
+                changed_dirs="$changed_dirs $dir"
+              fi
+            done
+          fi
+
+          # Also add dependent modules when plugin changes
+          if echo "$changed_dirs" | grep -q "plugin"; then
+            for dep in cli karpenter; do
+              if ! echo "$changed_dirs" | grep -q "$dep"; then
+                changed_dirs="$changed_dirs $dep"
+              fi
+            done
+          fi
+
+          modules="[]"
+          for dir in $changed_dirs; do
+            modules=$(echo "$modules" | jq -c --arg d "$dir" '. + [$d]')
+          done
+
+          echo "modules=$modules" >> "$GITHUB_OUTPUT"
+          echo "Modules to lint: $modules"
+
+  lint:
+    needs: detect-modules
+    if: needs.detect-modules.outputs.modules != '[]'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        module: ${{ fromJSON(needs.detect-modules.outputs.modules) }}
+    name: lint (${{ matrix.module }})
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: ${{ matrix.module }}/go.mod
+          cache-dependency-path: |
+            ${{ matrix.module }}/go.sum
+            plugin/go.sum
+
+      - name: Vendor and apply patches
+        if: matrix.module == 'karpenter'
+        working-directory: karpenter
+        run: make vendor-patch
+
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v7
+        with:
+          version: v2.10.1
+          working-directory: ${{ matrix.module }}
+          args: --timeout=10m
+          only-new-issues: true

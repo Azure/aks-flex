@@ -204,7 +204,7 @@ func (res *ResourceCRUD[T, S]) CreateOrUpdate(ctx context.Context, detectDrift D
 		existing, err = res.getByName(ctx, desired)
 	}
 	switch {
-	case isNotFound(err):
+	case IsNotFound(err):
 		// Resource doesn't exist, will create
 		return res.create(ctx, desired)
 	case err != nil:
@@ -235,7 +235,7 @@ func (res *ResourceCRUD[T, S]) Delete(ctx context.Context, t T) error {
 	// resource doesn't have id, attempt to resolve by name first
 	existing, err := res.getByName(ctx, t)
 	if err != nil {
-		if isNotFound(err) {
+		if IsNotFound(err) {
 			// resource doesn't exist, consider it deleted
 			return nil
 		}

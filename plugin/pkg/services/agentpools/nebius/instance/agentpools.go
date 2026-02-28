@@ -180,6 +180,7 @@ func (res *nebiusAgentPoolResources) DesiredBootDisk() *nebiuscompute.Disk {
 	return &nebiuscompute.Disk{
 		Metadata: &nebiuscommon.ResourceMetadata{
 			ParentId: res.AgentPool.GetSpec().GetProjectId(),
+			Id:       res.AgentPool.GetStatus().GetOsDiskId(),
 			Name:     fmt.Sprintf("%s-boot", res.AgentPool.GetMetadata().GetId()),
 		},
 		Spec: &nebiuscompute.DiskSpec{
@@ -212,6 +213,7 @@ func (res *nebiusAgentPoolResources) DesiredInstance(
 	return &nebiuscompute.Instance{
 		Metadata: &nebiuscommon.ResourceMetadata{
 			ParentId: res.AgentPool.GetSpec().GetProjectId(),
+			Id:       res.AgentPool.GetStatus().GetInstanceId(),
 			Name:     res.AgentPool.GetMetadata().GetId(),
 		},
 		Spec: &nebiuscompute.InstanceSpec{
