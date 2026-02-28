@@ -142,9 +142,26 @@ func (srv *agentPoolsServer) Delete(
 	}
 
 	agentPoolResources := resolveNebiusAgentPool(utilnebius.MustGetSDK(ctx), ap)
-	osDisk := agentPoolResources.DesiredBootDisk()
-	const emptyUserData = "" // deletion doesn't require user data
-	instance := agentPoolResources.DesiredInstance(osDisk, emptyUserData)
+
+	// Use stored IDs from status for direct deletion; fall back to name-based lookup.
+	var osDisk *nebiuscompute.Disk
+	if diskID := ap.GetStatus().GetOsDiskId(); diskID != "" {
+		osDisk = &nebiuscompute.Disk{
+			Metadata: &nebiuscommon.ResourceMetadata{Id: diskID},
+		}
+	} else {
+		osDisk = agentPoolResources.DesiredBootDisk()
+	}
+
+	var instance *nebiuscompute.Instance
+	if instanceID := ap.GetStatus().GetInstanceId(); instanceID != "" {
+		instance = &nebiuscompute.Instance{
+			Metadata: &nebiuscommon.ResourceMetadata{Id: instanceID},
+		}
+	} else {
+		const emptyUserData = "" // deletion doesn't require user data
+		instance = agentPoolResources.DesiredInstance(osDisk, emptyUserData)
+	}
 
 	if err := agentPoolResources.InstanceCRUD.Delete(ctx, instance); err != nil {
 		return nil, err
