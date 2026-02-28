@@ -39,6 +39,3 @@ func IsNotFound(err error) bool {
 	}
 	return false
 }
-
-var isAlreadyExists = IsAlreadyExists
-var isNotFound = IsNotFound
