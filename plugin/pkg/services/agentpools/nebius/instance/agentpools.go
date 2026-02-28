@@ -107,6 +107,10 @@ func (srv *agentPoolsServer) CreateOrUpdate(
 	desiredInstance := agentPoolResources.DesiredInstance(bootDisk, string(userdataContent))
 	instance, err := agentPoolResources.InstanceCRUD.CreateOrUpdate(ctx, utilnebius.DriftTODO, desiredInstance)
 	if err != nil {
+		// Clean up the disk to avoid leaking it when instance creation fails (e.g. quota exceeded).
+		if diskErr := agentPoolResources.DiskCRUD.Delete(ctx, bootDisk); diskErr != nil {
+			return nil, fmt.Errorf("instance creation failed (%w); also failed to delete disk: %w", err, diskErr)
+		}
 		return nil, err
 	}
 
