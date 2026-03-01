@@ -6,7 +6,6 @@ import (
 	"iter"
 
 	nebiusinstance "github.com/Azure/aks-flex/plugin/pkg/services/agentpools/nebius/instance"
-	"github.com/Azure/karpenter-provider-azure/pkg/apis/v1beta1"
 	"github.com/Azure/karpenter-provider-azure/pkg/providers/instancetype"
 	"github.com/nebius/gosdk"
 	nebiuscommonv1 "github.com/nebius/gosdk/proto/nebius/common/v1"
@@ -23,47 +22,49 @@ import (
 type platformPreset struct {
 	platform *nebiuscomputev1.Platform
 	preset   *nebiuscomputev1.Preset
+	region   string
 }
 
-// FIXME: confirm naming convention
+// example: cpu-d3-4vcpu-16gb
 func (p *platformPreset) InstanceTypeName() string {
 	return fmt.Sprintf("%s-%s", p.platform.GetMetadata().GetName(), p.preset.GetName())
 }
 
 func (p *platformPreset) ToInstanceType() *corecloudprovider.InstanceType {
+	instanceTypeName := p.InstanceTypeName()
 	preset := p.preset
 
 	// TODO: fix this mess
 	vcpusCount := fmt.Sprint(preset.GetResources().GetVcpuCount())
 	memoryGiB := fmt.Sprintf("%dGi", preset.GetResources().GetMemoryGibibytes())
-	memoryMiB := fmt.Sprint(preset.GetResources().GetMemoryGibibytes() * 1024)
 	gpuCount := fmt.Sprint(preset.GetResources().GetGpuCount())
 
-	return &corecloudprovider.InstanceType{
-		Name: p.InstanceTypeName(),
-		Requirements: scheduling.NewRequirements(
-			scheduling.NewRequirement(
-				corev1.LabelOSStable, corev1.NodeSelectorOpIn, string(corev1.Linux),
-			),
-			scheduling.NewRequirement(v1beta1.LabelSKUCPU, corev1.NodeSelectorOpIn, vcpusCount),
-			scheduling.NewRequirement(v1beta1.LabelSKUMemory, corev1.NodeSelectorOpIn, memoryMiB),
-			scheduling.NewRequirement(v1beta1.LabelSKUGPUCount, corev1.NodeSelectorOpIn, gpuCount),
+	// NOTE: nebius doesn't have the concept of availability zone. However, karpenter requires zone
+	// information for scheduling/consolidation purposes. Therefore, we fallback to using region as zone for now.
+	zones := []string{p.region}
 
-			// NOTE: the following 3 requirements are required by karpenter consolidation
-			// TODO: confirm the labeling logics for node & nodeclaim in karpenter
-			scheduling.NewRequirement(
-				corev1.LabelInstanceTypeStable, corev1.NodeSelectorOpIn, p.InstanceTypeName(),
-			),
-			scheduling.NewRequirement(corev1.LabelTopologyZone, corev1.NodeSelectorOpIn, "1"),        // FIXME: does nebius provide zone information?
-			scheduling.NewRequirement(v1.CapacityTypeLabelKey, corev1.NodeSelectorOpIn, "on-demand"), // FIXME: this should be determined based on the platform preset
+	return &corecloudprovider.InstanceType{
+		Name: instanceTypeName,
+		Requirements: scheduling.NewRequirements(
+			// well-known upstream
+			scheduling.NewRequirement(corev1.LabelInstanceTypeStable, corev1.NodeSelectorOpIn, instanceTypeName),
+			scheduling.NewRequirement(corev1.LabelTopologyZone, corev1.NodeSelectorOpIn, zones...),
+			scheduling.NewRequirement(corev1.LabelTopologyRegion, corev1.NodeSelectorOpIn, p.region),
+			scheduling.NewRequirement(corev1.LabelOSStable, corev1.NodeSelectorOpIn, string(corev1.Linux)),
+			// TODO: add corev1.LabelArchStable
+			// wel-known for karpenter
+			scheduling.NewRequirement(v1.CapacityTypeLabelKey, corev1.NodeSelectorOpIn, v1.CapacityTypeOnDemand), // FIXME: this should be determined based on the platform preset
+			// TODO: add Azure/Flex well known labels
 		),
+		// FIXME: extract this part out
 		Offerings: corecloudprovider.Offerings{
 			// FIXME: determine real availability zones from Nebius platform data
 			{
 				Price:     1000, // FIXME: calculate real price
 				Available: true,
 				Requirements: scheduling.NewRequirements(
-					scheduling.NewRequirement(v1.CapacityTypeLabelKey, corev1.NodeSelectorOpIn, v1.CapacityTypeOnDemand),
+					scheduling.NewRequirement(v1.CapacityTypeLabelKey, corev1.NodeSelectorOpIn, v1.CapacityTypeOnDemand), // FIXME: this should be determined based on the platform preset
+					scheduling.NewRequirement(corev1.LabelTopologyZone, corev1.NodeSelectorOpIn, zones...),
 				),
 			},
 		},
@@ -79,10 +80,12 @@ func (p *platformPreset) ToInstanceType() *corecloudprovider.InstanceType {
 				int64(preset.Resources.VcpuCount),
 				float64(preset.Resources.MemoryGibibytes),
 			),
+			// TODO: calculate system reserved
 			SystemReserved: corev1.ResourceList{
 				corev1.ResourceCPU:    resource.Quantity{},
 				corev1.ResourceMemory: resource.Quantity{},
 			},
+			// TODO: calculate eviction threshold
 			EvictionThreshold: instancetype.EvictionThreshold(),
 		},
 	}
@@ -109,12 +112,14 @@ func (p *platformPreset) DeepClone() *platformPreset {
 	return &platformPreset{
 		platform: proto.Clone(p.platform).(*nebiuscomputev1.Platform),
 		preset:   proto.Clone(p.preset).(*nebiuscomputev1.Preset),
+		region:   p.region,
 	}
 }
 
 func filterPlatformPresets(
 	ctx context.Context,
 	projectID string,
+	region string,
 	sdk *gosdk.SDK,
 ) iter.Seq2[platformPreset, error] {
 	req := &nebiuscomputev1.ListPlatformsRequest{
@@ -134,6 +139,7 @@ func filterPlatformPresets(
 				pp := platformPreset{
 					platform: platform,
 					preset:   preset,
+					region:   region,
 				}
 				if !yield(pp, nil) {
 					return
@@ -146,6 +152,7 @@ func filterPlatformPresets(
 func resolvePlatformPresetFromNodeClaim(
 	ctx context.Context,
 	projectID string,
+	region string,
 	sdk *gosdk.SDK,
 	nodeClaim *v1.NodeClaim,
 ) (*platformPreset, error) {
@@ -163,7 +170,7 @@ func resolvePlatformPresetFromNodeClaim(
 	}
 
 	var rv *platformPreset
-	for item, err := range filterPlatformPresets(ctx, projectID, sdk) {
+	for item, err := range filterPlatformPresets(ctx, projectID, region, sdk) {
 		if err != nil {
 			return nil, fmt.Errorf("list platform presets: %w", err)
 		}
@@ -188,6 +195,7 @@ func resolvePlatformPresetFromNodeClaim(
 func resolvePlatformPresetFromInstance(
 	ctx context.Context,
 	projectID string,
+	region string,
 	sdk *gosdk.SDK,
 	agentPool *nebiusinstance.AgentPool,
 ) (*platformPreset, error) {
@@ -217,5 +225,6 @@ func resolvePlatformPresetFromInstance(
 	return &platformPreset{
 		platform: platform,
 		preset:   preset,
+		region:   region,
 	}, nil
 }

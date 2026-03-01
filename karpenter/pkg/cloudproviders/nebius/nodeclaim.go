@@ -116,11 +116,10 @@ func nodeClaimToStretchAgentPool(
 	}.Build()
 	// NOTE: the following 3 labels are required by karpenter consolidation
 	kubeadmConfig.AddNodeLabels(map[string]string{
-		// FIXME: this should set in stretch api side
+		// FIXME: this should set in stretch api side or cloud provider (CNM)
 		// NOTE: this needs to match the value returned by GetInstanceTypes
 		corev1.LabelInstanceTypeStable: platformPreset.InstanceTypeName(),
-		// FIXME: does nebius provide zone information?
-		corev1.LabelTopologyZone: "1",
+		corev1.LabelTopologyZone:       platformPreset.region,
 		// FIXME: this should be determined based on the platform preset
 		v1.CapacityTypeLabelKey: "on-demand",
 	})

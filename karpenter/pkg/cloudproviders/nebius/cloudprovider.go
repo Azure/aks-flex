@@ -118,6 +118,7 @@ func (c *CloudProvider) Create(ctx context.Context, nodeClaim *v1.NodeClaim) (*v
 	platformPresetToLaunch, err := resolvePlatformPresetFromNodeClaim(
 		ctx,
 		nodeClass.Spec.ProjectID,
+		nodeClass.Spec.Region,
 		c.sdk,
 		nodeClaim,
 	)
@@ -250,10 +251,10 @@ func (c *CloudProvider) Get(ctx context.Context, providerID string) (*v1.NodeCla
 		return nil, err
 	}
 
-	projectID := agentPool.GetSpec().GetProjectId()
 	platformPreset, err := resolvePlatformPresetFromInstance(
 		ctx,
-		projectID,
+		agentPool.GetSpec().GetProjectId(),
+		agentPool.GetSpec().GetRegion(),
 		c.sdk,
 		agentPool,
 	)
@@ -278,10 +279,10 @@ func (c *CloudProvider) List(ctx context.Context) ([]*v1.NodeClaim, error) {
 	for i, agentPool := range agentPools {
 		// FIXME: don't do this n+1 lookup
 		// cache platform preset results
-		projectID := agentPool.GetSpec().GetProjectId()
 		platformPreset, err := resolvePlatformPresetFromInstance(
 			ctx,
-			projectID,
+			agentPool.GetSpec().GetProjectId(),
+			agentPool.GetSpec().GetRegion(),
 			c.sdk,
 			agentPool,
 		)
@@ -303,10 +304,11 @@ func (c *CloudProvider) GetInstanceTypes(ctx context.Context, nodePool *v1.NodeP
 		return nil, fmt.Errorf("getting node class for node pool: %w", err)
 	}
 	projectID := nodeClass.Spec.ProjectID
+	region := nodeClass.Spec.Region
 
 	// TODO: implement caching
 	var rv []*corecloudprovider.InstanceType
-	for platformPreset, err := range filterPlatformPresets(ctx, projectID, c.sdk) {
+	for platformPreset, err := range filterPlatformPresets(ctx, projectID, region, c.sdk) {
 		if err != nil {
 			return nil, fmt.Errorf("filter supported platforms from %q: %w", projectID, err)
 		}
