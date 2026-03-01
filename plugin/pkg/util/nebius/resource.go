@@ -184,8 +184,7 @@ func ResourceCRUDFactory[SVC any, T Resource[S], S any]() func(s SVC) *ResourceC
 				setField(req, "Id", desired.GetMetadata().GetId())
 				op, err := callUnary(ctx, deleteM, req)
 				if err != nil {
-					// TODO: ignore not found?
-					return err
+					return ignoreNotFound(err)
 				}
 				_, err = waitAndResourceID(ctx, op)
 				return err

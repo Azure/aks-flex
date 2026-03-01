@@ -39,3 +39,10 @@ func IsNotFound(err error) bool {
 	}
 	return false
 }
+
+func ignoreNotFound(err error) error {
+	if IsNotFound(err) {
+		return nil
+	}
+	return err
+}
