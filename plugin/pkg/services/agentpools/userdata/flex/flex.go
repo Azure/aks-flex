@@ -42,15 +42,16 @@ func resolveFlexComponentConfigs(
 		Spec:     startCRISpecBuilder.Build(),
 	}.Build()
 
-	kubletConfig := kubeadm.Kubelet_builder{
+	kubeletConfig := kubeadm.Kubelet_builder{
 		BootstrapAuthInfo: kubeadm.NodeAuthInfo_builder{
 			Token: proto.String(kubeadmConfig.GetToken()),
 		}.Build(),
 		NodeLabels: maps.Clone(kubeadmConfig.GetNodeLabels()),
 	}.Build()
 	if nodeIP := kubeadmConfig.GetNodeIp(); nodeIP != "" {
-		kubletConfig.SetNodeIp(nodeIP)
+		kubeletConfig.SetNodeIp(nodeIP)
 	}
+	kubeletConfig.AddK8SRegisterTaints(kubeadmConfig.GetK8SRegisterTaints()...)
 	kubeadmNodeJoin := kubeadm.KubeadmNodeJoin_builder{
 		Metadata: flexMetadata[*kubeadm.KubeadmNodeJoin]("kubeadm-node-join"),
 		Spec: kubeadm.KubeadmNodeJoinSpec_builder{
@@ -58,7 +59,7 @@ func resolveFlexComponentConfigs(
 				Server:                   proto.String(kubeadmConfig.GetServer()),
 				CertificateAuthorityData: kubeadmConfig.GetCertificateAuthorityData(),
 			}.Build(),
-			Kubelet: kubletConfig,
+			Kubelet: kubeletConfig,
 		}.Build(),
 	}.Build()
 
@@ -127,7 +128,7 @@ func UserData(hasGPU bool, kubeVersion string, kubeadmConfig *kubeadmapi.Config)
 			strings.Join([]string{
 				"mkdir -p /tmp/flex",
 				// TODO: this should be overridable
-				"curl -L -o /tmp/flex/aks-flex-node-linux-amd64.tar.gz https://github.com/Azure/AKSFlexNode/releases/download/v0.0.12/aks-flex-node-linux-amd64.tar.gz",
+				"curl -L -o /tmp/flex/aks-flex-node-linux-amd64.tar.gz https://github.com/Azure/AKSFlexNode/releases/download/v0.0.12-kubeadm-taint/aks-flex-node-linux-amd64.tar.gz",
 				"tar -xzf /tmp/flex/aks-flex-node-linux-amd64.tar.gz -C /tmp/flex",
 				"mv /tmp/flex/aks-flex-node-linux-amd64 /tmp/flex/aks-flex-node",
 				"chmod +x /tmp/flex/aks-flex-node",
