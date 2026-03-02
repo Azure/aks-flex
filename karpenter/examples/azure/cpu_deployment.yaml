@@ -1,16 +1,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: nebius-sample-cpu-app
+  name: azure-sample-cpu-app
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: nebius-sample-cpu-app
+      app: azure-sample-cpu-app
   template:
     metadata:
       labels:
-        app: nebius-sample-cpu-app
+        app: azure-sample-cpu-app
     spec:
       affinity:
         nodeAffinity:
@@ -21,13 +21,18 @@ spec:
                     operator: NotIn
                     values:
                       - system
+                  - key: nodepool
+                    operator: In
+                    values:
+                      - azure-cpu-nodepool
       containers:
-        - name: app-container
-          image: nginx:1.21
+        - name: cpu-container
+          image: ubuntu:22.04
+          command: ["sleep", "infinity"]
           resources:
             requests:
-              memory: "64Mi"
-              cpu: "250m"
-            limits:
-              memory: "128Mi"
+              memory: "256Mi"
               cpu: "500m"
+            limits:
+              memory: "512Mi"
+              cpu: "1"

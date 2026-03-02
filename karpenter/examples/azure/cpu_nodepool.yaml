@@ -1,0 +1,21 @@
+apiVersion: karpenter.sh/v1
+kind: NodePool
+metadata:
+  name: azure-cpu-nodepool
+spec:
+  template:
+    metadata:
+      labels:
+        nodepool: azure-cpu-nodepool
+    spec:
+      nodeClassRef:
+        group: karpenter.azure.com
+        kind: AKSNodeClass
+        name: azure
+      requirements:
+        - key: node.kubernetes.io/instance-type
+          operator: In
+          values: ["Standard_D4s_v3"]
+  limits:
+    cpu: "100"
+    memory: 400Gi

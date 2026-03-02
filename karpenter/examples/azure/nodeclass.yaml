@@ -1,0 +1,6 @@
+apiVersion: karpenter.azure.com/v1beta1
+kind: AKSNodeClass
+metadata:
+  name: azure
+spec:
+  imageFamily: Ubuntu2204
