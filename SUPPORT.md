@@ -1,25 +1,20 @@
-# TODO: The maintainer of this repo has not yet edited this file
-
-**REPO OWNER**: Do you want Customer Service & Support (CSS) support for this product/project?
-
-- **No CSS support:** Fill out this template with information about how to file issues and get help.
-- **Yes CSS support:** Fill out an intake form at [aka.ms/onboardsupport](https://aka.ms/onboardsupport). CSS will work with/help you to determine next steps.
-- **Not sure?** Fill out an intake as though the answer were "Yes". CSS will help you decide.
-
-*Then remove this first heading from this SUPPORT.MD file before publishing your repo.*
-
 # Support
 
-## How to file issues and get help  
+## How to file issues and get help
 
-This project uses GitHub Issues to track bugs and feature requests. Please search the existing 
-issues before filing new issues to avoid duplicates.  For new issues, file your bug or 
+This project uses GitHub Issues to track bugs and feature requests. Please search the existing
+issues before filing new issues to avoid duplicates. For new issues, file your bug or
 feature request as a new Issue.
 
-For help and questions about using this project, please **REPO MAINTAINER: INSERT INSTRUCTIONS HERE 
-FOR HOW TO ENGAGE REPO OWNERS OR COMMUNITY FOR HELP. COULD BE A STACK OVERFLOW TAG OR OTHER
-CHANNEL. WHERE WILL YOU HELP PEOPLE?**.
+For help and questions about Azure Kubernetes Service (AKS), please use the following resources:
 
-## Microsoft Support Policy  
+- **AKS documentation**: [https://learn.microsoft.com/azure/aks/](https://learn.microsoft.com/azure/aks/)
+- **Azure support**: Open a support request through the [Azure portal](https://portal.azure.com/#blade/Microsoft_Azure_Support/HelpAndSupportBlade/overview) if you have an Azure support plan
+- **Stack Overflow**: Tag your questions with [`azure-aks`](https://stackoverflow.com/questions/tagged/azure-aks)
+- **Microsoft Q&A**: Post questions at [https://learn.microsoft.com/answers/tags/133/azure-kubernetes-service](https://learn.microsoft.com/answers/tags/133/azure-kubernetes-service)
 
-Support for this **PROJECT or PRODUCT** is limited to the resources listed above.
+## Microsoft Support Policy
+
+Support for this project is limited to the resources listed above. Issues and feature requests
+are tracked via GitHub Issues on a best-effort basis by the maintainers. For production support
+of AKS itself, please use official [Azure support channels](https://azure.microsoft.com/support/options/).
