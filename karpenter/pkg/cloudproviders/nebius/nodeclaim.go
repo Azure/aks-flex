@@ -22,6 +22,7 @@ import (
 
 	"github.com/Azure/aks-flex/karpenter/pkg/apis/v1alpha1"
 	"github.com/Azure/aks-flex/karpenter/pkg/cloudproviders"
+	"github.com/Azure/aks-flex/karpenter/pkg/cloudproviders/nebius/instancetype"
 )
 
 func filterNoneZeroResource(
@@ -72,7 +73,7 @@ func stretchAgentPoolToNodeClaim(
 	rv.Status.Allocatable = lo.PickBy(instanceType.Allocatable(), filterNoneZeroResource)
 
 	// TODO: zone from instance
-	// TODO: labels from instance
+	// TODO: extra labels from instance
 
 	return rv
 }
@@ -82,14 +83,16 @@ func nodeClaimToStretchAgentPool(
 	clusterCA []byte,
 	nodeClass *v1alpha1.NebiusNodeClass,
 	nodeClaim *v1.NodeClaim,
-	platformPreset *platformPreset,
+	preset *instancetype.PlatformPreset,
+	region string,
+	zone string,
 	wgConfig *wireguard.Config,
 ) *nebiusinstance.AgentPool {
 	mdBuilder := stretchapi.Metadata_builder{
 		Id: lo.ToPtr(nodeClaim.Name),
 	}
 
-	platform := platformPreset.platform
+	platform := preset.Platform()
 
 	imageFamily := lo.FromPtrOr(nodeClass.Spec.OSDiskImageFamily, "ubuntu24.04-driverless")
 	if platform.GetSpec().GetGpuMemoryGigabytes() > 0 {
@@ -118,8 +121,9 @@ func nodeClaimToStretchAgentPool(
 	kubeadmConfig.AddNodeLabels(map[string]string{
 		// FIXME: this should set in stretch api side or cloud provider (CNM)
 		// NOTE: this needs to match the value returned by GetInstanceTypes
-		corev1.LabelInstanceTypeStable: platformPreset.InstanceTypeName(),
-		corev1.LabelTopologyZone:       platformPreset.region,
+		corev1.LabelInstanceTypeStable: preset.InstanceTypeName(),
+		corev1.LabelTopologyZone:       zone,
+		corev1.LabelTopologyRegion:     region,
 		// FIXME: this should be determined based on the platform preset
 		v1.CapacityTypeLabelKey: "on-demand",
 	})
@@ -136,7 +140,7 @@ func nodeClaimToStretchAgentPool(
 		Region:              lo.ToPtr(nodeClass.Spec.Region),
 		SubnetId:            lo.ToPtr(nodeClass.Spec.SubnetID),
 		Platform:            lo.ToPtr(platform.GetMetadata().GetName()),
-		Preset:              lo.ToPtr(platformPreset.preset.GetName()),
+		Preset:              lo.ToPtr(preset.Preset().GetName()),
 		ImageFamily:         lo.ToPtr(imageFamily),
 		OsDiskSizeGibibytes: lo.ToPtr(int64(osDiskSize)),
 		Kubeadm:             kubeadmConfig,
