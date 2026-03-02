@@ -96,7 +96,7 @@ controller:
     # -- Tag of the controller image.
     tag: main
     # -- SHA256 digest of the controller image.
-    digest: sha256:811dad55a15faaded4ced16b73231d8b6bf2fcfef5a49d88a54e0c7019a9292c
+    digest: sha256:3625d2a19298da105cfc24f6f0694cbd9dc1d5443ba10b6d9043d0ed1902d470
   # -- Optional Nebius credentials secret mount. The secret must be created by
   # the user separately (not managed by this chart). When enabled, the secret is
   # mounted as a file and passed via the -flex-nebius.credentials-file flag.
