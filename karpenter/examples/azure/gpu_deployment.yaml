@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: azure-sample-gpu-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: azure-sample-gpu-app
+  template:
+    metadata:
+      labels:
+        app: azure-sample-gpu-app
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: kubernetes.azure.com/mode
+                    operator: NotIn
+                    values:
+                      - system
+                  - key: nodepool
+                    operator: In
+                    values:
+                      - azure-gpu-nodepool
+      containers:
+        - name: gpu-container
+          image: nvidia/cuda:12.4.0-base-ubuntu22.04
+          command: ["nvidia-smi", "-l", "60"]
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+              nvidia.com/gpu: "4"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
+              nvidia.com/gpu: "4"
