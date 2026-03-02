@@ -228,6 +228,7 @@ func (res *nebiusAgentPoolResources) DesiredInstance(
 	if capacityType == capacity.CapacityType_CAPACITY_TYPE_SPOT {
 		preemptible = &nebiuscompute.PreemptibleSpec{
 			OnPreemption: nebiuscompute.PreemptibleSpec_STOP,
+			Priority:     5,
 		}
 	}
 
