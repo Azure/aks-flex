@@ -223,16 +223,7 @@ func (res *nebiusAgentPoolResources) DesiredInstance(
 	}
 	// TODO: allow assigning public IP
 
-	var preemptible *nebiuscompute.PreemptibleSpec
-	capacityType := res.AgentPool.GetSpec().GetCapacity().GetCapacityType()
-	if capacityType == capacity.CapacityType_CAPACITY_TYPE_SPOT {
-		preemptible = &nebiuscompute.PreemptibleSpec{
-			OnPreemption: nebiuscompute.PreemptibleSpec_STOP,
-			Priority:     5,
-		}
-	}
-
-	return &nebiuscompute.Instance{
+	rv := &nebiuscompute.Instance{
 		Metadata: &nebiuscommon.ResourceMetadata{
 			ParentId: res.AgentPool.GetSpec().GetProjectId(),
 			Id:       res.AgentPool.GetStatus().GetInstanceId(),
@@ -257,7 +248,19 @@ func (res *nebiusAgentPoolResources) DesiredInstance(
 				nic,
 			},
 			CloudInitUserData: userdata,
-			Preemptible:       preemptible,
 		},
 	}
+
+	// spot pool requested
+	capacityType := res.AgentPool.GetSpec().GetCapacity().GetCapacityType()
+	if capacityType == capacity.CapacityType_CAPACITY_TYPE_SPOT {
+		rv.Spec.Preemptible = &nebiuscompute.PreemptibleSpec{
+			OnPreemption: nebiuscompute.PreemptibleSpec_STOP,
+			Priority:     5,
+		}
+		// don't ask for restart for spot instance, required by nebius
+		rv.Spec.RecoveryPolicy = nebiuscompute.InstanceRecoveryPolicy_FAIL
+	}
+
+	return rv
 }
