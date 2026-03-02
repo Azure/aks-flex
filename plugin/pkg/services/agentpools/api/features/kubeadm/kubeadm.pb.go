@@ -172,6 +172,7 @@ type Config struct {
 	xxx_hidden_NodeLabels               map[string]string      `protobuf:"bytes,4,rep,name=node_labels,json=nodeLabels" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	xxx_hidden_NodeIp                   *string                `protobuf:"bytes,5,opt,name=node_ip,json=nodeIp"`
 	xxx_hidden_RegisterWithTaints       *[]*Taint              `protobuf:"bytes,6,rep,name=register_with_taints,json=registerWithTaints"`
+	xxx_hidden_MaxPodsPerNode           int32                  `protobuf:"varint,7,opt,name=max_pods_per_node,json=maxPodsPerNode"`
 	XXX_raceDetectHookData              protoimpl.RaceDetectHookData
 	XXX_presence                        [1]uint32
 	unknownFields                       protoimpl.UnknownFields
@@ -256,9 +257,16 @@ func (x *Config) GetRegisterWithTaints() []*Taint {
 	return nil
 }
 
+func (x *Config) GetMaxPodsPerNode() int32 {
+	if x != nil {
+		return x.xxx_hidden_MaxPodsPerNode
+	}
+	return 0
+}
+
 func (x *Config) SetServer(v string) {
 	x.xxx_hidden_Server = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 6)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 7)
 }
 
 func (x *Config) SetCertificateAuthorityData(v []byte) {
@@ -266,12 +274,12 @@ func (x *Config) SetCertificateAuthorityData(v []byte) {
 		v = []byte{}
 	}
 	x.xxx_hidden_CertificateAuthorityData = v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 6)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 7)
 }
 
 func (x *Config) SetToken(v string) {
 	x.xxx_hidden_Token = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 2, 6)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 2, 7)
 }
 
 func (x *Config) SetNodeLabels(v map[string]string) {
@@ -280,11 +288,16 @@ func (x *Config) SetNodeLabels(v map[string]string) {
 
 func (x *Config) SetNodeIp(v string) {
 	x.xxx_hidden_NodeIp = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 4, 6)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 4, 7)
 }
 
 func (x *Config) SetRegisterWithTaints(v []*Taint) {
 	x.xxx_hidden_RegisterWithTaints = &v
+}
+
+func (x *Config) SetMaxPodsPerNode(v int32) {
+	x.xxx_hidden_MaxPodsPerNode = v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 6, 7)
 }
 
 func (x *Config) HasServer() bool {
@@ -315,6 +328,13 @@ func (x *Config) HasNodeIp() bool {
 	return protoimpl.X.Present(&(x.XXX_presence[0]), 4)
 }
 
+func (x *Config) HasMaxPodsPerNode() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 6)
+}
+
 func (x *Config) ClearServer() {
 	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 0)
 	x.xxx_hidden_Server = nil
@@ -335,6 +355,11 @@ func (x *Config) ClearNodeIp() {
 	x.xxx_hidden_NodeIp = nil
 }
 
+func (x *Config) ClearMaxPodsPerNode() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 6)
+	x.xxx_hidden_MaxPodsPerNode = 0
+}
+
 type Config_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
@@ -347,6 +372,8 @@ type Config_builder struct {
 	NodeIp *string
 	// List of taints to assign using the kubelet flag, in the format "key=value:effect"
 	RegisterWithTaints []*Taint
+	// Max number of pods per node, to be set as --max-pods kubelet argument
+	MaxPodsPerNode *int32
 }
 
 func (b0 Config_builder) Build() *Config {
@@ -354,23 +381,27 @@ func (b0 Config_builder) Build() *Config {
 	b, x := &b0, m0
 	_, _ = b, x
 	if b.Server != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 6)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 7)
 		x.xxx_hidden_Server = b.Server
 	}
 	if b.CertificateAuthorityData != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 6)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 7)
 		x.xxx_hidden_CertificateAuthorityData = b.CertificateAuthorityData
 	}
 	if b.Token != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 2, 6)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 2, 7)
 		x.xxx_hidden_Token = b.Token
 	}
 	x.xxx_hidden_NodeLabels = b.NodeLabels
 	if b.NodeIp != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 4, 6)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 4, 7)
 		x.xxx_hidden_NodeIp = b.NodeIp
 	}
 	x.xxx_hidden_RegisterWithTaints = &b.RegisterWithTaints
+	if b.MaxPodsPerNode != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 6, 7)
+		x.xxx_hidden_MaxPodsPerNode = *b.MaxPodsPerNode
+	}
 	return m0
 }
 
@@ -382,7 +413,7 @@ const file_plugin_pkg_services_agentpools_api_features_kubeadm_kubeadm_proto_raw
 	"\x05Taint\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value\x12\x16\n" +
-	"\x06effect\x18\x03 \x01(\tR\x06effect\"\xd0\x02\n" +
+	"\x06effect\x18\x03 \x01(\tR\x06effect\"\xfb\x02\n" +
 	"\x06Config\x12\x16\n" +
 	"\x06server\x18\x01 \x01(\tR\x06server\x12<\n" +
 	"\x1acertificate_authority_data\x18\x02 \x01(\fR\x18certificateAuthorityData\x12\x14\n" +
@@ -390,7 +421,8 @@ const file_plugin_pkg_services_agentpools_api_features_kubeadm_kubeadm_proto_raw
 	"\vnode_labels\x18\x04 \x03(\v2\x1f.kubeadm.Config.NodeLabelsEntryR\n" +
 	"nodeLabels\x12\x17\n" +
 	"\anode_ip\x18\x05 \x01(\tR\x06nodeIp\x12@\n" +
-	"\x14register_with_taints\x18\x06 \x03(\v2\x0e.kubeadm.TaintR\x12registerWithTaints\x1a=\n" +
+	"\x14register_with_taints\x18\x06 \x03(\v2\x0e.kubeadm.TaintR\x12registerWithTaints\x12)\n" +
+	"\x11max_pods_per_node\x18\a \x01(\x05R\x0emaxPodsPerNode\x1a=\n" +
 	"\x0fNodeLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01BOZMgithub.com/Azure/aks-flex/plugin/pkg/services/agentpools/api/features/kubeadmb\beditionsp\xe9\a"

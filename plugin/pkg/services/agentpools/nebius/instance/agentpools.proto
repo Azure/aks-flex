@@ -8,6 +8,7 @@ import "google/protobuf/timestamp.proto";
 import "plugin/api/api.proto";
 import "plugin/pkg/services/agentpools/api/features/kubeadm/kubeadm.proto";
 import "plugin/pkg/services/agentpools/api/features/wireguard/wireguard.proto";
+import "plugin/pkg/services/agentpools/api/features/gpu/gpu.proto";
 
 message AgentPool {
   api.Metadata metadata = 1;
@@ -27,6 +28,14 @@ message AgentPoolSpec {
   int64 os_disk_size_gibibytes = 7;
   kubeadm.Config kubeadm = 8;
   wireguard.Config wireguard = 9;
+  gpu.Config gpu = 10;
+  // NOTE: nebius does not have the concept of availability zone.
+  //       For now we fallback to use region value as the zone value.
+  string zone = 11;
+  // preemptible indicates whether the agent pool should use preemptible instances.
+  bool preemptible = 12;
+  // kubernetes_version is the Kubernetes version to use for the nodes in this agent pool.
+  string kubernetes_version = 13;
 }
 
 message AgentPoolStatus {

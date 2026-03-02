@@ -8,6 +8,7 @@ package instance
 
 import (
 	api "github.com/Azure/aks-flex/plugin/api"
+	gpu "github.com/Azure/aks-flex/plugin/pkg/services/agentpools/api/features/gpu"
 	kubeadm "github.com/Azure/aks-flex/plugin/pkg/services/agentpools/api/features/kubeadm"
 	wireguard "github.com/Azure/aks-flex/plugin/pkg/services/agentpools/api/features/wireguard"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
@@ -153,6 +154,10 @@ type AgentPoolSpec struct {
 	xxx_hidden_OsDiskSizeGibibytes int64                  `protobuf:"varint,7,opt,name=os_disk_size_gibibytes,json=osDiskSizeGibibytes"`
 	xxx_hidden_Kubeadm             *kubeadm.Config        `protobuf:"bytes,8,opt,name=kubeadm"`
 	xxx_hidden_Wireguard           *wireguard.Config      `protobuf:"bytes,9,opt,name=wireguard"`
+	xxx_hidden_Gpu                 *gpu.Config            `protobuf:"bytes,10,opt,name=gpu"`
+	xxx_hidden_Zone                *string                `protobuf:"bytes,11,opt,name=zone"`
+	xxx_hidden_Preemptible         bool                   `protobuf:"varint,12,opt,name=preemptible"`
+	xxx_hidden_KubernetesVersion   *string                `protobuf:"bytes,13,opt,name=kubernetes_version,json=kubernetesVersion"`
 	XXX_raceDetectHookData         protoimpl.RaceDetectHookData
 	XXX_presence                   [1]uint32
 	unknownFields                  protoimpl.UnknownFields
@@ -265,39 +270,73 @@ func (x *AgentPoolSpec) GetWireguard() *wireguard.Config {
 	return nil
 }
 
+func (x *AgentPoolSpec) GetGpu() *gpu.Config {
+	if x != nil {
+		return x.xxx_hidden_Gpu
+	}
+	return nil
+}
+
+func (x *AgentPoolSpec) GetZone() string {
+	if x != nil {
+		if x.xxx_hidden_Zone != nil {
+			return *x.xxx_hidden_Zone
+		}
+		return ""
+	}
+	return ""
+}
+
+func (x *AgentPoolSpec) GetPreemptible() bool {
+	if x != nil {
+		return x.xxx_hidden_Preemptible
+	}
+	return false
+}
+
+func (x *AgentPoolSpec) GetKubernetesVersion() string {
+	if x != nil {
+		if x.xxx_hidden_KubernetesVersion != nil {
+			return *x.xxx_hidden_KubernetesVersion
+		}
+		return ""
+	}
+	return ""
+}
+
 func (x *AgentPoolSpec) SetProjectId(v string) {
 	x.xxx_hidden_ProjectId = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 9)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 13)
 }
 
 func (x *AgentPoolSpec) SetRegion(v string) {
 	x.xxx_hidden_Region = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 9)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 13)
 }
 
 func (x *AgentPoolSpec) SetSubnetId(v string) {
 	x.xxx_hidden_SubnetId = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 2, 9)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 2, 13)
 }
 
 func (x *AgentPoolSpec) SetPlatform(v string) {
 	x.xxx_hidden_Platform = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 3, 9)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 3, 13)
 }
 
 func (x *AgentPoolSpec) SetPreset(v string) {
 	x.xxx_hidden_Preset = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 4, 9)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 4, 13)
 }
 
 func (x *AgentPoolSpec) SetImageFamily(v string) {
 	x.xxx_hidden_ImageFamily = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 5, 9)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 5, 13)
 }
 
 func (x *AgentPoolSpec) SetOsDiskSizeGibibytes(v int64) {
 	x.xxx_hidden_OsDiskSizeGibibytes = v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 6, 9)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 6, 13)
 }
 
 func (x *AgentPoolSpec) SetKubeadm(v *kubeadm.Config) {
@@ -306,6 +345,25 @@ func (x *AgentPoolSpec) SetKubeadm(v *kubeadm.Config) {
 
 func (x *AgentPoolSpec) SetWireguard(v *wireguard.Config) {
 	x.xxx_hidden_Wireguard = v
+}
+
+func (x *AgentPoolSpec) SetGpu(v *gpu.Config) {
+	x.xxx_hidden_Gpu = v
+}
+
+func (x *AgentPoolSpec) SetZone(v string) {
+	x.xxx_hidden_Zone = &v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 10, 13)
+}
+
+func (x *AgentPoolSpec) SetPreemptible(v bool) {
+	x.xxx_hidden_Preemptible = v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 11, 13)
+}
+
+func (x *AgentPoolSpec) SetKubernetesVersion(v string) {
+	x.xxx_hidden_KubernetesVersion = &v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 12, 13)
 }
 
 func (x *AgentPoolSpec) HasProjectId() bool {
@@ -371,6 +429,34 @@ func (x *AgentPoolSpec) HasWireguard() bool {
 	return x.xxx_hidden_Wireguard != nil
 }
 
+func (x *AgentPoolSpec) HasGpu() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_Gpu != nil
+}
+
+func (x *AgentPoolSpec) HasZone() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 10)
+}
+
+func (x *AgentPoolSpec) HasPreemptible() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 11)
+}
+
+func (x *AgentPoolSpec) HasKubernetesVersion() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 12)
+}
+
 func (x *AgentPoolSpec) ClearProjectId() {
 	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 0)
 	x.xxx_hidden_ProjectId = nil
@@ -414,6 +500,25 @@ func (x *AgentPoolSpec) ClearWireguard() {
 	x.xxx_hidden_Wireguard = nil
 }
 
+func (x *AgentPoolSpec) ClearGpu() {
+	x.xxx_hidden_Gpu = nil
+}
+
+func (x *AgentPoolSpec) ClearZone() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 10)
+	x.xxx_hidden_Zone = nil
+}
+
+func (x *AgentPoolSpec) ClearPreemptible() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 11)
+	x.xxx_hidden_Preemptible = false
+}
+
+func (x *AgentPoolSpec) ClearKubernetesVersion() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 12)
+	x.xxx_hidden_KubernetesVersion = nil
+}
+
 type AgentPoolSpec_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
@@ -426,6 +531,15 @@ type AgentPoolSpec_builder struct {
 	OsDiskSizeGibibytes *int64
 	Kubeadm             *kubeadm.Config
 	Wireguard           *wireguard.Config
+	Gpu                 *gpu.Config
+	// NOTE: nebius does not have the concept of availability zone.
+	//
+	//	For now we fallback to use region value as the zone value.
+	Zone *string
+	// preemptible indicates whether the agent pool should use preemptible instances.
+	Preemptible *bool
+	// kubernetes_version is the Kubernetes version to use for the nodes in this agent pool.
+	KubernetesVersion *string
 }
 
 func (b0 AgentPoolSpec_builder) Build() *AgentPoolSpec {
@@ -433,35 +547,48 @@ func (b0 AgentPoolSpec_builder) Build() *AgentPoolSpec {
 	b, x := &b0, m0
 	_, _ = b, x
 	if b.ProjectId != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 9)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 13)
 		x.xxx_hidden_ProjectId = b.ProjectId
 	}
 	if b.Region != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 9)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 13)
 		x.xxx_hidden_Region = b.Region
 	}
 	if b.SubnetId != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 2, 9)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 2, 13)
 		x.xxx_hidden_SubnetId = b.SubnetId
 	}
 	if b.Platform != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 3, 9)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 3, 13)
 		x.xxx_hidden_Platform = b.Platform
 	}
 	if b.Preset != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 4, 9)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 4, 13)
 		x.xxx_hidden_Preset = b.Preset
 	}
 	if b.ImageFamily != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 5, 9)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 5, 13)
 		x.xxx_hidden_ImageFamily = b.ImageFamily
 	}
 	if b.OsDiskSizeGibibytes != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 6, 9)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 6, 13)
 		x.xxx_hidden_OsDiskSizeGibibytes = *b.OsDiskSizeGibibytes
 	}
 	x.xxx_hidden_Kubeadm = b.Kubeadm
 	x.xxx_hidden_Wireguard = b.Wireguard
+	x.xxx_hidden_Gpu = b.Gpu
+	if b.Zone != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 10, 13)
+		x.xxx_hidden_Zone = b.Zone
+	}
+	if b.Preemptible != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 11, 13)
+		x.xxx_hidden_Preemptible = *b.Preemptible
+	}
+	if b.KubernetesVersion != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 12, 13)
+		x.xxx_hidden_KubernetesVersion = b.KubernetesVersion
+	}
 	return m0
 }
 
@@ -607,11 +734,11 @@ var File_plugin_pkg_services_agentpools_nebius_instance_agentpools_proto protore
 
 const file_plugin_pkg_services_agentpools_nebius_instance_agentpools_proto_rawDesc = "" +
 	"\n" +
-	"?plugin/pkg/services/agentpools/nebius/instance/agentpools.proto\x12\x1aagentpools.nebius.instance\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x14plugin/api/api.proto\x1aAplugin/pkg/services/agentpools/api/features/kubeadm/kubeadm.proto\x1aEplugin/pkg/services/agentpools/api/features/wireguard/wireguard.proto\"\xba\x01\n" +
+	"?plugin/pkg/services/agentpools/nebius/instance/agentpools.proto\x12\x1aagentpools.nebius.instance\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x14plugin/api/api.proto\x1aAplugin/pkg/services/agentpools/api/features/kubeadm/kubeadm.proto\x1aEplugin/pkg/services/agentpools/api/features/wireguard/wireguard.proto\x1a9plugin/pkg/services/agentpools/api/features/gpu/gpu.proto\"\xba\x01\n" +
 	"\tAgentPool\x12)\n" +
 	"\bmetadata\x18\x01 \x01(\v2\r.api.MetadataR\bmetadata\x12=\n" +
 	"\x04spec\x18\x02 \x01(\v2).agentpools.nebius.instance.AgentPoolSpecR\x04spec\x12C\n" +
-	"\x06status\x18\x03 \x01(\v2+.agentpools.nebius.instance.AgentPoolStatusR\x06status\"\xcb\x02\n" +
+	"\x06status\x18\x03 \x01(\v2+.agentpools.nebius.instance.AgentPoolStatusR\x06status\"\xcf\x03\n" +
 	"\rAgentPoolSpec\x12\x1d\n" +
 	"\n" +
 	"project_id\x18\x01 \x01(\tR\tprojectId\x12\x16\n" +
@@ -622,7 +749,12 @@ const file_plugin_pkg_services_agentpools_nebius_instance_agentpools_proto_rawDe
 	"\fimage_family\x18\x06 \x01(\tR\vimageFamily\x123\n" +
 	"\x16os_disk_size_gibibytes\x18\a \x01(\x03R\x13osDiskSizeGibibytes\x12)\n" +
 	"\akubeadm\x18\b \x01(\v2\x0f.kubeadm.ConfigR\akubeadm\x12/\n" +
-	"\twireguard\x18\t \x01(\v2\x11.wireguard.ConfigR\twireguard\"\x8b\x01\n" +
+	"\twireguard\x18\t \x01(\v2\x11.wireguard.ConfigR\twireguard\x12\x1d\n" +
+	"\x03gpu\x18\n" +
+	" \x01(\v2\v.gpu.ConfigR\x03gpu\x12\x12\n" +
+	"\x04zone\x18\v \x01(\tR\x04zone\x12 \n" +
+	"\vpreemptible\x18\f \x01(\bR\vpreemptible\x12-\n" +
+	"\x12kubernetes_version\x18\r \x01(\tR\x11kubernetesVersion\"\x8b\x01\n" +
 	"\x0fAgentPoolStatus\x12\x1f\n" +
 	"\vinstance_id\x18\x01 \x01(\tR\n" +
 	"instanceId\x12\x1c\n" +
@@ -639,7 +771,8 @@ var file_plugin_pkg_services_agentpools_nebius_instance_agentpools_proto_goTypes
 	(*api.Metadata)(nil),          // 3: api.Metadata
 	(*kubeadm.Config)(nil),        // 4: kubeadm.Config
 	(*wireguard.Config)(nil),      // 5: wireguard.Config
-	(*timestamppb.Timestamp)(nil), // 6: google.protobuf.Timestamp
+	(*gpu.Config)(nil),            // 6: gpu.Config
+	(*timestamppb.Timestamp)(nil), // 7: google.protobuf.Timestamp
 }
 var file_plugin_pkg_services_agentpools_nebius_instance_agentpools_proto_depIdxs = []int32{
 	3, // 0: agentpools.nebius.instance.AgentPool.metadata:type_name -> api.Metadata
@@ -647,12 +780,13 @@ var file_plugin_pkg_services_agentpools_nebius_instance_agentpools_proto_depIdxs
 	2, // 2: agentpools.nebius.instance.AgentPool.status:type_name -> agentpools.nebius.instance.AgentPoolStatus
 	4, // 3: agentpools.nebius.instance.AgentPoolSpec.kubeadm:type_name -> kubeadm.Config
 	5, // 4: agentpools.nebius.instance.AgentPoolSpec.wireguard:type_name -> wireguard.Config
-	6, // 5: agentpools.nebius.instance.AgentPoolStatus.created_at:type_name -> google.protobuf.Timestamp
-	6, // [6:6] is the sub-list for method output_type
-	6, // [6:6] is the sub-list for method input_type
-	6, // [6:6] is the sub-list for extension type_name
-	6, // [6:6] is the sub-list for extension extendee
-	0, // [0:6] is the sub-list for field type_name
+	6, // 5: agentpools.nebius.instance.AgentPoolSpec.gpu:type_name -> gpu.Config
+	7, // 6: agentpools.nebius.instance.AgentPoolStatus.created_at:type_name -> google.protobuf.Timestamp
+	7, // [7:7] is the sub-list for method output_type
+	7, // [7:7] is the sub-list for method input_type
+	7, // [7:7] is the sub-list for extension type_name
+	7, // [7:7] is the sub-list for extension extendee
+	0, // [0:7] is the sub-list for field type_name
 }
 
 func init() { file_plugin_pkg_services_agentpools_nebius_instance_agentpools_proto_init() }
