@@ -2,22 +2,25 @@
 
 ## Overview
 
-This guide walks through deploying `karpenter` to an AKS Flex cluster and using Karpenter to automatically provision and deprovision Nebius cloud nodes. By the end you will have:
+This guide walks through deploying `karpenter` to an AKS Flex cluster and using Karpenter to automatically provision and deprovision cloud nodes. By the end you will have:
 
 - The karpenter controller running in the cluster
-- A `NebiusNodeClass` and `NodePool` configured for Nebius compute instances
-- Workloads that trigger automatic node scale-up on Nebius
+- `NodeClass` and `NodePool` resources configured for Azure and/or Nebius compute instances
+- Workloads that trigger automatic node scale-up
 - An understanding of how to scale down and clean up provisioned nodes
 
-Karpenter watches for unschedulable pods and automatically provisions new nodes to meet demand. The `karpenter` extends Karpenter with a Nebius cloud provider, allowing it to create and manage Nebius VMs that join the AKS cluster as worker nodes.
+Karpenter watches for unschedulable pods and automatically provisions new nodes to meet demand. The `karpenter` extends Karpenter with multiple cloud providers:
+
+- **Azure** (`AKSNodeClass`) — provisions Azure VMs directly into the cluster's node resource group, joining the existing AKS cluster.
+- **Nebius** (`NebiusNodeClass`) — provisions Nebius VMs that join the AKS cluster as worker nodes over WireGuard.
 
 ## Getting Started
 
 ### Prerequisites
 
 - **AKS Flex CLI** -- installed and configured with a `.env` file. See [CLI Setup](cli-setup.md).
-- **AKS cluster with WireGuard** -- the cluster must have WireGuard enabled for cross-cloud node connectivity. See [AKS Cluster Setup](cli-prepare-aks-cluster.md) (specifically the [Enable with WireGuard](cli-prepare-aks-cluster.md#enable-with-wireguard) section).
-- **Nebius service account credentials** -- a Nebius credentials JSON file for the karpenter controller. See the [Nebius authorized keys documentation](https://docs.nebius.com/iam/service-accounts/authorized-keys).
+- **AKS cluster** -- an AKS cluster provisioned via the CLI. For Nebius nodes, the cluster must also have WireGuard enabled for cross-cloud connectivity. See [AKS Cluster Setup](cli-prepare-aks-cluster.md).
+- **Nebius service account credentials** *(Nebius only)* -- a Nebius credentials JSON file for the karpenter controller. See the [Nebius authorized keys documentation](https://docs.nebius.com/iam/service-accounts/authorized-keys).
 - **Helm** -- required for installing the karpenter chart.
 
 ### Configuration
@@ -59,10 +62,12 @@ This creates a secret named `nebius-credentials` in the `karpenter` namespace wi
 
 ### 3. Grant the kubelet identity required Azure permissions
 
-The karpenter controller uses the AKS kubelet identity for two Azure operations that require explicit role assignments:
+The karpenter controller uses the AKS kubelet identity for Azure operations that require explicit role assignments:
 
 - **VNET read** — reads the cluster VNET GUID at startup
-- **Azure Resource Graph** — manages Azure VM instances lifecycle
+- **Subnet join** — attaches NICs to the cluster subnet when provisioning Azure VMs
+- **VM/NIC/disk lifecycle** — creates and deletes Azure VMs, NICs, and disks in the node resource group
+- **Azure Resource Graph** — enumerates managed VM instances
 
 First, retrieve the kubelet identity object ID and the relevant resource IDs:
 
@@ -81,21 +86,24 @@ NODE_RESOURCE_GROUP_ID=$(az aks show \
   --query "nodeResourceGroup" \
   -o tsv | xargs -I{} echo "/subscriptions/$AZURE_SUBSCRIPTION_ID/resourceGroups/{}")
 
-# Get the VNET resource ID (adjust resource group if VNET is in a different RG)
-VNET_ID=$(az network vnet list \
-  --resource-group $RESOURCE_GROUP_NAME \
-  --query "[0].id" \
-  -o tsv)
+# Get the VNET resource group ID (where the cluster VNet and subnet live;
+# adjust if the VNet is in a different resource group)
+VNET_RESOURCE_GROUP_ID="/subscriptions/$AZURE_SUBSCRIPTION_ID/resourceGroups/$RESOURCE_GROUP_NAME"
 ```
 
 Then create the two role assignments:
 
 ```bash
-# 1. Reader on the VNET (for VNET GUID resolution at startup)
+# 1. Network Contributor on the VNET resource group
+#    Required for: VNET GUID resolution at startup, and subnet join/action
+#    when creating NICs for provisioned VMs.
+#    Note: "Reader" on the VNET alone is insufficient — NIC creation requires
+#    Microsoft.Network/virtualNetworks/subnets/join/action which is only
+#    included in Network Contributor or higher.
 az role assignment create \
   --assignee "$KUBELET_OBJECT_ID" \
-  --role "Reader" \
-  --scope "$VNET_ID"
+  --role "Network Contributor" \
+  --scope "$VNET_RESOURCE_GROUP_ID"
 
 # 2. Contributor on the node resource group (for VM/NIC/disk create and delete,
 #    and Azure Resource Graph VM enumeration)
@@ -164,6 +172,77 @@ $ kubectl -n karpenter get pods
 NAME                         READY   STATUS    RESTARTS      AGE
 karpenter-6b55df659d-m2d5g   1/1     Running   7 (13m ago)   20m
 ```
+
+## Creating Nodes on Azure via Karpenter
+
+With the karpenter controller running, you can define an `AKSNodeClass` and `NodePool` to provision Azure VMs directly into the cluster's node resource group.
+
+### Creating an AKSNodeClass
+
+The `AKSNodeClass` defines the Azure-specific configuration for provisioned nodes:
+
+```bash
+$ kubectl apply -f examples/azure/nodeclass.yaml
+```
+
+Verify the node class is ready:
+
+```bash
+$ kubectl get aksnodeclass
+NAME    READY   AGE
+azure   True    5s
+```
+
+### Creating a CPU NodePool
+
+```bash
+$ kubectl apply -f examples/azure/cpu_nodepool.yaml
+```
+
+Verify the node pool is ready:
+
+```bash
+$ kubectl get nodepool
+NAME                 NODECLASS   NODES   READY   AGE
+azure-cpu-nodepool   azure       0       True    4s
+```
+
+### Creating a GPU NodePool
+
+For GPU workloads, create a NodePool that pins to a specific GPU SKU via `node.kubernetes.io/instance-type`:
+
+```bash
+$ kubectl apply -f examples/azure/gpu_nodepool.yaml
+```
+
+Both node pools should now be ready:
+
+```bash
+$ kubectl get nodepool
+NAME                 NODECLASS   NODES   READY   AGE
+azure-cpu-nodepool   azure       0       True    4s
+azure-gpu-nodepool   azure       0       True    2s
+```
+
+### Deploy a workload to trigger scale-up
+
+```bash
+$ kubectl apply -f examples/azure/cpu_deployment.yaml
+```
+
+Karpenter detects the unschedulable pod and creates a `NodeClaim`:
+
+```bash
+$ kubectl get nodeclaims
+NAME                       TYPE           CAPACITY   ZONE   NODE                         READY   AGE
+azure-cpu-nodepool-6rhlk                                    aks-azure-cpu-nodepool-6rhlk True    2m
+```
+
+> **Note:** GPU workloads require the NVIDIA device plugin. Install it with the CLI before creating GPU workloads:
+>
+> ```bash
+> aks-flex-cli aks deploy --gpu-device-plugin --skip-arm
+> ```
 
 ## Creating Nodes on Nebius via Karpenter
 
