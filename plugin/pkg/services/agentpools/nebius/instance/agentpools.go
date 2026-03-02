@@ -18,6 +18,7 @@ import (
 	"github.com/Azure/aks-flex/plugin/pkg/db"
 	"github.com/Azure/aks-flex/plugin/pkg/helper"
 	agentpools "github.com/Azure/aks-flex/plugin/pkg/services/agentpools/api"
+	"github.com/Azure/aks-flex/plugin/pkg/services/agentpools/api/features/capacity"
 	"github.com/Azure/aks-flex/plugin/pkg/services/agentpools/userdata/flex"
 	"github.com/Azure/aks-flex/plugin/pkg/topology"
 	"github.com/Azure/aks-flex/plugin/pkg/util/cloudinit"
@@ -223,7 +224,8 @@ func (res *nebiusAgentPoolResources) DesiredInstance(
 	// TODO: allow assigning public IP
 
 	var preemptible *nebiuscompute.PreemptibleSpec
-	if res.AgentPool.GetSpec().GetPreemptible() {
+	capacityType := res.AgentPool.GetSpec().GetCapacity().GetCapacityType()
+	if capacityType == capacity.CapacityType_CAPACITY_TYPE_SPOT {
 		preemptible = &nebiuscompute.PreemptibleSpec{
 			OnPreemption: nebiuscompute.PreemptibleSpec_STOP,
 		}

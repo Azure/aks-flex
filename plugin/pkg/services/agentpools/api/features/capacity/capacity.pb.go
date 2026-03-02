@@ -20,13 +20,61 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type CapacityType int32
+
+const (
+	CapacityType_CAPACITY_TYPE_UNSPECIFIED CapacityType = 0
+	CapacityType_CAPACITY_TYPE_ON_DEMAND   CapacityType = 1
+	CapacityType_CAPACITY_TYPE_SPOT        CapacityType = 2
+	CapacityType_CAPACITY_TYPE_RESERVED    CapacityType = 3
+)
+
+// Enum value maps for CapacityType.
+var (
+	CapacityType_name = map[int32]string{
+		0: "CAPACITY_TYPE_UNSPECIFIED",
+		1: "CAPACITY_TYPE_ON_DEMAND",
+		2: "CAPACITY_TYPE_SPOT",
+		3: "CAPACITY_TYPE_RESERVED",
+	}
+	CapacityType_value = map[string]int32{
+		"CAPACITY_TYPE_UNSPECIFIED": 0,
+		"CAPACITY_TYPE_ON_DEMAND":   1,
+		"CAPACITY_TYPE_SPOT":        2,
+		"CAPACITY_TYPE_RESERVED":    3,
+	}
+)
+
+func (x CapacityType) Enum() *CapacityType {
+	p := new(CapacityType)
+	*p = x
+	return p
+}
+
+func (x CapacityType) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (CapacityType) Descriptor() protoreflect.EnumDescriptor {
+	return file_plugin_pkg_services_agentpools_api_features_capacity_capacity_proto_enumTypes[0].Descriptor()
+}
+
+func (CapacityType) Type() protoreflect.EnumType {
+	return &file_plugin_pkg_services_agentpools_api_features_capacity_capacity_proto_enumTypes[0]
+}
+
+func (x CapacityType) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
 type Config struct {
-	state                  protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Capacity    uint32                 `protobuf:"varint,1,opt,name=capacity"`
-	XXX_raceDetectHookData protoimpl.RaceDetectHookData
-	XXX_presence           [1]uint32
-	unknownFields          protoimpl.UnknownFields
-	sizeCache              protoimpl.SizeCache
+	state                   protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Capacity     uint32                 `protobuf:"varint,1,opt,name=capacity"`
+	xxx_hidden_CapacityType CapacityType           `protobuf:"varint,2,opt,name=capacity_type,json=capacityType,enum=capacity.CapacityType"`
+	XXX_raceDetectHookData  protoimpl.RaceDetectHookData
+	XXX_presence            [1]uint32
+	unknownFields           protoimpl.UnknownFields
+	sizeCache               protoimpl.SizeCache
 }
 
 func (x *Config) Reset() {
@@ -61,9 +109,23 @@ func (x *Config) GetCapacity() uint32 {
 	return 0
 }
 
+func (x *Config) GetCapacityType() CapacityType {
+	if x != nil {
+		if protoimpl.X.Present(&(x.XXX_presence[0]), 1) {
+			return x.xxx_hidden_CapacityType
+		}
+	}
+	return CapacityType_CAPACITY_TYPE_UNSPECIFIED
+}
+
 func (x *Config) SetCapacity(v uint32) {
 	x.xxx_hidden_Capacity = v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 1)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 2)
+}
+
+func (x *Config) SetCapacityType(v CapacityType) {
+	x.xxx_hidden_CapacityType = v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 2)
 }
 
 func (x *Config) HasCapacity() bool {
@@ -73,15 +135,28 @@ func (x *Config) HasCapacity() bool {
 	return protoimpl.X.Present(&(x.XXX_presence[0]), 0)
 }
 
+func (x *Config) HasCapacityType() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 1)
+}
+
 func (x *Config) ClearCapacity() {
 	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 0)
 	x.xxx_hidden_Capacity = 0
 }
 
+func (x *Config) ClearCapacityType() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 1)
+	x.xxx_hidden_CapacityType = CapacityType_CAPACITY_TYPE_UNSPECIFIED
+}
+
 type Config_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	Capacity *uint32
+	Capacity     *uint32
+	CapacityType *CapacityType
 }
 
 func (b0 Config_builder) Build() *Config {
@@ -89,8 +164,12 @@ func (b0 Config_builder) Build() *Config {
 	b, x := &b0, m0
 	_, _ = b, x
 	if b.Capacity != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 1)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 2)
 		x.xxx_hidden_Capacity = *b.Capacity
+	}
+	if b.CapacityType != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 2)
+		x.xxx_hidden_CapacityType = *b.CapacityType
 	}
 	return m0
 }
@@ -99,20 +178,29 @@ var File_plugin_pkg_services_agentpools_api_features_capacity_capacity_proto pro
 
 const file_plugin_pkg_services_agentpools_api_features_capacity_capacity_proto_rawDesc = "" +
 	"\n" +
-	"Cplugin/pkg/services/agentpools/api/features/capacity/capacity.proto\x12\bcapacity\"$\n" +
+	"Cplugin/pkg/services/agentpools/api/features/capacity/capacity.proto\x12\bcapacity\"a\n" +
 	"\x06Config\x12\x1a\n" +
-	"\bcapacity\x18\x01 \x01(\rR\bcapacityBPZNgithub.com/Azure/aks-flex/plugin/pkg/services/agentpools/api/features/capacityb\beditionsp\xe9\a"
+	"\bcapacity\x18\x01 \x01(\rR\bcapacity\x12;\n" +
+	"\rcapacity_type\x18\x02 \x01(\x0e2\x16.capacity.CapacityTypeR\fcapacityType*~\n" +
+	"\fCapacityType\x12\x1d\n" +
+	"\x19CAPACITY_TYPE_UNSPECIFIED\x10\x00\x12\x1b\n" +
+	"\x17CAPACITY_TYPE_ON_DEMAND\x10\x01\x12\x16\n" +
+	"\x12CAPACITY_TYPE_SPOT\x10\x02\x12\x1a\n" +
+	"\x16CAPACITY_TYPE_RESERVED\x10\x03BPZNgithub.com/Azure/aks-flex/plugin/pkg/services/agentpools/api/features/capacityb\beditionsp\xe9\a"
 
+var file_plugin_pkg_services_agentpools_api_features_capacity_capacity_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_plugin_pkg_services_agentpools_api_features_capacity_capacity_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
 var file_plugin_pkg_services_agentpools_api_features_capacity_capacity_proto_goTypes = []any{
-	(*Config)(nil), // 0: capacity.Config
+	(CapacityType)(0), // 0: capacity.CapacityType
+	(*Config)(nil),    // 1: capacity.Config
 }
 var file_plugin_pkg_services_agentpools_api_features_capacity_capacity_proto_depIdxs = []int32{
-	0, // [0:0] is the sub-list for method output_type
-	0, // [0:0] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	0, // 0: capacity.Config.capacity_type:type_name -> capacity.CapacityType
+	1, // [1:1] is the sub-list for method output_type
+	1, // [1:1] is the sub-list for method input_type
+	1, // [1:1] is the sub-list for extension type_name
+	1, // [1:1] is the sub-list for extension extendee
+	0, // [0:1] is the sub-list for field type_name
 }
 
 func init() { file_plugin_pkg_services_agentpools_api_features_capacity_capacity_proto_init() }
@@ -125,13 +213,14 @@ func file_plugin_pkg_services_agentpools_api_features_capacity_capacity_proto_in
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_plugin_pkg_services_agentpools_api_features_capacity_capacity_proto_rawDesc), len(file_plugin_pkg_services_agentpools_api_features_capacity_capacity_proto_rawDesc)),
-			NumEnums:      0,
+			NumEnums:      1,
 			NumMessages:   1,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
 		GoTypes:           file_plugin_pkg_services_agentpools_api_features_capacity_capacity_proto_goTypes,
 		DependencyIndexes: file_plugin_pkg_services_agentpools_api_features_capacity_capacity_proto_depIdxs,
+		EnumInfos:         file_plugin_pkg_services_agentpools_api_features_capacity_capacity_proto_enumTypes,
 		MessageInfos:      file_plugin_pkg_services_agentpools_api_features_capacity_capacity_proto_msgTypes,
 	}.Build()
 	File_plugin_pkg_services_agentpools_api_features_capacity_capacity_proto = out.File

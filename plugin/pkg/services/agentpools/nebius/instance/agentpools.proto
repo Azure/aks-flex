@@ -6,6 +6,7 @@ option go_package = "github.com/Azure/aks-flex/plugin/pkg/services/agentpools/ne
 
 import "google/protobuf/timestamp.proto";
 import "plugin/api/api.proto";
+import "plugin/pkg/services/agentpools/api/features/capacity/capacity.proto";
 import "plugin/pkg/services/agentpools/api/features/kubeadm/kubeadm.proto";
 import "plugin/pkg/services/agentpools/api/features/wireguard/wireguard.proto";
 import "plugin/pkg/services/agentpools/api/features/gpu/gpu.proto";
@@ -32,8 +33,7 @@ message AgentPoolSpec {
   // NOTE: nebius does not have the concept of availability zone.
   //       For now we fallback to use region value as the zone value.
   string zone = 11;
-  // preemptible indicates whether the agent pool should use preemptible instances.
-  bool preemptible = 12;
+  capacity.Config capacity = 12;
   // kubernetes_version is the Kubernetes version to use for the nodes in this agent pool.
   string kubernetes_version = 13;
 }
