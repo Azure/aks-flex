@@ -85,6 +85,7 @@ func main() {
 		}, "azure")
 	}
 
+	clusterVersion := lo.Must(utilsk8s.RetrieveClusterVersion(op.GetConfig()))
 	clusterCA := lo.Must(utilsk8s.RetrieveClusterCA(op.GetConfig()))
 
 	// nebius cloud provider...
@@ -97,6 +98,7 @@ func main() {
 			hubCloudProvider,
 			flexoptions.MustNewNebiusSDK(ctx),
 			op.GetClient(),
+			clusterVersion,
 			clusterCA,
 			wgAlloc,
 		)

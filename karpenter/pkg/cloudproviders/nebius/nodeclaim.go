@@ -15,6 +15,8 @@ import (
 	"sigs.k8s.io/karpenter/pkg/utils/resources"
 
 	stretchapi "github.com/Azure/aks-flex/plugin/api"
+	"github.com/Azure/aks-flex/plugin/pkg/services/agentpools/api/features/capacity"
+	"github.com/Azure/aks-flex/plugin/pkg/services/agentpools/api/features/gpu"
 	"github.com/Azure/aks-flex/plugin/pkg/services/agentpools/api/features/kubeadm"
 	"github.com/Azure/aks-flex/plugin/pkg/services/agentpools/api/features/wireguard"
 	nebiusinstance "github.com/Azure/aks-flex/plugin/pkg/services/agentpools/nebius/instance"
@@ -72,38 +74,67 @@ func stretchAgentPoolToNodeClaim(
 	rv.Status.Capacity = lo.PickBy(instanceType.Capacity, filterNoneZeroResource)
 	rv.Status.Allocatable = lo.PickBy(instanceType.Allocatable(), filterNoneZeroResource)
 
-	// TODO: zone from instance
-	// TODO: extra labels from instance
+	// restoring zone info if possible
+	if zone := agentPool.GetSpec().GetZone(); zone != "" {
+		rv.Labels[corev1.LabelTopologyZone] = zone
+	}
+	// restoring capacity type info if possible
+	switch agentPool.GetSpec().GetCapacity().GetCapacityType() {
+	case capacity.CapacityType_CAPACITY_TYPE_ON_DEMAND:
+		rv.Labels[v1.CapacityTypeLabelKey] = v1.CapacityTypeOnDemand
+	case capacity.CapacityType_CAPACITY_TYPE_SPOT:
+		rv.Labels[v1.CapacityTypeLabelKey] = v1.CapacityTypeSpot
+	case capacity.CapacityType_CAPACITY_TYPE_RESERVED:
+		rv.Labels[v1.CapacityTypeLabelKey] = v1.CapacityTypeReserved
+	default:
+		rv.Labels[v1.CapacityTypeLabelKey] = v1.CapacityTypeOnDemand
+	}
 
 	return rv
 }
 
 func nodeClaimToStretchAgentPool(
 	karpOpts *options.Options,
+	clusterVersion string,
 	clusterCA []byte,
 	nodeClass *v1alpha1.NebiusNodeClass,
 	nodeClaim *v1.NodeClaim,
-	preset *instancetype.PlatformPreset,
-	region string,
-	zone string,
+	launchSettings *instancetype.PlatformPresetLaunchSettings,
 	wgConfig *wireguard.Config,
 ) *nebiusinstance.AgentPool {
 	mdBuilder := stretchapi.Metadata_builder{
 		Id: lo.ToPtr(nodeClaim.Name),
 	}
 
-	platform := preset.Platform()
+	platform := launchSettings.Platform()
 
+	var gpuConfig *gpu.Config
 	imageFamily := lo.FromPtrOr(nodeClass.Spec.OSDiskImageFamily, "ubuntu24.04-driverless")
 	if platform.GetSpec().GetGpuMemoryGigabytes() > 0 {
 		// the platform has GPU, so use a GPU image by default
+		// FIXME: we should add a default GPU image family field in the node class spec
 		imageFamily = "ubuntu24.04-cuda12"
+		gpuConfig = gpu.Config_builder{}.Build()
 	}
 	osDiskSize := lo.FromPtrOr(
 		nodeClass.Spec.OSDiskSizeGB,
 		// default to 100GB, which is the default for Nebius agent pools
 		100,
 	)
+
+	capacityConfigBuilder := capacity.Config_builder{
+		Capacity: lo.ToPtr(uint32(1)),
+	}
+	switch launchSettings.CapacityType {
+	case v1.CapacityTypeSpot:
+		capacityConfigBuilder.CapacityType = lo.ToPtr(capacity.CapacityType_CAPACITY_TYPE_SPOT)
+	case v1.CapacityTypeOnDemand:
+		capacityConfigBuilder.CapacityType = lo.ToPtr(capacity.CapacityType_CAPACITY_TYPE_ON_DEMAND)
+	case v1.CapacityTypeReserved:
+		capacityConfigBuilder.CapacityType = lo.ToPtr(capacity.CapacityType_CAPACITY_TYPE_RESERVED)
+	default:
+		capacityConfigBuilder.CapacityType = lo.ToPtr(capacity.CapacityType_CAPACITY_TYPE_ON_DEMAND)
+	}
 
 	kubeadmConfig := kubeadm.Config_builder{
 		Server:                   lo.ToPtr(karpOpts.ClusterEndpoint),
@@ -117,15 +148,13 @@ func nodeClaimToStretchAgentPool(
 			topology.NodeLabelKeyStretchManaged:       "true",
 		},
 	}.Build()
-	// NOTE: the following 3 labels are required by karpenter consolidation
+	// NOTE: the following labels are required by karpenter consolidation
 	kubeadmConfig.AddNodeLabels(map[string]string{
-		// FIXME: this should set in stretch api side or cloud provider (CNM)
 		// NOTE: this needs to match the value returned by GetInstanceTypes
-		corev1.LabelInstanceTypeStable: preset.InstanceTypeName(),
-		corev1.LabelTopologyZone:       zone,
-		corev1.LabelTopologyRegion:     region,
-		// FIXME: this should be determined based on the platform preset
-		v1.CapacityTypeLabelKey: "on-demand",
+		corev1.LabelInstanceTypeStable: launchSettings.InstanceTypeName(),
+		corev1.LabelTopologyZone:       launchSettings.Zone,
+		corev1.LabelTopologyRegion:     nodeClass.Spec.Region,
+		v1.CapacityTypeLabelKey:        launchSettings.CapacityType,
 	})
 	// NOTE: forcing user mode for karpenter created nodes
 	// FIXME: confirm in which place we should set this label
@@ -140,11 +169,14 @@ func nodeClaimToStretchAgentPool(
 		Region:              lo.ToPtr(nodeClass.Spec.Region),
 		SubnetId:            lo.ToPtr(nodeClass.Spec.SubnetID),
 		Platform:            lo.ToPtr(platform.GetMetadata().GetName()),
-		Preset:              lo.ToPtr(preset.Preset().GetName()),
+		Preset:              lo.ToPtr(launchSettings.Preset().GetName()),
 		ImageFamily:         lo.ToPtr(imageFamily),
 		OsDiskSizeGibibytes: lo.ToPtr(int64(osDiskSize)),
 		Kubeadm:             kubeadmConfig,
 		Wireguard:           wgConfig,
+		Gpu:                 gpuConfig,
+		Capacity:            capacityConfigBuilder.Build(),
+		KubernetesVersion:   lo.ToPtr(clusterVersion),
 	}
 
 	return nebiusinstance.AgentPool_builder{

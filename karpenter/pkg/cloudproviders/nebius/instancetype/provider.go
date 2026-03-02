@@ -25,8 +25,8 @@ const (
 	// defaultOSDiskSizeGB is the fallback OS disk size when the node class does not specify one.
 	defaultOSDiskSizeGB int32 = 128
 
-	// DefaultPerNodePodsCount is the maximum number of pods per node.
-	// FIXME: move this to node class configuration.
+	// DefaultPerNodePodsCount is the default maximum number of pods per node.
+	// Used when the NebiusNodeClass does not specify MaxPodsPerNode.
 	DefaultPerNodePodsCount int32 = 110
 
 	// defaultRefreshInterval is how often the background goroutine re-fetches
@@ -276,13 +276,16 @@ func (op *Provider) GetPlatformPreset(
 // and capacity type, then picks the preset with the lowest compatible offering
 // price from real billing data.
 //
+// The returned PlatformPresetLaunchSettings includes the resolved capacity type
+// and zone extracted from the winning offering's requirements.
+//
 // On cache miss for the given key, instance types are resolved (listed, priced,
 // cached) before selection.
 func (op *Provider) ResolvePlatformPresetFromNodeClaim(
 	ctx context.Context,
 	key NodeClassKey,
 	nodeClaim *karpv1.NodeClaim,
-) (*PlatformPreset, error) {
+) (*PlatformPresetLaunchSettings, error) {
 	// Build scheduling requirements from the NodeClaim so we can check
 	// compatibility against each offering (instance type name, zone, capacity type, etc.).
 	requirements := scheduling.NewNodeSelectorRequirementsWithMinValues(nodeClaim.Spec.Requirements...)
@@ -312,8 +315,9 @@ func (op *Provider) ResolvePlatformPresetFromNodeClaim(
 	// Find the cheapest matching instance type whose offering is compatible
 	// with the NodeClaim's requirements (instance type, zone, capacity type).
 	var (
-		bestPreset *PlatformPreset
-		bestPrice  = math.MaxFloat64
+		bestPreset   *PlatformPreset
+		bestOffering *karpcloudprovider.Offering
+		bestPrice    = math.MaxFloat64
 	)
 	for _, it := range entry.instanceTypes {
 		if _, requested := requestedNames[it.Name]; !requested {
@@ -330,15 +334,35 @@ func (op *Provider) ResolvePlatformPresetFromNodeClaim(
 			if of.Price < bestPrice {
 				bestPrice = of.Price
 				bestPreset = presetByName[it.Name]
+				bestOffering = of
 			}
 		}
 	}
 
-	if bestPreset == nil {
+	if bestPreset == nil || bestOffering == nil {
+		// TODO: review the returning error type -- should we return the karpenter capacity error?
 		return nil, fmt.Errorf("no matching available platform preset found for nodeClaim requirements")
 	}
 
-	return bestPreset, nil
+	// Extract capacity type and zone from the winning offering's requirements.
+	capacityType := karpv1.CapacityTypeOnDemand
+	if capReq := bestOffering.Requirements.Get(karpv1.CapacityTypeLabelKey); capReq != nil {
+		if values := capReq.Values(); len(values) > 0 {
+			capacityType = values[0]
+		}
+	}
+	zone := key.Region // fallback
+	if zoneReq := bestOffering.Requirements.Get(corev1.LabelTopologyZone); zoneReq != nil {
+		if values := zoneReq.Values(); len(values) > 0 {
+			zone = values[0]
+		}
+	}
+
+	return &PlatformPresetLaunchSettings{
+		PlatformPreset: bestPreset,
+		CapacityType:   capacityType,
+		Zone:           zone,
+	}, nil
 }
 
 // On cache hit it returns the presets stored alongside the assembled InstanceTypes.

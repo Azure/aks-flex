@@ -15,6 +15,8 @@ const ArchitectureAmd64 = "amd64" // NOTE: nebius currently only supports amd64 
 // refs:
 //
 // - https://docs.nebius.com/compute/virtual-machines/types
+// - https://karpenter.sh/docs/concepts/nodepools/#capacity-type
+// - https://karpenter.sh/docs/concepts/nodepools/#availability-zones
 
 // PlatformPreset holds the Nebius <platform, preset> pair, which represents the compute resource.
 type PlatformPreset struct {
@@ -86,4 +88,12 @@ func (p *PlatformPreset) SystemReservedResource() corev1.ResourceList {
 
 func (p *PlatformPreset) EvictionThreshold() corev1.ResourceList {
 	return azinstancetype.EvictionThreshold()
+}
+
+// PlatformPresetLaunchSettings returns the launch settings for this platform preset
+// with the given capacity type and zone.
+type PlatformPresetLaunchSettings struct {
+	*PlatformPreset
+	CapacityType string // one of "on-demand" / "spot" / "reserved"
+	Zone         string
 }

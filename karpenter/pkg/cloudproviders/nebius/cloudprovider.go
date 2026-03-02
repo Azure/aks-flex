@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	karpoptions "github.com/Azure/karpenter-provider-azure/pkg/operator/options"
 	labelspkg "github.com/Azure/karpenter-provider-azure/pkg/providers/labels"
@@ -38,16 +39,20 @@ type CloudProvider struct {
 	stretchPluginConn       *grpc.ClientConn
 	stretchAgentPoolsClient agentpoolsapi.AgentPoolsClient
 
-	kubeClient        client.Client
-	clusterCA         []byte
-	wgAllocator       *wgallocator.IPAllocator
-	offeringsProvider *instancetype.Provider
+	kubeClient client.Client
+
+	clusterVersionNoVPrefix string
+	clusterCA               []byte
+
+	wgAllocator          *wgallocator.IPAllocator
+	instanceTypeProvider *instancetype.Provider
 }
 
 func newCloudProvider(
 	sdk *gosdk.SDK,
 	stretchPluginConn *grpc.ClientConn,
 	kubeClient client.Client,
+	clusterVersion string,
 	clusterCA []byte,
 	wgAlloc *wgallocator.IPAllocator,
 ) *CloudProvider {
@@ -56,10 +61,11 @@ func newCloudProvider(
 		stretchPluginConn:       stretchPluginConn,
 		stretchAgentPoolsClient: agentpoolsapi.NewAgentPoolsClient(stretchPluginConn),
 
-		kubeClient:        kubeClient,
-		clusterCA:         clusterCA,
-		wgAllocator:       wgAlloc,
-		offeringsProvider: instancetype.NewProvider(sdk),
+		kubeClient:              kubeClient,
+		clusterVersionNoVPrefix: strings.TrimPrefix(clusterVersion, "v"),
+		clusterCA:               clusterCA,
+		wgAllocator:             wgAlloc,
+		instanceTypeProvider:    instancetype.NewProvider(sdk),
 	}
 }
 
@@ -68,6 +74,7 @@ func Register(
 	hub *cloudproviders.CloudProvidersHub,
 	sdk *gosdk.SDK,
 	kubeClient client.Client,
+	clusterVersion string,
 	clusterCA []byte,
 	wgAlloc *wgallocator.IPAllocator,
 ) error {
@@ -76,7 +83,7 @@ func Register(
 		return fmt.Errorf("creating stretch plugin connection: %w", err)
 	}
 
-	cp := newCloudProvider(sdk, stretchPluginConn, kubeClient, clusterCA, wgAlloc)
+	cp := newCloudProvider(sdk, stretchPluginConn, kubeClient, clusterVersion, clusterCA, wgAlloc)
 	hub.Register(cp, GroupKind, ProviderIDScheme)
 
 	return nil
@@ -121,18 +128,19 @@ func (c *CloudProvider) Create(ctx context.Context, nodeClaim *v1.NodeClaim) (*v
 		ProjectID:        nodeClass.Spec.ProjectID,
 		Region:           nodeClass.Spec.Region,
 		OSDiskSizeGiB:    int64(lo.FromPtrOr(nodeClass.Spec.OSDiskSizeGB, 100)),
-		PerNodePodsCount: instancetype.DefaultPerNodePodsCount, // FIXME: read from node class
+		PerNodePodsCount: lo.FromPtrOr(nodeClass.Spec.MaxPodsPerNode, instancetype.DefaultPerNodePodsCount),
 	}
 
 	// resolve instance type to use based on pricing/offerings
-	// FIXME: include spot/on-demand & zone decisions in the resolution logic
-	platformPresetToLaunch, err := c.offeringsProvider.ResolvePlatformPresetFromNodeClaim(ctx, key, nodeClaim)
+	launchSettings, err := c.instanceTypeProvider.ResolvePlatformPresetFromNodeClaim(ctx, key, nodeClaim)
 	if err != nil {
 		return nil, err
 	}
 	logger.Info(
 		"resolved platform preset for launching instance",
-		"platformPreset", platformPresetToLaunch.InstanceTypeName(),
+		"platformPreset", launchSettings.InstanceTypeName(),
+		"capacityType", launchSettings.CapacityType,
+		"zone", launchSettings.Zone,
 	)
 
 	// Allocate a WireGuard peer IP if enabled for this NodeClass.
@@ -150,12 +158,11 @@ func (c *CloudProvider) Create(ctx context.Context, nodeClaim *v1.NodeClaim) (*v
 
 	agentPool := nodeClaimToStretchAgentPool(
 		karpoptions.FromContext(ctx),
+		c.clusterVersionNoVPrefix,
 		c.clusterCA,
 		nodeClass,
 		nodeClaim,
-		platformPresetToLaunch,
-		key.Region,
-		key.Region, // FIXME: get form ResolvePlatformPresetFromNodeClaim
+		launchSettings,
 		wgConfig,
 	)
 	// TODO: create async - we just need to retrieve the resource id for rebuilding the claim
@@ -182,10 +189,10 @@ func (c *CloudProvider) Create(ctx context.Context, nodeClaim *v1.NodeClaim) (*v
 		return nil, fmt.Errorf("creating stretch agent pool: %w", err)
 	}
 
-	logger.Info("launched nebis agent pool")
+	logger.Info("launched nebius agent pool")
 
 	// rebuild node claim object to reflect the created instance
-	launchedInstanceType := c.offeringsProvider.GetInstanceTypeByPlatformPreset(ctx, key, platformPresetToLaunch)
+	launchedInstanceType := c.instanceTypeProvider.GetInstanceTypeByPlatformPreset(ctx, key, launchSettings.PlatformPreset)
 	newNodeClaim := stretchAgentPoolToNodeClaim(agentPoolCreated, launchedInstanceType)
 	// TODO: figure out meaning
 	newNodeClaim.Labels = lo.Assign(
@@ -263,18 +270,18 @@ func (c *CloudProvider) Get(ctx context.Context, providerID string) (*v1.NodeCla
 		ProjectID:        agentPool.GetSpec().GetProjectId(),
 		Region:           agentPool.GetSpec().GetRegion(),
 		OSDiskSizeGiB:    int64(agentPool.GetSpec().GetOsDiskSizeGibibytes()),
-		PerNodePodsCount: instancetype.DefaultPerNodePodsCount, // FIXME: move to node class
+		PerNodePodsCount: instancetype.DefaultPerNodePodsCount, // agent pool doesn't store max pods; use default
 	}
 
 	platformName := agentPool.GetSpec().GetPlatform()
 	presetName := agentPool.GetSpec().GetPreset()
 
-	preset, err := c.offeringsProvider.GetPlatformPreset(ctx, key, platformName, presetName)
+	preset, err := c.instanceTypeProvider.GetPlatformPreset(ctx, key, platformName, presetName)
 	if err != nil {
 		return nil, fmt.Errorf("resolving platform preset %q/%q: %w", platformName, presetName, err)
 	}
 
-	it := c.offeringsProvider.GetInstanceTypeByPlatformPreset(ctx, key, preset)
+	it := c.instanceTypeProvider.GetInstanceTypeByPlatformPreset(ctx, key, preset)
 	nodeClaim := stretchAgentPoolToNodeClaim(agentPool, it)
 	return nodeClaim, nil
 }
@@ -294,18 +301,18 @@ func (c *CloudProvider) List(ctx context.Context) ([]*v1.NodeClaim, error) {
 			ProjectID:        agentPool.GetSpec().GetProjectId(),
 			Region:           agentPool.GetSpec().GetRegion(),
 			OSDiskSizeGiB:    int64(agentPool.GetSpec().GetOsDiskSizeGibibytes()),
-			PerNodePodsCount: instancetype.DefaultPerNodePodsCount, // FIXME: move to node class
+			PerNodePodsCount: instancetype.DefaultPerNodePodsCount, // agent pool doesn't store max pods; use default
 		}
 
 		platformName := agentPool.GetSpec().GetPlatform()
 		presetName := agentPool.GetSpec().GetPreset()
 
-		preset, err := c.offeringsProvider.GetPlatformPreset(ctx, key, platformName, presetName)
+		preset, err := c.instanceTypeProvider.GetPlatformPreset(ctx, key, platformName, presetName)
 		if err != nil {
 			return nil, fmt.Errorf("resolving platform preset %q/%q: %w", platformName, presetName, err)
 		}
 
-		it := c.offeringsProvider.GetInstanceTypeByPlatformPreset(ctx, key, preset)
+		it := c.instanceTypeProvider.GetInstanceTypeByPlatformPreset(ctx, key, preset)
 		nodeClaims = append(nodeClaims, stretchAgentPoolToNodeClaim(agentPool, it))
 	}
 
@@ -324,10 +331,10 @@ func (c *CloudProvider) GetInstanceTypes(ctx context.Context, nodePool *v1.NodeP
 		ProjectID:        nodeClass.Spec.ProjectID,
 		Region:           nodeClass.Spec.Region,
 		OSDiskSizeGiB:    int64(*nodeClass.Spec.OSDiskSizeGB),
-		PerNodePodsCount: instancetype.DefaultPerNodePodsCount, // FIXME: read from node class
+		PerNodePodsCount: lo.FromPtrOr(nodeClass.Spec.MaxPodsPerNode, instancetype.DefaultPerNodePodsCount),
 	}
 
-	instanceTypes, err := c.offeringsProvider.GetInstanceTypes(ctx, key)
+	instanceTypes, err := c.instanceTypeProvider.GetInstanceTypes(ctx, key)
 	if err != nil {
 		return nil, fmt.Errorf("getting instance types for project %q region %q: %w",
 			key.ProjectID, key.Region, err)
@@ -369,8 +376,8 @@ func (c *CloudProvider) Close(context.Context) error {
 		closeErr = errors.Join(closeErr, c.stretchPluginConn.Close())
 	}
 
-	if c.offeringsProvider != nil {
-		c.offeringsProvider.Stop()
+	if c.instanceTypeProvider != nil {
+		c.instanceTypeProvider.Stop()
 	}
 
 	return closeErr
