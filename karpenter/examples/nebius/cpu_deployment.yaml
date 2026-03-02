@@ -1,16 +1,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: sample-cpu-app
+  name: nebius-sample-cpu-app
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: sample-cpu-app
+      app: nebius-sample-cpu-app
   template:
     metadata:
       labels:
-        app: sample-cpu-app
+        app: nebius-sample-cpu-app
     spec:
       affinity:
         nodeAffinity:
