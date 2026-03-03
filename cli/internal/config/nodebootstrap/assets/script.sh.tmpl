@@ -1,0 +1,60 @@
+#!/bin/bash
+# Auto-generated script equivalent to cloud-init user data.
+# This script can be executed directly on a node without cloud-init.
+set -euo pipefail
+{{- if .APT }}{{ range $name, $src := .APT.Sources }}
+
+# --- APT source: {{ $name }} ---
+{{- if $src.Key }}
+cat <<'GPGKEY' | gpg --dearmor -o '/usr/share/keyrings/{{ $name }}.gpg'
+{{ $src.Key }}
+GPGKEY
+echo '{{ aptSourceLine $name $src }}' > '/etc/apt/sources.list.d/{{ $name }}.list'
+{{- else if $src.KeyID }}
+apt-key adv --recv-keys --keyserver keyserver.ubuntu.com '{{ $src.KeyID }}'
+echo '{{ $src.Source }}' > '/etc/apt/sources.list.d/{{ $name }}.list'
+{{- end }}
+{{- end }}{{ end }}
+{{- if or .PackageUpdate .PackageUpgrade .Packages }}
+
+# --- Packages ---
+{{- if .PackageUpdate }}
+apt-get update -y
+{{- end }}
+{{- if .PackageUpgrade }}
+apt-get upgrade -y
+{{- end }}
+{{- if .Packages }}
+apt-get install -y {{ join .Packages " " }}
+{{- end }}
+{{- end }}
+{{- if .FQDN }}
+
+# --- Hostname ---
+hostnamectl set-hostname '{{ .FQDN }}'
+{{- end }}
+{{- if .SSHAuthorizedKeys }}
+
+# --- SSH authorized keys ---
+mkdir -p ~/.ssh && chmod 700 ~/.ssh
+{{- range .SSHAuthorizedKeys }}
+echo '{{ . }}' >> ~/.ssh/authorized_keys
+{{- end }}
+chmod 600 ~/.ssh/authorized_keys
+{{- end }}
+{{- if .WriteFiles }}
+
+# --- Write files ---
+{{- range .WriteFiles }}
+{{ writeFile . }}
+{{- end }}
+{{- end }}
+{{- if .RunCmd }}
+
+# --- Run commands ---
+{{- range .RunCmd }}
+{{ shellCmd . }}
+{{- end }}
+{{- end }}
+
+echo 'Node bootstrap script completed.'
