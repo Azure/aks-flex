@@ -46,7 +46,7 @@
 					{
 						"name": "system",
 						"count": "[parameters('systemPoolSize')]",
-						"vmSize": "Standard_D8ds_v5",
+						"vmSize": "[parameters('vmSize')]",
 						"mode": "System",
 						"vnetSubnetId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', 'vnet', 'aks')]"
 					}
