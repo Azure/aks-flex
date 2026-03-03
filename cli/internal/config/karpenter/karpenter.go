@@ -110,7 +110,7 @@ func (hc *helmContext) resolve(ctx context.Context) {
 		return
 	}
 
-	credentials, err := azidentity.NewDefaultAzureCredential(nil)
+	credentials, err := azidentity.NewAzureCLICredential(nil)
 	if err != nil {
 		warn("could not obtain Azure credentials: %v", err)
 		return

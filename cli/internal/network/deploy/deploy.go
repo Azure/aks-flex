@@ -37,7 +37,7 @@ func run(ctx context.Context) error {
 		return err
 	}
 
-	credentials, err := azidentity.NewDefaultAzureCredential(nil)
+	credentials, err := azidentity.NewAzureCLICredential(nil)
 	if err != nil {
 		return err
 	}
