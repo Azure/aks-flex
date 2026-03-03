@@ -11,6 +11,7 @@ a single Kubernetes cluster that spans hybrid and multi-cloud environments.
 |-----------|-------------|
 | [`cli/`](cli/) | `aks-flex-cli` — a command-line tool for provisioning the Azure network, creating an AKS cluster, and managing remote node pools |
 | [`karpenter/`](karpenter/) | A Karpenter provider that autoscales remote-cloud nodes in response to workload demand |
+| [AKSFlexNode](https://github.com/Azure/AKSFlexNode) | The node-side agent that runs on remote nodes, connecting them to the AKS control plane over the overlay network |
 
 ## Getting Started
 
