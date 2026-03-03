@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
-	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/tools/clientcmd"
@@ -19,13 +19,8 @@ import (
 	"github.com/Azure/aks-flex/plugin/pkg/util/k8s"
 )
 
-func FromAKS(ctx context.Context) (*kubeadm.Config, error) {
+func FromAKS(ctx context.Context, credentials azcore.TokenCredential) (*kubeadm.Config, error) {
 	cfg, err := config.New()
-	if err != nil {
-		return nil, err
-	}
-
-	credentials, err := azidentity.NewDefaultAzureCredential(nil)
 	if err != nil {
 		return nil, err
 	}

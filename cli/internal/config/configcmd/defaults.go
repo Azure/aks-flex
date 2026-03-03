@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
+	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 
 	"github.com/Azure/aks-flex/plugin/pkg/services/agentpools/api/features/kubeadm"
 	"github.com/Azure/aks-flex/plugin/pkg/util/config"
@@ -41,7 +42,17 @@ func OrPlaceholder(val string) string {
 // reachable or the required environment variables are not set, it falls back
 // to placeholder values that the user must replace manually.
 func DefaultKubeadmConfig(ctx context.Context) *kubeadm.Config {
-	cfg, err := kubeadmutil.FromAKS(ctx)
+	credentials, err := azidentity.NewAzureCLICredential(nil)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Warning: could not obtain Azure CLI credentials: %v\n", err)
+		fmt.Fprintln(os.Stderr, "Using placeholder values — edit the output before applying.")
+		return kubeadm.Config_builder{
+			Server:                   to.Ptr(placeholder),
+			CertificateAuthorityData: []byte(placeholder),
+			Token:                    to.Ptr(placeholder),
+		}.Build()
+	}
+	cfg, err := kubeadmutil.FromAKS(ctx, credentials)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Warning: could not retrieve kubeadm config from AKS cluster: %v\n", err)
 		fmt.Fprintln(os.Stderr, "Using placeholder values — edit the output before applying.")
