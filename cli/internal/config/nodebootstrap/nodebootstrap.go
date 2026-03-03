@@ -23,12 +23,15 @@ var r = configcmd.NewRouter("node-bootstrap", "Generate a node bootstrap config 
 var Command *cobra.Command = r.Command()
 var flagHasGPU bool
 var flagVariant string
+var flagArch string
 
 func init() {
 	r.Handle("ubuntu", writeUbuntuUserData)
 	r.Handle("flex", writeFlexUserData)
 
 	Command.Flags().BoolVar(&flagHasGPU, "gpu", false, "Indicates whether the node has GPU. This may affect the generated userdata.")
+	Command.Flags().StringVar(&flagArch, "arch", "amd64",
+		"CPU architecture for the flex node binary (e.g. amd64, arm64).")
 	Command.Flags().StringVar(&flagVariant, "variant", variantCloudInit,
 		fmt.Sprintf("Output variant: %q produces cloud-init YAML user data, %q produces an equivalent standalone bash script.", variantCloudInit, variantScript))
 }
@@ -56,7 +59,11 @@ func marshalUserData(ud *cloudinit.UserData, w io.Writer) error {
 }
 
 func writeFlexUserData(ctx context.Context, w io.Writer) error {
-	ud, err := flex.UserData(flagHasGPU, "1.33.3", configcmd.DefaultKubeadmConfig(ctx))
+	ud, err := flex.UserData(
+		flex.WithEnableNvidiaGPURuntime(flagHasGPU),
+		flex.WithArch(flagArch),
+		flex.WithKubeadmConfig(configcmd.DefaultKubeadmConfig(ctx)),
+	)
 	if err != nil {
 		return fmt.Errorf("generating flex userdata: %w", err)
 	}

@@ -1,0 +1,7 @@
+mkdir -p /tmp/flex
+curl -L -o /tmp/flex/aks-flex-node-linux-{{ .Arch }}.tar.gz https://github.com/Azure/AKSFlexNode/releases/download/{{ .Version }}/aks-flex-node-linux-{{ .Arch }}.tar.gz
+tar -xzf /tmp/flex/aks-flex-node-linux-{{ .Arch }}.tar.gz -C /tmp/flex
+mv /tmp/flex/aks-flex-node-linux-{{ .Arch }} /tmp/flex/aks-flex-node
+chmod +x /tmp/flex/aks-flex-node
+/tmp/flex/aks-flex-node apply -f /tmp/flex-config.json
+rm -rf /tmp/flex
