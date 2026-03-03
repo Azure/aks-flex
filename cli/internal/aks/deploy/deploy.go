@@ -29,6 +29,7 @@ var (
 	deployWireguard       bool
 	deployGPUOperator     bool
 	deployGPUDevicePlugin bool
+	deployDRADriver       bool
 	skipARM               bool
 	kubeconfigToSave      string
 
@@ -41,6 +42,7 @@ func init() {
 	Command.Flags().BoolVar(&deployWireguard, "wireguard", false, "deploy WireGuard gateway node pool and DaemonSet")
 	Command.Flags().BoolVar(&deployGPUOperator, "gpu-operator", false, "install NVIDIA GPU Operator via Helm")
 	Command.Flags().BoolVar(&deployGPUDevicePlugin, "gpu-device-plugin", false, "install NVIDIA GPU Device Plugin via Helm")
+	Command.Flags().BoolVar(&deployDRADriver, "dra-driver", false, "install NVIDIA DRA Driver via Helm")
 	Command.Flags().BoolVar(&skipARM, "skip-arm", false, "skip the ARM template deployment step")
 	Command.Flags().MarkHidden("skip-arm")
 	Command.Flags().StringVar(&kubeconfigToSave, "kubeconfig", "", "file path to write the cluster kubeconfig (default: ~/.kube/config, merged if already exists)")
@@ -59,6 +61,11 @@ func preflightChecks() error {
 	}
 	if deployGPUDevicePlugin {
 		if err := preflightGPUDevicePlugin(); err != nil {
+			return err
+		}
+	}
+	if deployDRADriver {
+		if err := preflightDRADriver(); err != nil {
 			return err
 		}
 	}
@@ -146,6 +153,13 @@ func run(ctx context.Context) error {
 			return err
 		}
 		log.Printf("GPU Device Plugin deployment complete")
+	}
+
+	if deployDRADriver {
+		if err := installDRADriver(ctx); err != nil {
+			return err
+		}
+		log.Printf("DRA Driver deployment complete")
 	}
 
 	return nil
