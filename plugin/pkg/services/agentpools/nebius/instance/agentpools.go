@@ -73,7 +73,10 @@ func (srv *agentPoolsServer) CreateOrUpdate(
 	// TODO: get gpu info from spec (might need to infer from SKU)
 	hasGPU := strings.Contains(apSpec.GetImageFamily(), "cuda")
 	// TODO: get the k8s version from spec
-	ud, err := flex.UserData(hasGPU, "1.33.3", kubeadmConfig)
+	ud, err := flex.UserData(
+		flex.WithEnableNvidiaGPURuntime(hasGPU),
+		flex.WithKubeadmConfig(kubeadmConfig),
+	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate userdata: %w", err)
 	}
