@@ -25,6 +25,10 @@
 		"deployWireguard": {
 			"type": "bool",
 			"defaultValue": false
+		},
+		"deployUnboundedCNI": {
+			"type": "bool",
+			"defaultValue": false
 		}
 	},
 	"resources": [
@@ -139,6 +143,64 @@
 			"properties": {
 				"routes": []
 			}
+		},
+		{
+			"condition": "[parameters('deployUnboundedCNI')]",
+			"apiVersion": "2023-09-01",
+			"type": "Microsoft.Network/networkSecurityGroups/securityRules",
+			"name": "nsg/AllowGateway",
+			"properties": {
+				"priority": 110,
+				"direction": "Inbound",
+				"access": "Allow",
+				"protocol": "Udp",
+				"sourcePortRange": "*",
+				"destinationPortRange": "51820-51999",
+				"sourceAddressPrefix": "*",
+				"destinationAddressPrefix": "*"
+			}
+		},
+		{
+			"condition": "[parameters('deployUnboundedCNI')]",
+			"apiVersion": "2023-09-01",
+			"type": "Microsoft.Network/publicIPPrefixes",
+			"name": "gw-pips",
+			"location": "[resourceGroup().location]",
+			"sku": {
+				"name": "Standard"
+			},
+			"properties": {
+				"prefixLength": 31,
+				"publicIPAddressVersion": "IPv4"
+			}
+		},
+		{
+			"condition": "[parameters('deployUnboundedCNI')]",
+			"apiVersion": "2025-10-01",
+			"type": "Microsoft.ContainerService/managedClusters/agentPools",
+			"name": "[concat(parameters('clusterName'), '/gateway')]",
+			"properties": {
+				"count": 1,
+				"vmSize": "[parameters('wireguardVMSize')]",
+				"mode": "User",
+				"osType": "Linux",
+				"vnetSubnetId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', 'vnet', 'nodes')]",
+				"enableNodePublicIP": true,
+				"nodePublicIPPrefixID": "[resourceId('Microsoft.Network/publicIPPrefixes', 'gw-pips')]",
+				"networkProfile": {
+					"allowedHostPorts": [
+						{
+							"portStart": 51820,
+							"portEnd": 51999,
+							"protocol": "UDP"
+						}
+					]
+				}
+			},
+			"dependsOn": [
+				"[resourceId('Microsoft.ContainerService/managedClusters', parameters('clusterName'))]",
+				"[resourceId('Microsoft.Network/publicIPPrefixes', 'gw-pips')]"
+			]
 		}
 	],
 	"outputs": {

@@ -1,0 +1,7 @@
+apiVersion: unbounded.aks.azure.com/v1alpha1
+kind: GatewayPool
+metadata:
+  name: main-gateways
+spec:
+  nodeSelector:
+    kubernetes.azure.com/agentpool: gateway

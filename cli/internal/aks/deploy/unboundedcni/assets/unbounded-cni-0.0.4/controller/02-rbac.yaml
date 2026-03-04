@@ -1,0 +1,152 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: unbounded-cni-controller
+  labels:
+    app.kubernetes.io/name: unbounded-cni-controller
+    app.kubernetes.io/component: controller
+rules:
+  # Nodes: read and update for CIDR assignment and site labeling
+  - apiGroups: [""]
+    resources: ["nodes"]
+    verbs: ["get", "list", "watch", "patch", "update"]
+  # Leases: for leader election
+  - apiGroups: ["coordination.k8s.io"]
+    resources: ["leases"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  # CustomResourceDefinitions: create and reconcile unbounded-cni CRDs on startup.
+  # Create cannot be constrained by resourceNames in RBAC, so split create from named-object ops.
+  - apiGroups: ["apiextensions.k8s.io"]
+    resources: ["customresourcedefinitions"]
+    verbs: ["create"]
+  - apiGroups: ["apiextensions.k8s.io"]
+    resources: ["customresourcedefinitions"]
+    resourceNames:
+      - "sites.unbounded.aks.azure.com"
+      - "sitenodeslices.unbounded.aks.azure.com"
+      - "gatewaypools.unbounded.aks.azure.com"
+      - "gatewaypoolnodes.unbounded.aks.azure.com"
+      - "sitepeerings.unbounded.aks.azure.com"
+      - "sitegatewaypoolassignments.unbounded.aks.azure.com"
+      - "gatewaypoolpeerings.unbounded.aks.azure.com"
+    verbs: ["get", "update", "patch"]
+  # Sites, GatewayPools, and explicit peering model: read access for controllers and status aggregation
+  - apiGroups: ["unbounded.aks.azure.com"]
+    resources: ["sites", "gatewaypools", "sitepeerings", "sitegatewaypoolassignments", "gatewaypoolpeerings"]
+    verbs: ["get", "list", "watch"]
+  # Sites and GatewayPools: allow fallback status updates when status subresource is unavailable
+  - apiGroups: ["unbounded.aks.azure.com"]
+    resources: ["sites", "gatewaypools"]
+    verbs: ["patch", "update"]
+  # Status subresources: update observed state for sites, gateway pools, and gateway pool nodes
+  - apiGroups: ["unbounded.aks.azure.com"]
+    resources: ["sites/status", "gatewaypools/status", "gatewaypoolnodes/status"]
+    verbs: ["get", "patch", "update"]
+  # SiteNodeSlices: full access to manage node slices
+  - apiGroups: ["unbounded.aks.azure.com"]
+    resources: ["sitenodeslices"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  # GatewayPoolNodes: manage per-node route advertisements and heartbeat status
+  - apiGroups: ["unbounded.aks.azure.com"]
+    resources: ["gatewaypoolnodes"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  # Pods: read pods for node agent status in dashboard
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list", "watch"]
+  # ConfigMaps: read extension API server authentication trust and front-proxy config.
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    resourceNames: ["extension-apiserver-authentication"]
+    verbs: ["get"]
+  # ValidatingWebhookConfigurations: register admission webhook.
+  # Create cannot be constrained by resourceNames in RBAC, so split create from named-object ops.
+  - apiGroups: ["admissionregistration.k8s.io"]
+    resources: ["validatingwebhookconfigurations"]
+    verbs: ["create"]
+  - apiGroups: ["admissionregistration.k8s.io"]
+    resources: ["validatingwebhookconfigurations"]
+    resourceNames: ["unbounded-cni-validating-webhook"]
+    verbs: ["get", "update", "patch"]
+  # APIServices: register aggregated status API and keep CA bundle in sync.
+  # Create cannot be constrained by resourceNames in RBAC, so split create from named-object ops.
+  - apiGroups: ["apiregistration.k8s.io"]
+    resources: ["apiservices"]
+    verbs: ["create"]
+  - apiGroups: ["apiregistration.k8s.io"]
+    resources: ["apiservices"]
+    resourceNames: ["v1alpha1.status.unbounded.aks.azure.com"]
+    verbs: ["get", "update", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: unbounded-cni-controller
+  labels:
+    app.kubernetes.io/name: unbounded-cni-controller
+    app.kubernetes.io/component: controller
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: unbounded-cni-controller
+subjects:
+  - kind: ServiceAccount
+    name: unbounded-cni-controller
+    namespace: unbounded-cni
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: unbounded-cni-controller
+  namespace: unbounded-cni
+  labels:
+    app.kubernetes.io/name: unbounded-cni-controller
+    app.kubernetes.io/component: controller
+rules:
+  # Events: create namespaced events for audit/debugging
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["create", "patch"]
+  # EndpointSlices: leader manages service EndpointSlice for leader-only routing.
+  # Create cannot be constrained by resourceNames in RBAC, so split create from named-object ops.
+  - apiGroups: ["discovery.k8s.io"]
+    resources: ["endpointslices"]
+    verbs: ["create"]
+  - apiGroups: ["discovery.k8s.io"]
+    resources: ["endpointslices"]
+    resourceNames: ["unbounded-cni-controller"]
+    verbs: ["get", "update", "delete"]
+  # Endpoints: delete stale v1/Endpoints left over from previous controller versions
+  - apiGroups: [""]
+    resources: ["endpoints"]
+    resourceNames: ["unbounded-cni-controller"]
+    verbs: ["delete"]
+  # Secrets: store webhook TLS material.
+  # Create cannot be constrained by resourceNames in RBAC, so split create from named-object ops.
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["create"]
+  - apiGroups: [""]
+    resources: ["secrets"]
+    resourceNames: ["unbounded-cni-webhook-cert"]
+    verbs: ["get", "update", "patch"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: unbounded-cni-controller
+  namespace: unbounded-cni
+  labels:
+    app.kubernetes.io/name: unbounded-cni-controller
+    app.kubernetes.io/component: controller
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: unbounded-cni-controller
+subjects:
+  - kind: ServiceAccount
+    name: unbounded-cni-controller
+    namespace: unbounded-cni
