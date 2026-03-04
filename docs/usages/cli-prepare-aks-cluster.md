@@ -8,7 +8,10 @@ This guide walks through preparing a base AKS cluster and the supporting Azure r
 - An AKS managed cluster with BYO (Bring Your Own) Cilium CNI enabled
 - A downloaded kubeconfig for connecting to the cluster
 
-Optionally, you can also deploy a WireGuard gateway for site-to-site encrypted tunneling -- see [Enable with WireGuard](#enable-with-wireguard) for details.
+Optionally, you can also deploy:
+
+- A **WireGuard gateway** for site-to-site encrypted tunneling -- see [Enable with WireGuard](#enable-with-wireguard)
+- **Unbounded CNI** for cross-cloud networking via the Unbounded CNI operator -- see [Enable with Unbounded CNI](#enable-with-unbounded-cni)
 
 ## Setup
 
@@ -38,6 +41,7 @@ The following environment variables are relevant to cluster creation:
 | `CLUSTER_VERSION`        | Kubernetes version for the AKS cluster | `1.34.2`             |
 | `SYSTEM_VM_SIZE`         | VM size for the system node pool       | `Standard_D8ds_v5`   |
 | `WIREGUARD_VM_SIZE`      | VM size for the WireGuard gateway node | `Standard_D16ds_v5`  |
+| `GATEWAY_VM_SIZE`        | VM size for the Unbounded CNI gateway node | `Standard_D16ds_v5`  |
 
 ### Desired Cluster Setup
 
@@ -47,7 +51,7 @@ The CLI creates an AKS cluster with `networkPlugin: none`, which disables the bu
 - **Cilium CNI** installed via the Cilium CLI after the cluster is provisioned
 - A system-assigned managed identity
 
-If you need site-to-site connectivity without a VPN gateway (or for development/testing purposes), you can additionally enable WireGuard. Refer to the [Enable with WireGuard](#enable-with-wireguard) section below for the modified setup.
+If you need site-to-site connectivity without a VPN gateway (or for development/testing purposes), you can additionally enable WireGuard or Unbounded CNI. These options are mutually exclusive -- refer to the [Enable with WireGuard](#enable-with-wireguard) or [Enable with Unbounded CNI](#enable-with-unbounded-cni) sections below.
 
 ## Create Network Resources
 
@@ -182,6 +186,66 @@ Sample route table after deployment:
 
 ![](./images/cli-prepare-aks-cluster/resource-wg-route.png)
 
+### Enable with Unbounded CNI
+
+Unbounded CNI provides cross-cloud networking through the Unbounded CNI operator, which manages Site, GatewayPool, and SiteGatewayPoolAssignment resources to route traffic between clouds.
+
+> **Note:** The `--unbounded-cni` flag is mutually exclusive with `--cilium` and `--wireguard`.
+
+To deploy the cluster with Unbounded CNI:
+
+```bash
+$ aks-flex-cli aks deploy --unbounded-cni
+```
+
+In addition to the standard AKS resources, the `--unbounded-cni` flag provisions:
+
+| Resource                 | Name                    | Details                                          |
+| ------------------------ | ----------------------- | ------------------------------------------------ |
+| NSG rule                 | `AllowGateway`          | Allows inbound UDP/51820-51999                   |
+| Public IP prefix         | `gw-pips`               | Static public IP prefix for the gateway node     |
+| Agent pool               | `gateway`               | 1-node pool in the `nodes` subnet with public IP (size: `$GATEWAY_VM_SIZE`) |
+
+After the ARM deployment, the CLI automatically:
+
+1. Installs the Unbounded CNI operator (CRDs, controller, node agents) via `kubectl apply -k`
+2. Applies the Azure-side resources: Site, GatewayPool, and SiteGatewayPoolAssignment via `kubectl apply -f`
+
+Expected output:
+
+```
+2026/03/03 10:05:00 Deploying AKS cluster "aks" in "rg-aks-flex-<username>"
+2026/03/03 10:15:00 AKS cluster deployment complete
+2026/03/03 10:15:01 kubeconfig saved to "/home/<username>/.kube/config"
+2026/03/03 10:15:03 Kubernetes-side deployment complete
+namespace/unbounded-cni created
+customresourcedefinition.apiextensions.k8s.io/gatewaypoolnodes.unbounded.aks.azure.com created
+customresourcedefinition.apiextensions.k8s.io/gatewaypoolpeerings.unbounded.aks.azure.com created
+customresourcedefinition.apiextensions.k8s.io/gatewaypools.unbounded.aks.azure.com created
+customresourcedefinition.apiextensions.k8s.io/sitegatewaypoolassignments.unbounded.aks.azure.com created
+customresourcedefinition.apiextensions.k8s.io/sitenodeslices.unbounded.aks.azure.com created
+customresourcedefinition.apiextensions.k8s.io/sitepeerings.unbounded.aks.azure.com created
+customresourcedefinition.apiextensions.k8s.io/sites.unbounded.aks.azure.com created
+serviceaccount/unbounded-cni-controller created
+serviceaccount/unbounded-cni-node created
+role.rbac.authorization.k8s.io/unbounded-cni-controller created
+clusterrole.rbac.authorization.k8s.io/unbounded-cni-controller created
+clusterrole.rbac.authorization.k8s.io/unbounded-cni-node created
+rolebinding.rbac.authorization.k8s.io/unbounded-cni-controller created
+clusterrolebinding.rbac.authorization.k8s.io/unbounded-cni-controller created
+clusterrolebinding.rbac.authorization.k8s.io/unbounded-cni-node created
+configmap/unbounded-cni-config created
+configmap/unbounded-cni-frr-config created
+service/unbounded-cni-controller created
+service/unbounded-cni-webhook created
+deployment.apps/unbounded-cni-controller configured
+daemonset.apps/unbounded-cni-node created
+gatewaypool.unbounded.aks.azure.com/main-gateways created
+site.unbounded.aks.azure.com/site-azure created
+sitegatewaypoolassignment.unbounded.aks.azure.com/main-gateway-site-azure created
+2026/03/03 19:53:10 Unbounded CNI deployment complete
+```
+
 ## Connecting to the cluster
 
 After the AKS cluster is created, the CLI merges the kubeconfig into `~/.kube/config` and sets the cluster as the current context. You can connect immediately without any extra steps:
@@ -201,4 +265,15 @@ NAME                                STATUS   ROLES    AGE   VERSION
 aks-system-32742974-vmss000000      Ready    <none>   19m   v1.33.6
 aks-system-32742974-vmss000001      Ready    <none>   19m   v1.33.6
 aks-wireguard-12237243-vmss000000   Ready    <none>   51s   v1.33.6
+```
+
+If you deployed with `--unbounded-cni`, you will see the gateway node pool:
+
+```bash
+$ kubectl get nodes
+NAME                                STATUS   ROLES    AGE     VERSION
+aks-gateway-26665104-vmss000000     Ready    <none>   3h27m   v1.34.2
+aks-system-14211521-vmss000000      Ready    <none>   3h31m   v1.34.2
+aks-system-14211521-vmss000001      Ready    <none>   3h31m   v1.34.2
+aks-system-14211521-vmss000002      Ready    <none>   3h31m   v1.34.2
 ```

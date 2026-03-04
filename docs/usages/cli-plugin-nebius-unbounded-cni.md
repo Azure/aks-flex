@@ -18,7 +18,7 @@ The workflow uses two CLI command groups:
 
 ### Prerequisites
 
-- An AKS cluster deployed with the `--unbounded-cni` flag -- see [AKS Cluster Setup](cli-prepare-aks-cluster.md)
+- An AKS cluster deployed with the `--unbounded-cni` flag -- see [Enable with Unbounded CNI](cli-prepare-aks-cluster.md#enable-with-unbounded-cni)
 - The `.env` file must include Nebius configuration (generate with `aks-flex-cli config env --nebius`):
 
 ```bash
