@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	karpoptions "github.com/Azure/karpenter-provider-azure/pkg/operator/options"
 	labelspkg "github.com/Azure/karpenter-provider-azure/pkg/providers/labels"
@@ -176,9 +177,17 @@ func (c *CloudProvider) Create(ctx context.Context, nodeClaim *v1.NodeClaim) (*v
 			// create the resource but mark it as failed. This could lead to contention
 			// of other resources (disk, nic, etc). So here we delete the created resource
 			// in best effort when seeing quota error.
-			// FIXME: don't leak go routine here
+			// FIXME: use a better clean up helper to perform the clean up in background
+			//
+			// TODO: currently nebius doesn't provide a way for us to check if the capacity exists before real creation.
+			// This could result in deadlock case where the node claim is being repeatedly created and failed for the same
+			// instance type with quota issue. In such case, we are relying on the user to fix the quota or update the
+			// node pool to exclude the problematic instance type. In the future, we should consider implementing a proactive
+			// model to filter out these instance types internally and temporarily.
 			go func() {
-				if err := c.Delete(ctx, nodeClaim); err != nil {
+				cleanUpCtx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
+				defer cancel()
+				if err := c.Delete(cleanUpCtx, nodeClaim); err != nil {
 					logger.Error(err, "deleting nodeClaim after quota error")
 				}
 			}()
