@@ -12,14 +12,14 @@ This guide walks through deploying `karpenter` to an AKS Flex cluster and using 
 Karpenter watches for unschedulable pods and automatically provisions new nodes to meet demand. The `karpenter` extends Karpenter with multiple cloud providers:
 
 - **Azure** (`AKSNodeClass`) — provisions Azure VMs directly into the cluster's node resource group, joining the existing AKS cluster.
-- **Nebius** (`NebiusNodeClass`) — provisions Nebius VMs that join the AKS cluster as worker nodes over WireGuard.
+- **Nebius** (`NebiusNodeClass`) — provisions Nebius VMs that join the AKS cluster as worker nodes over WireGuard or Unbounded CNI.
 
 ## Getting Started
 
 ### Prerequisites
 
 - **AKS Flex CLI** -- installed and configured with a `.env` file. See [CLI Setup](cli-setup.md).
-- **AKS cluster** -- an AKS cluster provisioned via the CLI. For Nebius nodes, the cluster must also have WireGuard enabled for cross-cloud connectivity. See [AKS Cluster Setup](cli-prepare-aks-cluster.md).
+- **AKS cluster** -- an AKS cluster provisioned via the CLI. For Nebius nodes, the cluster must also have WireGuard or Unbounded CNI enabled for cross-cloud connectivity. See [AKS Cluster Setup](cli-prepare-aks-cluster.md).
 - **Nebius service account credentials** *(Nebius only)* -- a Nebius credentials JSON file for the karpenter controller. See the [Nebius authorized keys documentation](https://docs.nebius.com/iam/service-accounts/authorized-keys).
 - **Helm** -- required for installing the karpenter chart.
 
@@ -263,6 +263,8 @@ $ kubectl get nebiusnodeclass
 NAME     READY   AGE
 nebius   True    3s
 ```
+
+> **Note:** The `wireguardPeerCIDR` field in the `NebiusNodeClass` is only required when using WireGuard for cross-cloud connectivity. When using Unbounded CNI, this field should not be set.
 
 ### Creating a NodePool
 
