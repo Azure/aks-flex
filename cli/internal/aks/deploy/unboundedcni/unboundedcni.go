@@ -33,7 +33,7 @@ func Deploy(
 	if err != nil {
 		return err
 	}
-	defer os.RemoveAll(tempDir)
+	defer os.RemoveAll(tempDir) //nolint:errcheck // best-effort cleanup of temp directory
 
 	// deploy the unbounded CNI operator through kubectl apply -k
 	kustomizeDir := filepath.Join(tempDir, "unbounded-cni-0.0.4")
@@ -94,7 +94,7 @@ func extractAssets() (string, error) {
 
 		return os.WriteFile(targetPath, data, 0o644)
 	}); err != nil {
-		os.RemoveAll(tempDir)
+		os.RemoveAll(tempDir) //nolint:errcheck // best-effort cleanup on extraction failure
 		return "", fmt.Errorf("failed to extract unbounded CNI assets: %w", err)
 	}
 
