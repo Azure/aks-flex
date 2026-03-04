@@ -20,6 +20,17 @@ import (
 var (
 	Command = &cobra.Command{
 		Use: "deploy",
+		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			if unboundedCNI {
+				if deploycilium {
+					return fmt.Errorf("--cilium cannot be used with --unbounded-cni")
+				}
+				if deployWireguard {
+					return fmt.Errorf("--wireguard cannot be used with --unbounded-cni")
+				}
+			}
+			return nil
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return run(cmd.Context())
 		},
@@ -27,6 +38,7 @@ var (
 
 	deploycilium          bool
 	deployWireguard       bool
+	unboundedCNI          bool
 	deployGPUOperator     bool
 	deployGPUDevicePlugin bool
 	skipARM               bool
@@ -39,6 +51,7 @@ var (
 func init() {
 	Command.Flags().BoolVar(&deploycilium, "cilium", false, "deploy Cilium CNI") // default to true to allow minimal networking to work
 	Command.Flags().BoolVar(&deployWireguard, "wireguard", false, "deploy WireGuard gateway node pool and DaemonSet")
+	Command.Flags().BoolVar(&unboundedCNI, "unbounded-cni", false, "deploy without Cilium CNI and WireGuard (mutually exclusive with --cilium and --wireguard)")
 	Command.Flags().BoolVar(&deployGPUOperator, "gpu-operator", false, "install NVIDIA GPU Operator via Helm")
 	Command.Flags().BoolVar(&deployGPUDevicePlugin, "gpu-device-plugin", false, "install NVIDIA GPU Device Plugin via Helm")
 	Command.Flags().BoolVar(&skipARM, "skip-arm", false, "skip the ARM template deployment step")
