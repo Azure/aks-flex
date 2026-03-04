@@ -60,58 +60,18 @@ This creates a secret named `nebius-credentials` in the `karpenter` namespace wi
 | `namespace` *(optional)*      | Target Kubernetes namespace              | `karpenter`          |
 | `secret-name` *(optional)*    | Name of the created Secret               | `nebius-credentials` |
 
-### 3. Grant the kubelet identity required Azure permissions
+### 3. Azure permissions for the karpenter identity
 
-The karpenter controller uses the AKS kubelet identity for Azure operations that require explicit role assignments:
+The AKS ARM template (`aks-flex-cli aks deploy`) automatically provisions a user-assigned managed identity named `karpenter-flex` and assigns the following roles:
 
-- **VNET read** — reads the cluster VNET GUID at startup
-- **Subnet join** — attaches NICs to the cluster subnet when provisioning Azure VMs
-- **VM/NIC/disk lifecycle** — creates and deletes Azure VMs, NICs, and disks in the node resource group
-- **Azure Resource Graph** — enumerates managed VM instances
+| Role | Scope | Purpose |
+| ---- | ----- | ------- |
+| **Network Contributor** | Resource group | VNET GUID resolution at startup, subnet join when creating NICs |
+| **Virtual Machine Contributor** | Node resource group | VM lifecycle — create and delete Azure VMs |
+| **Network Contributor** | Node resource group | NIC lifecycle — create and delete NICs for provisioned VMs |
+| **Managed Identity Operator** | Node resource group | Assign managed identities to provisioned VMs |
 
-First, retrieve the kubelet identity object ID and the relevant resource IDs:
-
-```bash
-# Get the kubelet identity object ID
-KUBELET_OBJECT_ID=$(az aks show \
-  --name $CLUSTER_NAME \
-  --resource-group $RESOURCE_GROUP_NAME \
-  --query "identityProfile.kubeletidentity.objectId" \
-  -o tsv)
-
-# Get the node resource group scope (where karpenter-managed VMs live)
-NODE_RESOURCE_GROUP_ID=$(az aks show \
-  --name $CLUSTER_NAME \
-  --resource-group $RESOURCE_GROUP_NAME \
-  --query "nodeResourceGroup" \
-  -o tsv | xargs -I{} echo "/subscriptions/$AZURE_SUBSCRIPTION_ID/resourceGroups/{}")
-
-# Get the VNET resource group ID (where the cluster VNet and subnet live;
-# adjust if the VNet is in a different resource group)
-VNET_RESOURCE_GROUP_ID="/subscriptions/$AZURE_SUBSCRIPTION_ID/resourceGroups/$RESOURCE_GROUP_NAME"
-```
-
-Then create the two role assignments:
-
-```bash
-# 1. Network Contributor on the VNET resource group
-#    Required for: VNET GUID resolution at startup, and subnet join/action
-#    when creating NICs for provisioned VMs.
-#    Note: "Reader" on the VNET alone is insufficient — NIC creation requires
-#    Microsoft.Network/virtualNetworks/subnets/join/action which is only
-#    included in Network Contributor or higher.
-az role assignment create \
-  --assignee "$KUBELET_OBJECT_ID" \
-  --role "Network Contributor" \
-  --scope "$VNET_RESOURCE_GROUP_ID"
-
-# 2. Contributor on the node resource group (for VM/NIC/disk create and delete,
-#    and Azure Resource Graph VM enumeration)
-az role assignment create \
-  --assignee "$KUBELET_OBJECT_ID" \
-  --role "Contributor" \
-  --scope "$NODE_RESOURCE_GROUP_ID"
-```
+The template also creates a **federated identity credential** that pairs the managed identity with the AKS cluster's OIDC issuer, granting access to the `karpenter` service account in the `karpenter` namespace. This enables workload identity — no manual role assignment steps are required.
 
 ### 4. Generate and run the Helm install command
 
@@ -133,16 +93,19 @@ helm upgrade --install karpenter charts/karpenter \
   --set replicas=1 \
   --set controller.nebiusCredentials.enabled=true \
   --set controller.image.digest="" \
+  --set "serviceAccount.annotations.azure\.workload\.identity/client-id=<karpenter-flex-client-id>" \
+  --set-string "podLabels.azure\.workload\.identity/use=true" \
   --set "controller.env[0].name=ARM_CLOUD,controller.env[0].value=AzurePublicCloud" \
   --set "controller.env[1].name=LOCATION,controller.env[1].value=southcentralus" \
   --set "controller.env[2].name=ARM_RESOURCE_GROUP,controller.env[2].value=rg-aks-flex-<username>" \
   --set "controller.env[3].name=AZURE_TENANT_ID,controller.env[3].value=<tenant-id>" \
-  --set "controller.env[4].name=AZURE_SUBSCRIPTION_ID,controller.env[4].value=<subscription-id>" \
-  --set "controller.env[5].name=AZURE_NODE_RESOURCE_GROUP,controller.env[5].value=<node-resource-group>" \
-  --set "controller.env[6].name=SSH_PUBLIC_KEY,controller.env[6].value=ssh-ed25519 AAAA..." \
-  --set "controller.env[7].name=VNET_SUBNET_ID,controller.env[7].value=/subscriptions/.../subnets/nodes" \
-  --set "controller.env[8].name=KUBELET_BOOTSTRAP_TOKEN,controller.env[8].value=<token-id>.<token-secret>" \
-  --set-string "controller.env[9].name=DISABLE_LEADER_ELECTION,controller.env[9].value=false"
+  --set "controller.env[4].name=AZURE_CLIENT_ID,controller.env[4].value=<karpenter-flex-client-id>" \
+  --set "controller.env[5].name=AZURE_SUBSCRIPTION_ID,controller.env[5].value=<subscription-id>" \
+  --set "controller.env[6].name=AZURE_NODE_RESOURCE_GROUP,controller.env[6].value=<node-resource-group>" \
+  --set "controller.env[7].name=SSH_PUBLIC_KEY,controller.env[7].value=ssh-ed25519 AAAA..." \
+  --set "controller.env[8].name=VNET_SUBNET_ID,controller.env[8].value=/subscriptions/.../subnets/aks" \
+  --set "controller.env[9].name=KUBELET_BOOTSTRAP_TOKEN,controller.env[9].value=<token-id>.<token-secret>" \
+  --set-string "controller.env[10].name=DISABLE_LEADER_ELECTION,controller.env[10].value=false"
 ```
 
 If any value cannot be resolved (e.g. the cluster is not reachable), it is replaced with `<replace-with-actual-value>`. Edit these placeholders before running the command.
