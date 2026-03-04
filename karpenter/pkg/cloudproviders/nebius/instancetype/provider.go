@@ -22,9 +22,6 @@ const (
 	// cacheSize is the maximum number of entries in the LRU cache.
 	cacheSize = 1000
 
-	// defaultOSDiskSizeGB is the fallback OS disk size when the node class does not specify one.
-	defaultOSDiskSizeGB int32 = 128
-
 	// DefaultPerNodePodsCount is the default maximum number of pods per node.
 	// Used when the NebiusNodeClass does not specify MaxPodsPerNode.
 	DefaultPerNodePodsCount int32 = 110
