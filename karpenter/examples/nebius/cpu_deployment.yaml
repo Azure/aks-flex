@@ -17,10 +17,10 @@ spec:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
               - matchExpressions:
-                  - key: kubernetes.azure.com/mode
-                    operator: NotIn
+                  - key: nodepool
+                    operator: In
                     values:
-                      - system
+                      - nebius-cpu-nodepool
       containers:
         - name: app-container
           image: nginx:1.21
