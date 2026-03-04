@@ -1,0 +1,7 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: unbounded-cni
+  labels:
+    app.kubernetes.io/name: unbounded-cni
