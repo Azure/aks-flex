@@ -18,7 +18,7 @@
 			"type": "int",
 			"defaultValue": 3
 		},
-		"wireguardVMSize": {
+		"gatewayVMSize": {
 			"type": "string",
 			"defaultValue": "Standard_D16ds_v5"
 		},
@@ -208,7 +208,7 @@
 			"name": "[concat(parameters('clusterName'), '/wireguard')]",
 			"properties": {
 				"count": 1,
-				"vmSize": "[parameters('wireguardVMSize')]",
+				"vmSize": "[parameters('gatewayVMSize')]",
 				"mode": "User",
 				"osType": "Linux",
 				"vnetSubnetId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', 'vnet', 'nodes')]",
@@ -283,7 +283,7 @@
 			"name": "[concat(parameters('clusterName'), '/gateway')]",
 			"properties": {
 				"count": 1,
-				"vmSize": "[parameters('wireguardVMSize')]",
+				"vmSize": "[parameters('gatewayVMSize')]",
 				"mode": "User",
 				"osType": "Linux",
 				"vnetSubnetId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', 'vnet', 'nodes')]",

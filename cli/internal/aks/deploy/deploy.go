@@ -116,8 +116,8 @@ func run(ctx context.Context) error {
 			"vmSize": {
 				Value: cfg.SystemVMSize,
 			},
-			"wireguardVMSize": {
-				Value: cfg.WireguardVMSize,
+			"gatewayVMSize": {
+				Value: cfg.GatewayVMSize,
 			},
 			"deployWireguard": {
 				Value: deployWireguard,
