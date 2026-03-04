@@ -93,11 +93,12 @@ func (hc *helmContext) resolve(ctx context.Context) {
 		hc.AzureTenantID = configcmd.OrPlaceholder("")
 	}
 
-	// SSH public key — resolve from local SSH key files.
-	if pubKey, err := ssh.PublicKey(); err == nil {
-		hc.SSHPublicKey = strings.TrimSpace(string(pubKey))
-	} else {
-		hc.SSHPublicKey = configcmd.OrPlaceholder("")
+	hc.SSHPublicKey = "ssh-key-not-set"
+	if flagLoadSSHKey {
+		// asked to load ssh key from host — attempt to load the default SSH public key.
+		if pubKey, err := ssh.PublicKey(); err == nil {
+			hc.SSHPublicKey = strings.TrimSpace(string(pubKey))
+		}
 	}
 
 	// Bootstrap token — resolve from DefaultKubeadmConfig.
@@ -169,7 +170,10 @@ var Command = &cobra.Command{
 	Short: "Karpenter-provider-flex configuration commands",
 }
 
-var flagImage string
+var (
+	flagImage      string
+	flagLoadSSHKey bool
+)
 
 var helmCmd = &cobra.Command{
 	Use:   "helm",
@@ -187,6 +191,7 @@ with a placeholder that must be edited before running the command.`,
 
 func init() {
 	helmCmd.Flags().StringVar(&flagImage, "image", "", "override controller image (e.g. myregistry.io/karpenter:v0.1.0)")
+	helmCmd.Flags().BoolVar(&flagLoadSSHKey, "load-ssh-key", false, "whether to attempt to load the SSH public key from host")
 	Command.AddCommand(helmCmd)
 }
 
