@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: azure-sample-cpu-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: azure-sample-cpu-app
+  template:
+    metadata:
+      labels:
+        app: azure-sample-cpu-app
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: kubernetes.azure.com/mode
+                    operator: NotIn
+                    values:
+                      - system
+                  - key: nodepool
+                    operator: In
+                    values:
+                      - azure-cpu-nodepool
+      containers:
+        - name: cpu-container
+          image: ubuntu:22.04
+          command: ["sleep", "infinity"]
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "500m"
+            limits:
+              memory: "512Mi"
+              cpu: "1"

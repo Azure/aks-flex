@@ -10,8 +10,8 @@ import (
 	"text/template"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
-	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/network/armnetwork/v8"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -38,7 +38,7 @@ const (
 	wgKubeImage = "ghcr.io/b4fun/wg-kube:sha-11e4656"
 )
 
-func deployWireGuard(ctx context.Context, credentials *azidentity.DefaultAzureCredential, cfg *utilconfig.Config) error {
+func deployWireGuard(ctx context.Context, credentials azcore.TokenCredential, cfg *utilconfig.Config) error {
 	// Step 1: Get or generate WireGuard keys for the hub
 	log.Print("Getting WireGuard keys...")
 
@@ -93,7 +93,7 @@ func deployWireGuard(ctx context.Context, credentials *azidentity.DefaultAzureCr
 
 // getOrCreateWireGuardKeys checks if the wireguard-keys secret exists and returns those keys,
 // otherwise generates new keys.
-func getOrCreateWireGuardKeys(ctx context.Context, credentials *azidentity.DefaultAzureCredential, cfg *utilconfig.Config) (*wireguard.KeyPair, error) {
+func getOrCreateWireGuardKeys(ctx context.Context, credentials azcore.TokenCredential, cfg *utilconfig.Config) (*wireguard.KeyPair, error) {
 	loader, err := k8s.Loader(ctx, credentials, cfg)
 	if err != nil {
 		return nil, err
@@ -144,7 +144,7 @@ func getOrCreateWireGuardKeys(ctx context.Context, credentials *azidentity.Defau
 }
 
 // getWireGuardNodeIP retrieves the public and private IP of the WireGuard gateway node from Kubernetes.
-func getWireGuardNodeIP(ctx context.Context, credentials *azidentity.DefaultAzureCredential, cfg *utilconfig.Config) (publicIP, privateIP string, err error) {
+func getWireGuardNodeIP(ctx context.Context, credentials azcore.TokenCredential, cfg *utilconfig.Config) (publicIP, privateIP string, err error) {
 	loader, err := k8s.Loader(ctx, credentials, cfg)
 	if err != nil {
 		return "", "", err
@@ -219,7 +219,7 @@ func getWireGuardNodeIP(ctx context.Context, credentials *azidentity.DefaultAzur
 }
 
 // updateRouteTable updates the route table with the gateway node's private IP.
-func updateRouteTable(ctx context.Context, credentials *azidentity.DefaultAzureCredential, cfg *utilconfig.Config, gatewayPrivateIP string) error {
+func updateRouteTable(ctx context.Context, credentials azcore.TokenCredential, cfg *utilconfig.Config, gatewayPrivateIP string) error {
 	routeTablesClient, err := armnetwork.NewRouteTablesClient(cfg.SubscriptionID, credentials, nil)
 	if err != nil {
 		return err
@@ -256,7 +256,7 @@ func updateRouteTable(ctx context.Context, credentials *azidentity.DefaultAzureC
 }
 
 // associateRouteTableWithSubnets associates the wg-routes route table with the aks and nodes subnets.
-func associateRouteTableWithSubnets(ctx context.Context, credentials *azidentity.DefaultAzureCredential, cfg *utilconfig.Config) error {
+func associateRouteTableWithSubnets(ctx context.Context, credentials azcore.TokenCredential, cfg *utilconfig.Config) error {
 	subnetsClient, err := armnetwork.NewSubnetsClient(cfg.SubscriptionID, credentials, nil)
 	if err != nil {
 		return err
@@ -307,7 +307,7 @@ func associateRouteTableWithSubnets(ctx context.Context, credentials *azidentity
 // deployWireGuardToK8s deploys the WireGuard DaemonSet to the AKS cluster.
 func deployWireGuardToK8s(
 	ctx context.Context,
-	credentials *azidentity.DefaultAzureCredential,
+	credentials azcore.TokenCredential,
 	cfg *utilconfig.Config,
 	keys *wireguard.KeyPair,
 ) error {

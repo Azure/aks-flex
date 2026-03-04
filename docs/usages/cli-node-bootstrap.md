@@ -100,9 +100,10 @@ The command supports two bootstrap targets:
 
 ### Flags
 
-| Flag    | Type   | Default | Description                                                                 |
-| ------- | ------ | ------- | --------------------------------------------------------------------------- |
-| `--gpu` | `bool` | `false` | Indicates whether the node has a GPU. Affects the generated userdata (flex only). |
+| Flag        | Type     | Default      | Description                                                                 |
+| ----------- | -------- | ------------ | --------------------------------------------------------------------------- |
+| `--gpu`     | `bool`   | `false`      | Indicates whether the node has a GPU. Affects the generated userdata (flex only). |
+| `--variant` | `string` | `cloud-init` | Output variant. `cloud-init` produces cloud-init YAML user data; `script` produces an equivalent standalone bash script. |
 
 ### Generate user data
 
@@ -122,6 +123,25 @@ Using the `ubuntu` target (traditional `kubeadm join`):
 
 ```bash
 $ aks-flex-cli config node-bootstrap ubuntu > user-data.yaml
+```
+
+#### Standalone bash script variant
+
+By default the command outputs cloud-init YAML, which requires a cloud-init-enabled environment (most cloud VMs). For nodes that do not have cloud-init — such as bare-metal servers or pre-provisioned VMs — use `--variant script` to generate an equivalent standalone bash script that can be executed directly:
+
+```bash
+$ aks-flex-cli config node-bootstrap flex --variant script > bootstrap.sh
+```
+
+```bash
+$ aks-flex-cli config node-bootstrap ubuntu --variant script > bootstrap.sh
+```
+
+The generated script performs the same steps as the cloud-init variant (writing files, installing packages, running commands) but as a plain `#!/bin/bash` script. You can copy it to the target node and run it:
+
+```bash
+$ chmod +x bootstrap.sh
+$ sudo ./bootstrap.sh
 ```
 
 ### Sample output
@@ -291,6 +311,41 @@ runcmd:
 ```
 
 In short, the `ubuntu` target prepares the container runtime (containerd) and kubelet, then uses `kubeadm join` to register the node as a worker in the AKS cluster.
+
+#### `--variant script` output
+
+When `--variant script` is used, the same bootstrapping logic is rendered as a standalone bash script instead of cloud-init YAML. For example, `flex --variant script` produces:
+
+```bash
+#!/bin/bash
+# Auto-generated script equivalent to cloud-init user data.
+# This script can be executed directly on a node without cloud-init.
+set -euo pipefail
+
+# --- Packages ---
+apt-get update -y
+apt-get install -y curl
+
+# --- Write files ---
+mkdir -p '/tmp'
+cat <<'EOF' > '/tmp/flex-config.json'
+[{"metadata":{"type":"aks.flex.components.linux.ConfigureBaseOS", ...}, ...}]
+EOF
+chmod 0644 '/tmp/flex-config.json'
+
+# --- Run commands ---
+set -e
+mkdir -p /tmp/flex
+curl -L -o /tmp/flex/aks-flex-node-linux-amd64.tar.gz https://github.com/Azure/AKSFlexNode/releases/...
+tar -xzf /tmp/flex/aks-flex-node-linux-amd64.tar.gz -C /tmp/flex
+mv /tmp/flex/aks-flex-node-linux-amd64 /tmp/flex/aks-flex-node
+chmod +x /tmp/flex/aks-flex-node
+/tmp/flex/aks-flex-node apply -f /tmp/flex-config.json
+
+echo 'Node bootstrap script completed.'
+```
+
+The script is self-contained and performs the same operations — writing config files, installing packages, and running bootstrap commands — without requiring the cloud-init daemon.
 
 ### Sample: joining an Azure VM with the user data
 

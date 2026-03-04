@@ -2,22 +2,25 @@
 
 ## Overview
 
-This guide walks through deploying `karpenter` to an AKS Flex cluster and using Karpenter to automatically provision and deprovision Nebius cloud nodes. By the end you will have:
+This guide walks through deploying `karpenter` to an AKS Flex cluster and using Karpenter to automatically provision and deprovision cloud nodes. By the end you will have:
 
 - The karpenter controller running in the cluster
-- A `NebiusNodeClass` and `NodePool` configured for Nebius compute instances
-- Workloads that trigger automatic node scale-up on Nebius
+- `NodeClass` and `NodePool` resources configured for Azure and/or Nebius compute instances
+- Workloads that trigger automatic node scale-up
 - An understanding of how to scale down and clean up provisioned nodes
 
-Karpenter watches for unschedulable pods and automatically provisions new nodes to meet demand. The `karpenter` extends Karpenter with a Nebius cloud provider, allowing it to create and manage Nebius VMs that join the AKS cluster as worker nodes.
+Karpenter watches for unschedulable pods and automatically provisions new nodes to meet demand. The `karpenter` extends Karpenter with multiple cloud providers:
+
+- **Azure** (`AKSNodeClass`) — provisions Azure VMs directly into the cluster's node resource group, joining the existing AKS cluster.
+- **Nebius** (`NebiusNodeClass`) — provisions Nebius VMs that join the AKS cluster as worker nodes over WireGuard or Unbounded CNI.
 
 ## Getting Started
 
 ### Prerequisites
 
 - **AKS Flex CLI** -- installed and configured with a `.env` file. See [CLI Setup](cli-setup.md).
-- **AKS cluster with WireGuard** -- the cluster must have WireGuard enabled for cross-cloud node connectivity. See [AKS Cluster Setup](cli-prepare-aks-cluster.md) (specifically the [Enable with WireGuard](cli-prepare-aks-cluster.md#enable-with-wireguard) section).
-- **Nebius service account credentials** -- a Nebius credentials JSON file for the karpenter controller. See the [Nebius authorized keys documentation](https://docs.nebius.com/iam/service-accounts/authorized-keys).
+- **AKS cluster** -- an AKS cluster provisioned via the CLI. For Nebius nodes, the cluster must also have WireGuard or Unbounded CNI enabled for cross-cloud connectivity. See [AKS Cluster Setup](cli-prepare-aks-cluster.md).
+- **Nebius service account credentials** *(Nebius only)* -- a Nebius credentials JSON file for the karpenter controller. See the [Nebius authorized keys documentation](https://docs.nebius.com/iam/service-accounts/authorized-keys).
 - **Helm** -- required for installing the karpenter chart.
 
 ### Configuration
@@ -57,53 +60,18 @@ This creates a secret named `nebius-credentials` in the `karpenter` namespace wi
 | `namespace` *(optional)*      | Target Kubernetes namespace              | `karpenter`          |
 | `secret-name` *(optional)*    | Name of the created Secret               | `nebius-credentials` |
 
-### 3. Grant the kubelet identity required Azure permissions
+### 3. Azure permissions for the karpenter identity
 
-The karpenter controller uses the AKS kubelet identity for two Azure operations that require explicit role assignments:
+The AKS ARM template (`aks-flex-cli aks deploy`) automatically provisions a user-assigned managed identity named `karpenter-flex` and assigns the following roles:
 
-- **VNET read** — reads the cluster VNET GUID at startup
-- **Azure Resource Graph** — manages Azure VM instances lifecycle
+| Role | Scope | Purpose |
+| ---- | ----- | ------- |
+| **Network Contributor** | Resource group | VNET GUID resolution at startup, subnet join when creating NICs |
+| **Virtual Machine Contributor** | Node resource group | VM lifecycle — create and delete Azure VMs |
+| **Network Contributor** | Node resource group | NIC lifecycle — create and delete NICs for provisioned VMs |
+| **Managed Identity Operator** | Node resource group | Assign managed identities to provisioned VMs |
 
-First, retrieve the kubelet identity object ID and the relevant resource IDs:
-
-```bash
-# Get the kubelet identity object ID
-KUBELET_OBJECT_ID=$(az aks show \
-  --name $CLUSTER_NAME \
-  --resource-group $RESOURCE_GROUP_NAME \
-  --query "identityProfile.kubeletidentity.objectId" \
-  -o tsv)
-
-# Get the node resource group scope (where karpenter-managed VMs live)
-NODE_RESOURCE_GROUP_ID=$(az aks show \
-  --name $CLUSTER_NAME \
-  --resource-group $RESOURCE_GROUP_NAME \
-  --query "nodeResourceGroup" \
-  -o tsv | xargs -I{} echo "/subscriptions/$AZURE_SUBSCRIPTION_ID/resourceGroups/{}")
-
-# Get the VNET resource ID (adjust resource group if VNET is in a different RG)
-VNET_ID=$(az network vnet list \
-  --resource-group $RESOURCE_GROUP_NAME \
-  --query "[0].id" \
-  -o tsv)
-```
-
-Then create the two role assignments:
-
-```bash
-# 1. Reader on the VNET (for VNET GUID resolution at startup)
-az role assignment create \
-  --assignee "$KUBELET_OBJECT_ID" \
-  --role "Reader" \
-  --scope "$VNET_ID"
-
-# 2. Contributor on the node resource group (for VM/NIC/disk create and delete,
-#    and Azure Resource Graph VM enumeration)
-az role assignment create \
-  --assignee "$KUBELET_OBJECT_ID" \
-  --role "Contributor" \
-  --scope "$NODE_RESOURCE_GROUP_ID"
-```
+The template also creates a **federated identity credential** that pairs the managed identity with the AKS cluster's OIDC issuer, granting access to the `karpenter` service account in the `karpenter` namespace. This enables workload identity — no manual role assignment steps are required.
 
 ### 4. Generate and run the Helm install command
 
@@ -125,16 +93,19 @@ helm upgrade --install karpenter charts/karpenter \
   --set replicas=1 \
   --set controller.nebiusCredentials.enabled=true \
   --set controller.image.digest="" \
+  --set "serviceAccount.annotations.azure\.workload\.identity/client-id=<karpenter-flex-client-id>" \
+  --set-string "podLabels.azure\.workload\.identity/use=true" \
   --set "controller.env[0].name=ARM_CLOUD,controller.env[0].value=AzurePublicCloud" \
   --set "controller.env[1].name=LOCATION,controller.env[1].value=southcentralus" \
   --set "controller.env[2].name=ARM_RESOURCE_GROUP,controller.env[2].value=rg-aks-flex-<username>" \
   --set "controller.env[3].name=AZURE_TENANT_ID,controller.env[3].value=<tenant-id>" \
-  --set "controller.env[4].name=AZURE_SUBSCRIPTION_ID,controller.env[4].value=<subscription-id>" \
-  --set "controller.env[5].name=AZURE_NODE_RESOURCE_GROUP,controller.env[5].value=<node-resource-group>" \
-  --set "controller.env[6].name=SSH_PUBLIC_KEY,controller.env[6].value=ssh-ed25519 AAAA..." \
-  --set "controller.env[7].name=VNET_SUBNET_ID,controller.env[7].value=/subscriptions/.../subnets/nodes" \
-  --set "controller.env[8].name=KUBELET_BOOTSTRAP_TOKEN,controller.env[8].value=<token-id>.<token-secret>" \
-  --set-string "controller.env[9].name=DISABLE_LEADER_ELECTION,controller.env[9].value=false"
+  --set "controller.env[4].name=AZURE_CLIENT_ID,controller.env[4].value=<karpenter-flex-client-id>" \
+  --set "controller.env[5].name=AZURE_SUBSCRIPTION_ID,controller.env[5].value=<subscription-id>" \
+  --set "controller.env[6].name=AZURE_NODE_RESOURCE_GROUP,controller.env[6].value=<node-resource-group>" \
+  --set "controller.env[7].name=SSH_PUBLIC_KEY,controller.env[7].value=ssh-ed25519 AAAA..." \
+  --set "controller.env[8].name=VNET_SUBNET_ID,controller.env[8].value=/subscriptions/.../subnets/aks" \
+  --set "controller.env[9].name=KUBELET_BOOTSTRAP_TOKEN,controller.env[9].value=<token-id>.<token-secret>" \
+  --set-string "controller.env[10].name=DISABLE_LEADER_ELECTION,controller.env[10].value=false"
 ```
 
 If any value cannot be resolved (e.g. the cluster is not reachable), it is replaced with `<replace-with-actual-value>`. Edit these placeholders before running the command.
@@ -165,6 +136,77 @@ NAME                         READY   STATUS    RESTARTS      AGE
 karpenter-6b55df659d-m2d5g   1/1     Running   7 (13m ago)   20m
 ```
 
+## Creating Nodes on Azure via Karpenter
+
+With the karpenter controller running, you can define an `AKSNodeClass` and `NodePool` to provision Azure VMs directly into the cluster's node resource group.
+
+### Creating an AKSNodeClass
+
+The `AKSNodeClass` defines the Azure-specific configuration for provisioned nodes:
+
+```bash
+$ kubectl apply -f examples/azure/nodeclass.yaml
+```
+
+Verify the node class is ready:
+
+```bash
+$ kubectl get aksnodeclass
+NAME    READY   AGE
+azure   True    5s
+```
+
+### Creating a CPU NodePool
+
+```bash
+$ kubectl apply -f examples/azure/cpu_nodepool.yaml
+```
+
+Verify the node pool is ready:
+
+```bash
+$ kubectl get nodepool
+NAME                 NODECLASS   NODES   READY   AGE
+azure-cpu-nodepool   azure       0       True    4s
+```
+
+### Creating a GPU NodePool
+
+For GPU workloads, create a NodePool that pins to a specific GPU SKU via `node.kubernetes.io/instance-type`:
+
+```bash
+$ kubectl apply -f examples/azure/gpu_nodepool.yaml
+```
+
+Both node pools should now be ready:
+
+```bash
+$ kubectl get nodepool
+NAME                 NODECLASS   NODES   READY   AGE
+azure-cpu-nodepool   azure       0       True    4s
+azure-gpu-nodepool   azure       0       True    2s
+```
+
+### Deploy a workload to trigger scale-up
+
+```bash
+$ kubectl apply -f examples/azure/cpu_deployment.yaml
+```
+
+Karpenter detects the unschedulable pod and creates a `NodeClaim`:
+
+```bash
+$ kubectl get nodeclaims
+NAME                       TYPE           CAPACITY   ZONE   NODE                         READY   AGE
+azure-cpu-nodepool-6rhlk                                    aks-azure-cpu-nodepool-6rhlk True    2m
+```
+
+> **Note:** GPU workloads require the NVIDIA device plugin. Install it with the CLI before creating GPU workloads:
+>
+> ```bash
+> aks-flex-cli aks deploy --gpu-device-plugin --skip-arm
+> ```
+
 ## Creating Nodes on Nebius via Karpenter
 
 With the karpenter controller running, you can define a `NebiusNodeClass` and `NodePool` to tell Karpenter how and when to provision Nebius nodes.
@@ -184,6 +226,8 @@ $ kubectl get nebiusnodeclass
 NAME     READY   AGE
 nebius   True    3s
 ```
+
+> **Note:** The `wireguardPeerCIDR` field in the `NebiusNodeClass` is only required when using WireGuard for cross-cloud connectivity. When using Unbounded CNI, this field should not be set.
 
 ### Creating a NodePool
 

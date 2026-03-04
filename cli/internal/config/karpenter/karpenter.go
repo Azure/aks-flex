@@ -33,16 +33,19 @@ var helmTemplate = template.Must(template.New("karpenter-helm").Parse(`helm upgr
 {{- if .ImageTag }}
   --set controller.image.tag="{{ .ImageTag }}" \
 {{- end }}
+  --set "serviceAccount.annotations.azure\.workload\.identity/client-id={{ .AzureClientID }}" \
+  --set-string "podLabels.azure\.workload\.identity/use=true" \
   --set "controller.env[0].name=ARM_CLOUD,controller.env[0].value={{ .ARMCloud }}" \
   --set "controller.env[1].name=LOCATION,controller.env[1].value={{ .Location }}" \
   --set "controller.env[2].name=ARM_RESOURCE_GROUP,controller.env[2].value={{ .ARMResourceGroup }}" \
   --set "controller.env[3].name=AZURE_TENANT_ID,controller.env[3].value={{ .AzureTenantID }}" \
-  --set "controller.env[4].name=AZURE_SUBSCRIPTION_ID,controller.env[4].value={{ .AzureSubscriptionID }}" \
-  --set "controller.env[5].name=AZURE_NODE_RESOURCE_GROUP,controller.env[5].value={{ .NodeResourceGroup }}" \
-  --set "controller.env[6].name=SSH_PUBLIC_KEY,controller.env[6].value={{ .SSHPublicKey }}" \
-  --set "controller.env[7].name=VNET_SUBNET_ID,controller.env[7].value={{ .VNETSubnetID }}" \
-  --set "controller.env[8].name=KUBELET_BOOTSTRAP_TOKEN,controller.env[8].value={{ .KubeletBootstrapToken }}" \
-  --set-string "controller.env[9].name=DISABLE_LEADER_ELECTION,controller.env[9].value=false"
+  --set "controller.env[4].name=AZURE_CLIENT_ID,controller.env[4].value={{ .AzureClientID }}" \
+  --set "controller.env[5].name=AZURE_SUBSCRIPTION_ID,controller.env[5].value={{ .AzureSubscriptionID }}" \
+  --set "controller.env[6].name=AZURE_NODE_RESOURCE_GROUP,controller.env[6].value={{ .NodeResourceGroup }}" \
+  --set "controller.env[7].name=SSH_PUBLIC_KEY,controller.env[7].value={{ .SSHPublicKey }}" \
+  --set "controller.env[8].name=VNET_SUBNET_ID,controller.env[8].value={{ .VNETSubnetID }}" \
+  --set "controller.env[9].name=KUBELET_BOOTSTRAP_TOKEN,controller.env[9].value={{ .KubeletBootstrapToken }}" \
+  --set-string "controller.env[10].name=DISABLE_LEADER_ELECTION,controller.env[10].value=false"
 `))
 
 type helmContext struct {
@@ -52,6 +55,7 @@ type helmContext struct {
 	Location              string
 	ARMResourceGroup      string
 	AzureTenantID         string
+	AzureClientID         string
 	AzureSubscriptionID   string
 	NodeResourceGroup     string
 	SSHPublicKey          string
@@ -106,11 +110,21 @@ func (hc *helmContext) resolve(ctx context.Context) {
 	hc.NodeResourceGroup = configcmd.OrPlaceholder("")
 	hc.VNETSubnetID = configcmd.OrPlaceholder("")
 
+	// Karpenter managed identity client ID — resolve via az CLI.
+	if clientID, err := execOutput(ctx, "az", "identity", "show",
+		"--name", "karpenter-flex",
+		"--resource-group", resourceGroup,
+		"--query", "clientId", "-o", "tsv"); err == nil {
+		hc.AzureClientID = clientID
+	} else {
+		hc.AzureClientID = configcmd.OrPlaceholder("")
+	}
+
 	if cfg == nil {
 		return
 	}
 
-	credentials, err := azidentity.NewDefaultAzureCredential(nil)
+	credentials, err := azidentity.NewAzureCLICredential(nil)
 	if err != nil {
 		warn("could not obtain Azure credentials: %v", err)
 		return

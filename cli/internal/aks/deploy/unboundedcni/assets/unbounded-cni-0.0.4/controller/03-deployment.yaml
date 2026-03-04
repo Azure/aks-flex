@@ -1,0 +1,148 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: unbounded-cni-controller
+  namespace: unbounded-cni
+  labels:
+    app.kubernetes.io/name: unbounded-cni-controller
+    app.kubernetes.io/component: controller
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: unbounded-cni-controller
+  template:
+    metadata:
+      annotations:
+        kubernetes.azure.com/set-kube-service-host-fqdn: "true"
+      labels:
+        app.kubernetes.io/name: unbounded-cni-controller
+        app.kubernetes.io/component: controller
+    spec:
+      hostNetwork: true
+      serviceAccountName: unbounded-cni-controller
+      # Prefer system nodes (AKS)
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: kubernetes.azure.com/managed
+                    operator: NotIn
+                    values:
+                      - "false"
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              preference:
+                matchExpressions:
+                  - key: kubernetes.azure.com/mode
+                    operator: In
+                    values:
+                      - system
+      # Prefer scheduling on different nodes for HA
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: unbounded-cni-controller
+      # Tolerate control-plane taints to run on control-plane nodes
+      tolerations:
+        - key: node-role.kubernetes.io/control-plane
+          operator: Exists
+          effect: NoSchedule
+        - key: node-role.kubernetes.io/master
+          operator: Exists
+          effect: NoSchedule
+        - key: node.kubernetes.io/not-ready
+          operator: Exists
+          effect: NoSchedule
+        - key: CriticalAddonsOnly
+          operator: Equal
+          value: "true"
+          effect: NoSchedule
+      containers:
+        - name: controller
+          image: unboundedcnitme.azurecr.io/unbounded-cni-controller:v0.4.2
+          imagePullPolicy: Always
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            - name: runtime-config
+              mountPath: /etc/unbounded-cni/config.yaml
+              subPath: config.yaml
+              readOnly: true
+          env:
+            - name: LOG_LEVEL
+              valueFrom:
+                configMapKeyRef:
+                  name: unbounded-cni-config
+                  key: LOG_LEVEL
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+          args:
+            - -v=$(LOG_LEVEL)
+            - --config-file=/etc/unbounded-cni/config.yaml
+            - --leader-elect-resource-namespace=unbounded-cni
+            - --force-not-leader=false
+          ports:
+            - name: health
+              containerPort: 9999
+              protocol: TCP
+            - name: webhook
+              containerPort: 9443
+              protocol: TCP
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 2
+              memory: 2048Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 65534
+            capabilities:
+              drop:
+                - ALL
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: health
+            initialDelaySeconds: 10
+            periodSeconds: 15
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: health
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 5
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        - name: runtime-config
+          configMap:
+            name: unbounded-cni-config

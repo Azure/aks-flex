@@ -25,7 +25,20 @@
 		"deployWireguard": {
 			"type": "bool",
 			"defaultValue": false
+		},
+		"deployUnboundedCNI": {
+			"type": "bool",
+			"defaultValue": false
 		}
+	},
+	"variables": {
+		"karpenterMIName": "karpenter-flex",
+		"aksClusterId": "[resourceId('Microsoft.ContainerService/managedClusters', parameters('clusterName'))]",
+		"karpenterMIId": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('karpenterMIName'))]",
+		"nodeResourceGroup": "[concat('MC_', resourceGroup().name, '_', parameters('clusterName'), '_', resourceGroup().location)]",
+		"virtualMachineContributorRoleId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '9980e02c-c2be-4d73-94e8-173b1dc7cf3c')]",
+		"networkContributorRoleId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '4d97b98b-1d4f-4787-a291-c67834d212e7')]",
+		"managedIdentityOperatorRoleId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'f1a07417-d97a-45cb-824c-7a7467783830')]"
 	},
 	"resources": [
 		{
@@ -42,11 +55,12 @@
 			},
 			"properties": {
 				"kubernetesVersion": "[parameters('kubernetesVersion')]",
+				"nodeResourceGroup": "[variables('nodeResourceGroup')]",
 				"agentPoolProfiles": [
 					{
 						"name": "system",
 						"count": "[parameters('systemPoolSize')]",
-						"vmSize": "Standard_D8ds_v5",
+						"vmSize": "[parameters('vmSize')]",
 						"mode": "System",
 						"vnetSubnetId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', 'vnet', 'aks')]"
 					}
@@ -55,7 +69,15 @@
 				"networkProfile": {
 					"networkPlugin": "none"
 				},
-				"storageProfile": {
+			"oidcIssuerProfile": {
+				"enabled": true
+			},
+			"securityProfile": {
+				"workloadIdentity": {
+					"enabled": true
+				}
+			},
+			"storageProfile": {
 					"diskCSIDriver": {
 						"enabled": false
 					},
@@ -64,6 +86,90 @@
 					}
 				}
 			}
+		},
+		{
+			"type": "Microsoft.ManagedIdentity/userAssignedIdentities",
+			"apiVersion": "2023-01-31",
+			"name": "[variables('karpenterMIName')]",
+			"location": "[resourceGroup().location]"
+		},
+		{
+			"type": "Microsoft.ManagedIdentity/userAssignedIdentities/federatedIdentityCredentials",
+			"apiVersion": "2023-01-31",
+			"name": "[concat(variables('karpenterMIName'), '/karpenter-federated-credential')]",
+			"properties": {
+				"issuer": "[reference(variables('aksClusterId'), '2024-01-01').oidcIssuerProfile.issuerUrl]",
+				"subject": "system:serviceaccount:karpenter:karpenter",
+				"audiences": [
+					"api://AzureADTokenExchange"
+				]
+			},
+			"dependsOn": [
+				"[variables('aksClusterId')]",
+				"[variables('karpenterMIId')]"
+			]
+		},
+		{
+			"type": "Microsoft.Authorization/roleAssignments",
+			"apiVersion": "2022-04-01",
+			"name": "[guid(resourceGroup().id, variables('karpenterMIId'), variables('networkContributorRoleId'))]",
+			"properties": {
+				"principalId": "[reference(variables('karpenterMIId'), '2023-01-31').principalId]",
+				"roleDefinitionId": "[variables('networkContributorRoleId')]",
+				"principalType": "ServicePrincipal"
+			},
+			"dependsOn": [
+				"[variables('karpenterMIId')]"
+			]
+		},
+		{
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2024-03-01",
+			"name": "karpenter-node-rg-role-assignments",
+			"resourceGroup": "[variables('nodeResourceGroup')]",
+			"properties": {
+				"mode": "Incremental",
+				"template": {
+					"$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+					"contentVersion": "1.0.0.0",
+					"resources": [
+						{
+							"type": "Microsoft.Authorization/roleAssignments",
+							"apiVersion": "2022-04-01",
+							"name": "[guid(variables('nodeResourceGroup'), variables('karpenterMIId'), variables('virtualMachineContributorRoleId'))]",
+							"properties": {
+								"principalId": "[reference(variables('karpenterMIId'), '2023-01-31').principalId]",
+								"roleDefinitionId": "[variables('virtualMachineContributorRoleId')]",
+								"principalType": "ServicePrincipal"
+							}
+						},
+						{
+							"type": "Microsoft.Authorization/roleAssignments",
+							"apiVersion": "2022-04-01",
+							"name": "[guid(variables('nodeResourceGroup'), variables('karpenterMIId'), variables('networkContributorRoleId'))]",
+							"properties": {
+								"principalId": "[reference(variables('karpenterMIId'), '2023-01-31').principalId]",
+								"roleDefinitionId": "[variables('networkContributorRoleId')]",
+								"principalType": "ServicePrincipal"
+							}
+						},
+						{
+							"type": "Microsoft.Authorization/roleAssignments",
+							"apiVersion": "2022-04-01",
+							"name": "[guid(variables('nodeResourceGroup'), variables('karpenterMIId'), variables('managedIdentityOperatorRoleId'))]",
+							"properties": {
+								"principalId": "[reference(variables('karpenterMIId'), '2023-01-31').principalId]",
+								"roleDefinitionId": "[variables('managedIdentityOperatorRoleId')]",
+								"principalType": "ServicePrincipal"
+							}
+						}
+					]
+				}
+			},
+			"dependsOn": [
+				"[variables('aksClusterId')]",
+				"[variables('karpenterMIId')]"
+			]
 		},
 		{
 			"condition": "[parameters('deployWireguard')]",
@@ -139,9 +245,83 @@
 			"properties": {
 				"routes": []
 			}
+		},
+		{
+			"condition": "[parameters('deployUnboundedCNI')]",
+			"apiVersion": "2023-09-01",
+			"type": "Microsoft.Network/networkSecurityGroups/securityRules",
+			"name": "nsg/AllowGateway",
+			"properties": {
+				"priority": 110,
+				"direction": "Inbound",
+				"access": "Allow",
+				"protocol": "Udp",
+				"sourcePortRange": "*",
+				"destinationPortRange": "51820-51999",
+				"sourceAddressPrefix": "*",
+				"destinationAddressPrefix": "*"
+			}
+		},
+		{
+			"condition": "[parameters('deployUnboundedCNI')]",
+			"apiVersion": "2023-09-01",
+			"type": "Microsoft.Network/publicIPPrefixes",
+			"name": "gw-pips",
+			"location": "[resourceGroup().location]",
+			"sku": {
+				"name": "Standard"
+			},
+			"properties": {
+				"prefixLength": 31,
+				"publicIPAddressVersion": "IPv4"
+			}
+		},
+		{
+			"condition": "[parameters('deployUnboundedCNI')]",
+			"apiVersion": "2025-10-01",
+			"type": "Microsoft.ContainerService/managedClusters/agentPools",
+			"name": "[concat(parameters('clusterName'), '/gateway')]",
+			"properties": {
+				"count": 1,
+				"vmSize": "[parameters('wireguardVMSize')]",
+				"mode": "User",
+				"osType": "Linux",
+				"vnetSubnetId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', 'vnet', 'nodes')]",
+				"enableNodePublicIP": true,
+				"nodePublicIPPrefixID": "[resourceId('Microsoft.Network/publicIPPrefixes', 'gw-pips')]",
+				"networkProfile": {
+					"allowedHostPorts": [
+						{
+							"portStart": 51820,
+							"portEnd": 51999,
+							"protocol": "UDP"
+						}
+					]
+				}
+			},
+			"dependsOn": [
+				"[resourceId('Microsoft.ContainerService/managedClusters', parameters('clusterName'))]",
+				"[resourceId('Microsoft.Network/publicIPPrefixes', 'gw-pips')]"
+			]
 		}
 	],
 	"outputs": {
+		"karpenterMIClientId": {
+			"type": "string",
+			"value": "[reference(variables('karpenterMIId'), '2023-01-31').clientId]"
+		},
+		"karpenterMIPrincipalId": {
+			"type": "string",
+			"value": "[reference(variables('karpenterMIId'), '2023-01-31').principalId]"
+		},
+		"karpenterMIResourceId": {
+			"type": "string",
+			"value": "[variables('karpenterMIId')]"
+		},
+		"oidcIssuerUrl": {
+			"type": "string",
+			"value": "[reference(variables('aksClusterId'), '2024-01-01').oidcIssuerProfile.issuerUrl]"
+		},
 		"nodePoolName": {
 			"condition": "[parameters('deployWireguard')]",
 			"type": "string",

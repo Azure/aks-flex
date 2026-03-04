@@ -1,0 +1,56 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: unbounded-cni-config
+  namespace: unbounded-cni
+data:
+  LOG_LEVEL: "2"
+  config.yaml: |
+    common:
+      azureTenantId: ""
+
+    controller:
+      healthPort: 9999
+      nodeAgentHealthPort: 9998
+      informerResyncPeriod: "300s"
+      statusStaleThreshold: "40s"
+      statusWebsocketKeepaliveInterval: "10s"
+      statusWsKeepaliveFailureCount: 2
+      registerAggregatedAPIServer: true
+      leaderElection:
+        enabled: true
+        leaseDuration: "15s"
+        renewDeadline: "10s"
+        retryPeriod: "2s"
+        resourceNamespace: unbounded-cni
+        resourceName: "unbounded-cni-controller"
+
+    node:
+      cniConfDir: "/host/etc/cni/net.d"
+      cniConfFile: "10-unbounded.conflist"
+      bridgeName: "cbr0"
+      wireGuardDir: "/host/etc/wireguard"
+      wireGuardPort: 51820
+      enablePolicyRouting: true
+      mtu: 0
+      healthPort: 9998
+      informerResyncPeriod: "3600s"
+      statusWebsocketEnabled: true
+      statusWebsocketURL: ""
+      statusWebsocketApiserverMode: "fallback"
+      statusWebsocketApiserverURL: "wss://$(KUBERNETES_SERVICE_HOST)/apis/status.unbounded.aks.azure.com/v1alpha1/status/nodews"
+      statusWebsocketApiserverStartupDelay: "60s"
+      statusWebsocketKeepaliveInterval: "10s"
+      statusWsKeepaliveFailureCount: 2
+      shutdownRemoveWireGuardConfiguration: false
+      shutdownRemoveIPRoutes: false
+      shutdownRemoveMasqueradeRules: false
+      criticalDeltaEvery: "1s"
+      statsDeltaEvery: "15s"
+      statusPushEnabled: true
+      statusPushURL: ""
+      statusPushDelta: true
+      statusPushInterval: "10s"
+      statusPushApiserverInterval: "20s"
+      frrVtyshPath: "/frr/bin/vtysh"

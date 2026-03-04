@@ -1,16 +1,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: sample-gpu-app
+  name: nebius-sample-gpu-app
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: sample-gpu-app
+      app: nebius-sample-gpu-app
   template:
     metadata:
       labels:
-        app: sample-gpu-app
+        app: nebius-sample-gpu-app
     spec:
       affinity:
         nodeAffinity:

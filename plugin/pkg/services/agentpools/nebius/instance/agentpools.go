@@ -82,7 +82,11 @@ func (srv *agentPoolsServer) CreateOrUpdate(
 		kubeadmConfig.SetNodeIp(wireguardIP)
 	}
 
-	ud, err := flex.UserData(apSpec.HasGpu(), kubeVersion, kubeadmConfig)
+	ud, err := flex.UserData(
+		flex.WithEnableNvidiaGPURuntime(apSpec.HasGpu()),
+		flex.WithKubeadmConfig(kubeadmConfig),
+		flex.WithKubeVersion(kubeVersion),
+	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate userdata: %w", err)
 	}
