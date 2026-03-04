@@ -1,0 +1,14 @@
+apiVersion: unbounded.aks.azure.com/v1alpha1
+kind: Site
+metadata:
+  name: {{ .Name }}
+spec:
+  nodeCidrs:
+    - "{{ .NodeCIDR }}" # Should match the private network space in the environment
+  podCidrAssignments:
+    - assignmentEnabled: true
+      cidrBlocks:
+        - "{{ .PodCIDR }}" # Pod CIDR range for this site
+      nodeBlockSizes:
+        ipv4: 24
+      priority: 100

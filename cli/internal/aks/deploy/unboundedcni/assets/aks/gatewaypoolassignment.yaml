@@ -1,0 +1,9 @@
+apiVersion: unbounded.aks.azure.com/v1alpha1
+kind: SiteGatewayPoolAssignment
+metadata:
+  name: main-gateway-assignment
+spec:
+  sites:
+    - "site-azure"
+  gatewayPools:
+    - "main-gateways"

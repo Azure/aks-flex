@@ -9,6 +9,7 @@ import (
 	"github.com/Azure/aks-flex/cli/internal/config/karpenter"
 	"github.com/Azure/aks-flex/cli/internal/config/networks"
 	"github.com/Azure/aks-flex/cli/internal/config/nodebootstrap"
+	"github.com/Azure/aks-flex/cli/internal/config/unboundedcni"
 )
 
 var Command = &cobra.Command{
@@ -22,4 +23,5 @@ func init() {
 	Command.AddCommand(k8sbootstrap.Command)
 	Command.AddCommand(nodebootstrap.Command)
 	Command.AddCommand(karpenter.Command)
+	Command.AddCommand(unboundedcni.Command)
 }
