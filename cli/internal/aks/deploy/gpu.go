@@ -101,7 +101,11 @@ func installDRADriver(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("failed to create temp values file: %w", err)
 	}
-	defer os.Remove(valuesFile.Name())
+	defer func() {
+		if err := os.Remove(valuesFile.Name()); err != nil {
+			log.Printf("failed to remove temp values file: %v", err)
+		}
+	}()
 
 	if _, err := valuesFile.Write(draDriverValuesYAML); err != nil {
 		return fmt.Errorf("failed to write DRA driver values: %w", err)
