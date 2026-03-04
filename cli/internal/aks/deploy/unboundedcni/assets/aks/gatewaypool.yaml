@@ -5,3 +5,13 @@ metadata:
 spec:
   nodeSelector:
     kubernetes.azure.com/agentpool: gateway
+---
+apiVersion: unbounded.aks.azure.com/v1alpha1
+kind: SiteGatewayPoolAssignment
+metadata:
+  name: main-gateway-site-azure
+spec:
+  sites:
+    - "site-azure"
+  gatewayPools:
+    - "main-gateways"
