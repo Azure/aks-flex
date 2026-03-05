@@ -68,7 +68,7 @@ spec:
           effect: NoSchedule
       containers:
         - name: controller
-          image: unboundedcnitme.azurecr.io/unbounded-cni-controller:v0.5.1
+          image: unboundedcnitme.azurecr.io/unbounded-cni-controller:v0.5.2
           imagePullPolicy: Always
           volumeMounts:
             - name: tmp
