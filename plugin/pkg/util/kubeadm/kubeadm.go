@@ -68,7 +68,7 @@ func JoinConfig(cfg *kubeadm.Config, kubeConfigPath string) ([]byte, error) {
 		})
 	}
 
-	// Add --node-ip if configured (for WireGuard nodes)
+	// Add --node-ip if configured
 	if cfg.HasNodeIp() {
 		kubeletArgs = append(kubeletArgs, upstreamv1beta4.Arg{
 			Name:  "node-ip",

@@ -377,7 +377,6 @@ $ kubectl get nodes
 NAME                                STATUS   ROLES    AGE     VERSION
 aks-system-32742974-vmss000000      Ready    <none>   4h32m   v1.33.6
 aks-system-32742974-vmss000001      Ready    <none>   4h32m   v1.33.6
-aks-wireguard-12237243-vmss000000   Ready    <none>   4h14m   v1.33.6
 flex-node-azure                     Ready    <none>   102s    v1.33.8
 ```
 
@@ -428,7 +427,6 @@ $ kubectl get nodes
 NAME                                STATUS     ROLES    AGE     VERSION
 aks-system-32742974-vmss000000      Ready      <none>   5h19m   v1.33.6
 aks-system-32742974-vmss000001      Ready      <none>   5h19m   v1.33.6
-aks-wireguard-12237243-vmss000000   Ready      <none>   5h1m    v1.33.6
 flex-node-azure                     Ready      <none>   48m     v1.33.8
 ubuntu                              NotReady   <none>   3m15s   v1.33.8
 ```
@@ -482,7 +480,7 @@ When a new VM boots with the generated cloud-init user data, the following steps
   │     └─ Contains: CA cert, API server URL, bootstrap token
   │
   ├─ 3. Write kubeadm JoinConfiguration
-  │     └─ Contains: discovery path, node labels, node IP (if WireGuard)
+  │     └─ Contains: discovery path, node labels
   │
   ├─ 4. Configure containerd (systemd cgroup)
   │
@@ -501,4 +499,4 @@ Key settings in the kubeadm `JoinConfiguration`:
 | -------------------------------- | --------------------------------------------------------- |
 | `discovery.file.kubeConfigPath`  | Points to the bootstrap kubeconfig for cluster discovery   |
 | `nodeRegistration.kubeletExtraArgs.node-labels` | Applies labels such as `aks.azure.com/stretch-managed=true` |
-| `nodeRegistration.kubeletExtraArgs.node-ip`     | Sets the node's InternalIP (used with WireGuard tunnels)   |
+| `nodeRegistration.kubeletExtraArgs.node-ip`     | Sets the node's InternalIP                                |

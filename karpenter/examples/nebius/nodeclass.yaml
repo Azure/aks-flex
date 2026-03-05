@@ -7,4 +7,3 @@ spec:
   region: "<your-nebius-region>"
   subnetID: "<your-nebius-subnet-id>"
   osDiskSizeGB: 128
-  wireguardPeerCIDR: "100.96.1.0/24"

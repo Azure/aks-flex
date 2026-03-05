@@ -25,21 +25,19 @@ import (
 	"github.com/Azure/aks-flex/karpenter/pkg/cloudproviders"
 	nebiuscloudprovider "github.com/Azure/aks-flex/karpenter/pkg/cloudproviders/nebius"
 	flexopts "github.com/Azure/aks-flex/karpenter/pkg/options"
-	wgallocator "github.com/Azure/aks-flex/karpenter/pkg/utils/wireguard"
 )
 
 func Register(
 	ctx context.Context,
 	hub *cloudproviders.CloudProvidersHub,
 	clusterCA []byte,
-	wgAlloc *wgallocator.IPAllocator,
 ) error {
 	stretchPluginConn, err := stretchservices.NewConnection()
 	if err != nil {
 		return fmt.Errorf("creating stretch plugin connection: %w", err)
 	}
 
-	cp := newCloudProvider(stretchPluginConn, clusterCA, wgAlloc)
+	cp := newCloudProvider(stretchPluginConn, clusterCA)
 	hub.Register(cp, GroupKind, ProviderIDScheme)
 
 	return nil
@@ -49,21 +47,18 @@ type CloudProvider struct {
 	stretchPluginConn       *grpc.ClientConn
 	stretchAgentPoolsClient agentpoolsapi.AgentPoolsClient
 
-	clusterCA   []byte
-	wgAllocator *wgallocator.IPAllocator
+	clusterCA []byte
 }
 
 func newCloudProvider(
 	stretchPluginConn *grpc.ClientConn,
 	clusterCA []byte,
-	wgAlloc *wgallocator.IPAllocator,
 ) *CloudProvider {
 	return &CloudProvider{
 		stretchPluginConn:       stretchPluginConn,
 		stretchAgentPoolsClient: agentpoolsapi.NewAgentPoolsClient(stretchPluginConn),
 
-		clusterCA:   clusterCA,
-		wgAllocator: wgAlloc,
+		clusterCA: clusterCA,
 	}
 }
 
@@ -84,7 +79,7 @@ func (c *CloudProvider) Create(ctx context.Context, nodeClaim *v1.NodeClaim) (*v
 	}
 
 	nebiusAgentPoolSettings, err := resolveNebiusAgentPoolSettings(
-		ctx, kaitoOpts, c.wgAllocator,
+		ctx, kaitoOpts,
 		nodeClaim, nodeClaimReqs,
 	)
 	if err != nil {

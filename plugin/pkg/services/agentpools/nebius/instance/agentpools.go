@@ -2,7 +2,6 @@ package instance
 
 import (
 	"context"
-	_ "embed"
 	"fmt"
 	"strings"
 
@@ -18,12 +17,8 @@ import (
 	agentpools "github.com/Azure/aks-flex/plugin/pkg/services/agentpools/api"
 	"github.com/Azure/aks-flex/plugin/pkg/services/agentpools/userdata/flex"
 	"github.com/Azure/aks-flex/plugin/pkg/topology"
-	"github.com/Azure/aks-flex/plugin/pkg/util/cloudinit"
 	utilnebius "github.com/Azure/aks-flex/plugin/pkg/util/nebius"
 )
-
-//go:embed assets/wg-spoke.sh
-var wgSpokeScript string
 
 var _ api.Object = (*AgentPool)(nil)
 
@@ -62,14 +57,6 @@ func (srv *agentPoolsServer) CreateOrUpdate(
 		topology.NodeLabelKeyInstanceType: apSpec.GetPlatform(),
 	})
 
-	wireguardIP := apSpec.GetWireguard().GetPeerIp()
-
-	if wireguardIP != "" {
-		// for wireguard enabled instance, the node IP needs to be set to the WireGuard peer IP,
-		// so the network routing can work between nodes.
-		kubeadmConfig.SetNodeIp(wireguardIP)
-	}
-
 	// TODO: get gpu info from spec (might need to infer from SKU)
 	hasGPU := strings.Contains(apSpec.GetImageFamily(), "cuda")
 	// TODO: get the k8s version from spec
@@ -79,22 +66,6 @@ func (srv *agentPoolsServer) CreateOrUpdate(
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate userdata: %w", err)
-	}
-
-	if wireguardIP != "" {
-		// TODO: this part should move to flex node bootstrap setup task
-		ud.Packages = append(ud.Packages, "wireguard", "wireguard-tools")
-		ud.WriteFiles = append(ud.WriteFiles, &cloudinit.WriteFile{
-			Path:        "/root/wg-spoke.sh",
-			Content:     wgSpokeScript,
-			Permissions: "0755",
-		})
-		ud.RunCmd = append(ud.RunCmd, strings.Join([]string{
-			"export ANNOTATION_PREFIX='stretch.azure.com/wireguard-'",
-			fmt.Sprintf("export WG_ADDRESS='%s/32'", wireguardIP),
-			"export WG_DAEMONIZE='true'",
-			"/root/wg-spoke.sh",
-		}, "\n"))
 	}
 
 	userdataContent, err := ud.Marshal()

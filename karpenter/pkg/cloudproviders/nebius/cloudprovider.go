@@ -23,13 +23,11 @@ import (
 	stretchhelper "github.com/Azure/aks-flex/plugin/pkg/helper"
 	stretchservices "github.com/Azure/aks-flex/plugin/pkg/services"
 	agentpoolsapi "github.com/Azure/aks-flex/plugin/pkg/services/agentpools/api"
-	"github.com/Azure/aks-flex/plugin/pkg/services/agentpools/api/features/wireguard"
 	nebiusinstance "github.com/Azure/aks-flex/plugin/pkg/services/agentpools/nebius/instance"
 
 	"github.com/Azure/aks-flex/karpenter/pkg/apis"
 	"github.com/Azure/aks-flex/karpenter/pkg/apis/v1alpha1"
 	"github.com/Azure/aks-flex/karpenter/pkg/cloudproviders"
-	wgallocator "github.com/Azure/aks-flex/karpenter/pkg/utils/wireguard"
 )
 
 type CloudProvider struct {
@@ -37,9 +35,8 @@ type CloudProvider struct {
 	stretchPluginConn       *grpc.ClientConn
 	stretchAgentPoolsClient agentpoolsapi.AgentPoolsClient
 
-	kubeClient  client.Client
-	clusterCA   []byte
-	wgAllocator *wgallocator.IPAllocator
+	kubeClient client.Client
+	clusterCA  []byte
 }
 
 func newCloudProvider(
@@ -47,16 +44,14 @@ func newCloudProvider(
 	stretchPluginConn *grpc.ClientConn,
 	kubeClient client.Client,
 	clusterCA []byte,
-	wgAlloc *wgallocator.IPAllocator,
 ) *CloudProvider {
 	return &CloudProvider{
 		sdk:                     sdk,
 		stretchPluginConn:       stretchPluginConn,
 		stretchAgentPoolsClient: agentpoolsapi.NewAgentPoolsClient(stretchPluginConn),
 
-		kubeClient:  kubeClient,
-		clusterCA:   clusterCA,
-		wgAllocator: wgAlloc,
+		kubeClient: kubeClient,
+		clusterCA:  clusterCA,
 	}
 }
 
@@ -66,14 +61,13 @@ func Register(
 	sdk *gosdk.SDK,
 	kubeClient client.Client,
 	clusterCA []byte,
-	wgAlloc *wgallocator.IPAllocator,
 ) error {
 	stretchPluginConn, err := stretchservices.NewConnection()
 	if err != nil {
 		return fmt.Errorf("creating stretch plugin connection: %w", err)
 	}
 
-	cp := newCloudProvider(sdk, stretchPluginConn, kubeClient, clusterCA, wgAlloc)
+	cp := newCloudProvider(sdk, stretchPluginConn, kubeClient, clusterCA)
 	hub.Register(cp, GroupKind, ProviderIDScheme)
 
 	return nil
@@ -129,26 +123,12 @@ func (c *CloudProvider) Create(ctx context.Context, nodeClaim *v1.NodeClaim) (*v
 		"platformPreset", platformPresetToLaunch.InstanceTypeName(),
 	)
 
-	// Allocate a WireGuard peer IP if enabled for this NodeClass.
-	var wgConfig *wireguard.Config
-	if nodeClass.Spec.WireguardPeerCIDR != nil {
-		peerIP, err := c.wgAllocator.AllocateIP(ctx, *nodeClass.Spec.WireguardPeerCIDR, nodeClass.Name, nodeClaim.Name)
-		if err != nil {
-			return nil, err
-		}
-		logger.Info("allocated WireGuard peer IP", "peerIP", peerIP)
-		wgConfig = wireguard.Config_builder{
-			PeerIp: lo.ToPtr(peerIP),
-		}.Build()
-	}
-
 	agentPool := nodeClaimToStretchAgentPool(
 		karpoptions.FromContext(ctx),
 		c.clusterCA,
 		nodeClass,
 		nodeClaim,
 		platformPresetToLaunch,
-		wgConfig,
 	)
 	// TODO: create async - we just need to retrieve the resource id for rebuilding the claim
 	agentPoolCreated, err := stretchhelper.CreateOrUpdate(

@@ -5,7 +5,7 @@
 The AKS Flex CLI (`aks-flex-cli`) is a command-line tool for managing AKS Flex clusters that span across Azure and remote cloud providers (e.g. Nebius). It handles the end-to-end lifecycle of a multi-cloud Kubernetes environment, including:
 
 - **Network provisioning** -- deploy and manage the Azure-side network infrastructure
-- **AKS cluster deployment** -- create and configure AKS clusters with options such as Cilium CNI and WireGuard encryption
+- **AKS cluster deployment** -- create and configure AKS clusters with options such as Cilium CNI
 - **Remote cloud integration** -- configure networking and agent pools on remote cloud providers
 - **Configuration generation** -- bootstrap environment configs, Kubernetes cluster settings, and node bootstrap scripts
 

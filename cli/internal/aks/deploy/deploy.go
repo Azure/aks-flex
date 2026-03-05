@@ -27,9 +27,6 @@ var (
 				if deploycilium {
 					return fmt.Errorf("--cilium cannot be used with --unbounded-cni")
 				}
-				if deployWireguard {
-					return fmt.Errorf("--wireguard cannot be used with --unbounded-cni")
-				}
 			}
 			return nil
 		},
@@ -39,7 +36,6 @@ var (
 	}
 
 	deploycilium          bool
-	deployWireguard       bool
 	unboundedCNI          bool
 	deployGPUOperator     bool
 	deployGPUDevicePlugin bool
@@ -52,8 +48,7 @@ var (
 
 func init() {
 	Command.Flags().BoolVar(&deploycilium, "cilium", false, "deploy Cilium CNI") // default to true to allow minimal networking to work
-	Command.Flags().BoolVar(&deployWireguard, "wireguard", false, "deploy WireGuard gateway node pool and DaemonSet")
-	Command.Flags().BoolVar(&unboundedCNI, "unbounded-cni", false, "deploy unbounded cni (mutually exclusive with --cilium and --wireguard)")
+	Command.Flags().BoolVar(&unboundedCNI, "unbounded-cni", false, "deploy unbounded cni (mutually exclusive with --cilium)")
 	Command.Flags().BoolVar(&deployGPUOperator, "gpu-operator", false, "install NVIDIA GPU Operator via Helm")
 	Command.Flags().BoolVar(&deployGPUDevicePlugin, "gpu-device-plugin", false, "install NVIDIA GPU Device Plugin via Helm")
 	Command.Flags().BoolVar(&skipARM, "skip-arm", false, "skip the ARM template deployment step")
@@ -116,12 +111,6 @@ func run(ctx context.Context) error {
 			"vmSize": {
 				Value: cfg.SystemVMSize,
 			},
-			"gatewayVMSize": {
-				Value: cfg.GatewayVMSize,
-			},
-			"deployWireguard": {
-				Value: deployWireguard,
-			},
 			"deployUnboundedCNI": {
 				Value: unboundedCNI,
 			},
@@ -148,13 +137,6 @@ func run(ctx context.Context) error {
 			return err
 		}
 		log.Printf("Cilium deployment complete")
-	}
-
-	if deployWireguard {
-		if err := deployWireGuard(ctx, credentials, cfg); err != nil {
-			return err
-		}
-		log.Printf("WireGuard deployment complete")
 	}
 
 	if unboundedCNI {

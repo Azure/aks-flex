@@ -15,7 +15,7 @@ $ aks-flex-cli network deploy
 ## Initializing AKS Cluster
 
 ```
-$ aks-flex-cli aks deploy --cilium --wireguard
+$ aks-flex-cli aks deploy --cilium
 ```
 
 ## Initializing Remote Cloud Network

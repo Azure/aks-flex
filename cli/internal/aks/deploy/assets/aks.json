@@ -22,10 +22,6 @@
 			"type": "string",
 			"defaultValue": "Standard_D16ds_v5"
 		},
-		"deployWireguard": {
-			"type": "bool",
-			"defaultValue": false
-		},
 		"deployUnboundedCNI": {
 			"type": "bool",
 			"defaultValue": false
@@ -172,81 +168,6 @@
 			]
 		},
 		{
-			"condition": "[parameters('deployWireguard')]",
-			"apiVersion": "2023-09-01",
-			"type": "Microsoft.Network/networkSecurityGroups/securityRules",
-			"name": "nsg/AllowWireGuard",
-			"properties": {
-				"priority": 100,
-				"direction": "Inbound",
-				"access": "Allow",
-				"protocol": "Udp",
-				"sourcePortRange": "*",
-				"destinationPortRange": "51820",
-				"sourceAddressPrefix": "*",
-				"destinationAddressPrefix": "*"
-			}
-		},
-		{
-			"condition": "[parameters('deployWireguard')]",
-			"apiVersion": "2023-09-01",
-			"type": "Microsoft.Network/publicIPPrefixes",
-			"name": "wg-pips",
-			"location": "[resourceGroup().location]",
-			"sku": {
-				"name": "Standard"
-			},
-			"properties": {
-				"prefixLength": 31,
-				"publicIPAddressVersion": "IPv4"
-			}
-		},
-		{
-			"condition": "[parameters('deployWireguard')]",
-			"apiVersion": "2025-10-01",
-			"type": "Microsoft.ContainerService/managedClusters/agentPools",
-			"name": "[concat(parameters('clusterName'), '/wireguard')]",
-			"properties": {
-				"count": 1,
-				"vmSize": "[parameters('gatewayVMSize')]",
-				"mode": "User",
-				"osType": "Linux",
-				"vnetSubnetId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', 'vnet', 'nodes')]",
-				"enableNodePublicIP": true,
-				"nodePublicIPPrefixID": "[resourceId('Microsoft.Network/publicIPPrefixes', 'wg-pips')]",
-				"networkProfile": {
-					"allowedHostPorts": [
-						{
-							"portStart": 51820,
-							"portEnd": 51820,
-							"protocol": "UDP"
-						}
-					]
-				},
-				"nodeLabels": {
-					"stretch.azure.com/wireguard-gateway": "true",
-					"stretch.azure.com/wireguard-hub": "true"
-				},
-				"nodeTaints": [
-					"stretch.azure.com/wireguard-gateway=true:NoSchedule"
-				]
-			},
-			"dependsOn": [
-				"[resourceId('Microsoft.ContainerService/managedClusters', parameters('clusterName'))]",
-				"[resourceId('Microsoft.Network/publicIPPrefixes', 'wg-pips')]"
-			]
-		},
-		{
-			"condition": "[parameters('deployWireguard')]",
-			"apiVersion": "2023-09-01",
-			"type": "Microsoft.Network/routeTables",
-			"name": "wg-routes",
-			"location": "[resourceGroup().location]",
-			"properties": {
-				"routes": []
-			}
-		},
-		{
 			"condition": "[parameters('deployUnboundedCNI')]",
 			"apiVersion": "2023-09-01",
 			"type": "Microsoft.Network/networkSecurityGroups/securityRules",
@@ -321,21 +242,6 @@
 		"oidcIssuerUrl": {
 			"type": "string",
 			"value": "[reference(variables('aksClusterId'), '2024-01-01').oidcIssuerProfile.issuerUrl]"
-		},
-		"nodePoolName": {
-			"condition": "[parameters('deployWireguard')]",
-			"type": "string",
-			"value": "wireguard"
-		},
-		"publicIpPrefixId": {
-			"condition": "[parameters('deployWireguard')]",
-			"type": "string",
-			"value": "[resourceId('Microsoft.Network/publicIPPrefixes', 'wg-pips')]"
-		},
-		"routeTableId": {
-			"condition": "[parameters('deployWireguard')]",
-			"type": "string",
-			"value": "[resourceId('Microsoft.Network/routeTables', 'wg-routes')]"
 		}
 	}
 }
