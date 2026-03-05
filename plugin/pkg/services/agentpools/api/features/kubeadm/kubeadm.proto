@@ -18,7 +18,7 @@ message Config {
   // List of node labels to assign using the kubelet flag
   map<string, string> node_labels = 4;
 
-  // WireGuard IP for --node-ip kubelet argument (optional)
+  // IP for --node-ip kubelet argument (optional)
   string node_ip = 5;
 
   // List of taints to assign using the kubelet flag, in the format "key=value:effect"
