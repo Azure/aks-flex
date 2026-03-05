@@ -27,9 +27,9 @@ var bootstrapTmpl string
 var bootstrapTemplate = template.Must(template.New("bootstrap.sh").Parse(bootstrapTmpl))
 
 const (
-	flexNodeVersion = "v0.0.13"
+	flexNodeVersion = "v0.0.14"
 	defaultArch     = "amd64"
-	defaultKubeVer  = "1.33.3"
+	defaultKubeVer  = "1.34.2"
 )
 
 // Options configures how the flex node userdata is generated.
