@@ -8,7 +8,6 @@ import (
 
 	"github.com/Azure/aks-flex/cli/internal/config/configcmd"
 	"github.com/Azure/aks-flex/plugin/api"
-	"github.com/Azure/aks-flex/plugin/pkg/services/agentpools/api/features/wireguard"
 	nebiusap "github.com/Azure/aks-flex/plugin/pkg/services/agentpools/nebius/instance"
 )
 
@@ -33,9 +32,6 @@ func newNebiusAgentPool(ctx context.Context) proto.Message {
 			ImageFamily:         to.Ptr(configcmd.OrPlaceholder("")),
 			OsDiskSizeGibibytes: to.Ptr(int64(128)),
 			Kubeadm:             configcmd.DefaultKubeadmConfig(ctx),
-			Wireguard: wireguard.Config_builder{
-				PeerIp: to.Ptr(configcmd.OrPlaceholder("")),
-			}.Build(),
 		}.Build(),
 	}.Build()
 }
