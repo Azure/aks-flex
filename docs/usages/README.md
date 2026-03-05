@@ -9,7 +9,7 @@ Start with the CLI setup guide, then follow the scenario that best fits your use
 | Guide | Description |
 | ----- | ----------- |
 | [CLI Setup](cli-setup.md) | Install the `aks-flex-cli` tool and generate a `.env` configuration file |
-| [AKS Cluster Setup](cli-prepare-aks-cluster.md) | Deploy Azure network resources, create an AKS cluster with Cilium CNI, and optionally enable WireGuard |
+| [AKS Cluster Setup](cli-prepare-aks-cluster.md) | Deploy Azure network resources, create an AKS cluster with Cilium CNI, and optionally enable Unbounded CNI |
 
 ## Scenarios
 

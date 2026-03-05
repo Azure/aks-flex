@@ -118,41 +118,9 @@ $ aks-flex-cli plugin get networks nebius-default
 
 ![](./images/cli-plugin-nebius/resource-nebius-network.png)
 
-## Nebius - Azure Network Connectivity
+## Cross-Cloud Connectivity
 
-AKS Flex uses WireGuard to establish an encrypted site-to-site tunnel between the Azure VNet and the Nebius VPC. On top of this tunnel, Cilium's VXLAN overlay is used to extend the Kubernetes pod network across clouds so that pods on Azure and Nebius nodes can communicate seamlessly.
-
-The following diagram illustrates the connectivity:
-
-```
-                  Azure                                             Nebius
-  ┌──────────────────────────────┐             ┌──────────────────────────────┐
-  │  VNet: 172.16.0.0/16         │             │  VPC: 172.20.0.0/16          │
-  │                              │             │                              │
-  │  ┌────────────┐              │  WireGuard  │              ┌────────────┐  │
-  │  │ AKS Node   │              │  Tunnel     │              │ Nebius VM  │  │
-  │  │            │              │◄───────────►│              │            │  │
-  │  └────────────┘              │  (UDP/51820)│              └────────────┘  │
-  │                              │             │                              │
-  │  ┌────────────┐              │             │              ┌────────────┐  │
-  │  │ WireGuard  │──────────────┼─────────────┼──────────────│ WireGuard  │  │
-  │  │ Gateway    │  Peer IP: 100.96.x.x       │              │ Peer       │  │
-  │  └────────────┘              │             │              └────────────┘  │
-  │                              │             │                              │
-  │         Cilium VXLAN overlay spans across both clouds                     │
-  └──────────────────────────────┘             └──────────────────────────────┘
-```
-
-### Peer IP assignment
-
-Each node that participates in the WireGuard mesh is assigned a **peer IP** from the `100.96.0.0/12` range. This peer IP is critical because it serves as the node's address within the WireGuard tunnel and must be set as the node's InternalIP in Kubernetes. This allows `kube-proxy` to correctly forward service traffic to the node, since kube-proxy routes based on the node's InternalIP.
-
-When configuring agent pools, each node must be assigned a unique peer IP from this range. For example:
-
-| Node         | Peer IP         |
-| ------------ | --------------- |
-| CPU node     | `100.96.1.111`  |
-| GPU node     | `100.96.1.112`  |
+This guide assumes the AKS cluster has been deployed with Unbounded CNI for cross-cloud networking. See [Enable with Unbounded CNI](cli-prepare-aks-cluster.md#enable-with-unbounded-cni) and the [Nebius Cloud Integration (Unbounded CNI)](cli-plugin-nebius-unbounded-cni.md) guide for details on setting up cross-cloud connectivity.
 
 ## Create Nebius CPU Node
 
@@ -188,9 +156,6 @@ This produces a JSON file like:
         "aks.azure.com/stretch-managed": "true",
         ...
       }
-    },
-    "wireguard": {
-      "peerIp": "<replace-with-actual-value>"
     }
   }
 }
@@ -205,7 +170,6 @@ Edit the file to configure a CPU node. Update the placeholder fields:
 | `spec.platform`     | `cpu-d3`                        | Nebius compute platform                              |
 | `spec.preset`       | `4vcpu-16gb`                    | VM size preset <!-- TODO: add link to Nebius docs listing available platform/preset values --> |
 | `spec.imageFamily`  | `ubuntu24.04-driverless`        | OS image family                                      |
-| `spec.wireguard.peerIp` | *(unique IP in `100.96.0.0/12`)* | WireGuard peer IP for this node (see [Peer IP assignment](#peer-ip-assignment)) |
 
 The `kubeadm` section is auto-populated from the running AKS cluster when the `.env` is configured correctly. If the cluster is not reachable, placeholder values are generated that must be replaced manually.
 
@@ -236,8 +200,7 @@ k get node -o wide
 NAME                                 STATUS     ROLES    AGE   VERSION   INTERNAL-IP    EXTERNAL-IP   OS-IMAGE             KERNEL-VERSION       CONTAINER-RUNTIME
 aks-system-32742974-vmss000000       Ready      <none>   40m   v1.33.6   172.16.1.4     <none>        Ubuntu 22.04.5 LTS   5.15.0-1102-azure    containerd://1.7.30-1
 aks-system-32742974-vmss000001       Ready      <none>   40m   v1.33.6   172.16.1.5     <none>        Ubuntu 22.04.5 LTS   5.15.0-1102-azure    containerd://1.7.30-1
-aks-wireguard-12237243-vmss000000    Ready      <none>   21m   v1.33.6   172.16.2.4     <MASKED>      Ubuntu 22.04.5 LTS   5.15.0-1102-azure    containerd://1.7.30-1
-computeinstance-e00c3m3yvj3rhnvhan   Ready      <none>   58s   v1.33.8   100.96.1.111   <none>        Ubuntu 24.04.4 LTS   6.11.0-1016-nvidia   containerd://1.7.28
+computeinstance-e00c3m3yvj3rhnvhan   Ready      <none>   58s   v1.33.8   172.20.0.10    <none>        Ubuntu 24.04.4 LTS   6.11.0-1016-nvidia   containerd://1.7.28
 ```
 
 ![](./images/cli-plugin-nebius/resource-nebius-instance-cpu.png)
@@ -261,7 +224,6 @@ Edit the file to configure a GPU node:
 | `spec.platform`     | *(GPU platform, e.g. `gpu-h100-sxm`)* | Nebius GPU compute platform                   |
 | `spec.preset`       | *(GPU preset, e.g. `1gpu-16vcpu-200gb`)* | GPU VM size preset <!-- TODO: add link to Nebius docs listing available platform/preset values --> |
 | `spec.imageFamily`  | *(GPU image, e.g. `ubuntu24.04-cuda12`)* | OS image with GPU drivers                   |
-| `spec.wireguard.peerIp` | *(unique IP in `100.96.0.0/12`)* | WireGuard peer IP (must differ from CPU node, see [Peer IP assignment](#peer-ip-assignment)) |
 
 ### Apply the agent pool config
 
@@ -287,16 +249,15 @@ k get node -o wide
 NAME                                 STATUS   ROLES    AGE     VERSION   INTERNAL-IP    EXTERNAL-IP   OS-IMAGE             KERNEL-VERSION       CONTAINER-RUNTIME
 aks-system-32742974-vmss000000       Ready    <none>   50m     v1.33.6   172.16.1.4     <none>        Ubuntu 22.04.5 LTS   5.15.0-1102-azure    containerd://1.7.30-1
 aks-system-32742974-vmss000001       Ready    <none>   50m     v1.33.6   172.16.1.5     <none>        Ubuntu 22.04.5 LTS   5.15.0-1102-azure    containerd://1.7.30-1
-aks-wireguard-12237243-vmss000000    Ready    <none>   31m     v1.33.6   172.16.2.4     <MASKED>      Ubuntu 22.04.5 LTS   5.15.0-1102-azure    containerd://1.7.30-1
-computeinstance-e00c3m3yvj3rhnvhan   Ready    <none>   9m57s   v1.33.8   100.96.1.111   <none>        Ubuntu 24.04.4 LTS   6.11.0-1016-nvidia   containerd://1.7.28
-computeinstance-e00vm3hfp0gac4e5vz   Ready    <none>   117s    v1.33.8   100.96.1.112   <none>        Ubuntu 24.04.4 LTS   6.11.0-1016-nvidia   containerd://1.7.28
+computeinstance-e00c3m3yvj3rhnvhan   Ready    <none>   9m57s   v1.33.8   172.20.0.10    <none>        Ubuntu 24.04.4 LTS   6.11.0-1016-nvidia   containerd://1.7.28
+computeinstance-e00vm3hfp0gac4e5vz   Ready    <none>   117s    v1.33.8   172.20.0.11    <none>        Ubuntu 24.04.4 LTS   6.11.0-1016-nvidia   containerd://1.7.28
 ```
 
 ![](./images/cli-plugin-nebius/resource-nebius-instance-gpu.png)
 
 ## Validating cross-cloud connectivity
 
-With the WireGuard tunnel and Cilium VXLAN overlay in place, pods running on the Nebius nodes should be able to
+With cross-cloud connectivity in place, pods running on the Nebius nodes should be able to
 communicate with pods on the AKS nodes, and vice versa. We can validate this by checking the logs
 from pods running on the Nebius nodes:
 
@@ -344,7 +305,6 @@ $ kubectl get nodes
 NAME                                 STATUS     ROLES    AGE   VERSION
 aks-system-32742974-vmss000000       Ready      <none>   58m   v1.33.6
 aks-system-32742974-vmss000001       Ready      <none>   58m   v1.33.6
-aks-wireguard-12237243-vmss000000    Ready      <none>   39m   v1.33.6
 computeinstance-e00c3m3yvj3rhnvhan   NotReady   <none>   18m   v1.33.8
 computeinstance-e00vm3hfp0gac4e5vz   NotReady   <none>   10m   v1.33.8
 ```

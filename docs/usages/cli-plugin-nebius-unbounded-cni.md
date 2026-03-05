@@ -175,8 +175,6 @@ Edit the file to configure a CPU node. Update the placeholder fields:
 | `spec.preset`       | `4vcpu-16gb`                    | VM size preset                                       |
 | `spec.imageFamily`  | `ubuntu24.04-driverless`        | OS image family                                      |
 
-> **Note:** When using Unbounded CNI, the `spec.wireguard` section in the agent pool config is not needed. The Unbounded CNI operator handles cross-cloud routing automatically.
-
 The `kubeadm` section is auto-populated from the running AKS cluster when the `.env` is configured correctly. If the cluster is not reachable, placeholder values are generated that must be replaced manually.
 
 ### Apply the agent pool config

@@ -12,14 +12,14 @@ This guide walks through deploying `karpenter` to an AKS Flex cluster and using 
 Karpenter watches for unschedulable pods and automatically provisions new nodes to meet demand. The `karpenter` extends Karpenter with multiple cloud providers:
 
 - **Azure** (`AKSNodeClass`) — provisions Azure VMs directly into the cluster's node resource group, joining the existing AKS cluster.
-- **Nebius** (`NebiusNodeClass`) — provisions Nebius VMs that join the AKS cluster as worker nodes over WireGuard or Unbounded CNI.
+- **Nebius** (`NebiusNodeClass`) — provisions Nebius VMs that join the AKS cluster as worker nodes over Unbounded CNI.
 
 ## Getting Started
 
 ### Prerequisites
 
 - **AKS Flex CLI** -- installed and configured with a `.env` file. See [CLI Setup](cli-setup.md).
-- **AKS cluster** -- an AKS cluster provisioned via the CLI. For Nebius nodes, the cluster must also have WireGuard or Unbounded CNI enabled for cross-cloud connectivity. See [AKS Cluster Setup](cli-prepare-aks-cluster.md).
+- **AKS cluster** -- an AKS cluster provisioned via the CLI. For Nebius nodes, the cluster must also have Unbounded CNI enabled for cross-cloud connectivity. See [AKS Cluster Setup](cli-prepare-aks-cluster.md).
 - **Nebius service account credentials** *(Nebius only)* -- a Nebius credentials JSON file for the karpenter controller. See the [Nebius authorized keys documentation](https://docs.nebius.com/iam/service-accounts/authorized-keys).
 - **Helm** -- required for installing the karpenter chart.
 
@@ -227,8 +227,6 @@ NAME     READY   AGE
 nebius   True    3s
 ```
 
-> **Note:** The `wireguardPeerCIDR` field in the `NebiusNodeClass` is only required when using WireGuard for cross-cloud connectivity. When using Unbounded CNI, this field should not be set.
-
 ### Creating a NodePool
 
 The `NodePool` defines scheduling constraints and references the `NebiusNodeClass`:
@@ -291,11 +289,11 @@ After a few minutes, the new Nebius node should appear:
 ```bash
 $ kubectl get nodes -o wide
 NAME                                 STATUS   ROLES    AGE     VERSION   INTERNAL-IP    EXTERNAL-IP     OS-IMAGE             KERNEL-VERSION       CONTAINER-RUNTIME
+aks-gateway-26665104-vmss000000      Ready    <none>   3h9m    v1.34.2   172.16.2.4     <MASKED>        Ubuntu 22.04.5 LTS   5.15.0-1102-azure    containerd://1.7.30-1
 aks-system-94214615-vmss000000       Ready    <none>   3h13m   v1.34.2   172.16.1.4     <none>          Ubuntu 22.04.5 LTS   5.15.0-1102-azure    containerd://1.7.30-1
 aks-system-94214615-vmss000001       Ready    <none>   3h13m   v1.34.2   172.16.1.5     <none>          Ubuntu 22.04.5 LTS   5.15.0-1102-azure    containerd://1.7.30-1
 aks-system-94214615-vmss000002       Ready    <none>   3h13m   v1.34.2   172.16.1.6     <none>          Ubuntu 22.04.5 LTS   5.15.0-1102-azure    containerd://1.7.30-1
-aks-wireguard-23306360-vmss000000    Ready    <none>   3h9m    v1.34.2   172.16.2.4     20.91.194.208   Ubuntu 22.04.5 LTS   5.15.0-1102-azure    containerd://1.7.30-1
-computeinstance-e00a4p0rrnms9n24jp   Ready    <none>   8m30s   v1.33.3   100.96.1.237   <none>          Ubuntu 24.04.4 LTS   6.11.0-1016-nvidia   containerd://2.0.4
+computeinstance-e00a4p0rrnms9n24jp   Ready    <none>   8m30s   v1.33.3   172.20.0.10    <none>          Ubuntu 24.04.4 LTS   6.11.0-1016-nvidia   containerd://2.0.4
 ```
 
 The pod is now running on the Nebius node:
@@ -362,10 +360,10 @@ After the GPU node is provisioned, both nodes and pods should be running:
 ```bash
 $ kubectl get nodes
 NAME                                 STATUS   ROLES    AGE     VERSION
+aks-gateway-26665104-vmss000000      Ready    <none>   3h14m   v1.34.2
 aks-system-94214615-vmss000000       Ready    <none>   3h19m   v1.34.2
 aks-system-94214615-vmss000001       Ready    <none>   3h19m   v1.34.2
 aks-system-94214615-vmss000002       Ready    <none>   3h18m   v1.34.2
-aks-wireguard-23306360-vmss000000    Ready    <none>   3h14m   v1.34.2
 computeinstance-e00a4p0rrnms9n24jp   Ready    <none>   13m     v1.33.3
 computeinstance-e00zjdx1e50bxcfekk   Ready    <none>   107s    v1.33.3
 ```
@@ -436,9 +434,9 @@ After the disruption grace period, Karpenter will terminate the idle Nebius node
 ```bash
 $ kubectl get nodes
 NAME                                 STATUS   ROLES    AGE    VERSION
+aks-gateway-26665104-vmss000000      Ready    <none>   18h    v1.33.6
 aks-system-32742974-vmss000000       Ready    <none>   18h    v1.33.6
 aks-system-32742974-vmss000001       Ready    <none>   18h    v1.33.6
-aks-wireguard-12237243-vmss000000    Ready    <none>   18h    v1.33.6
 ```
 
 ![](./images/karpenter/node-deletion.png)

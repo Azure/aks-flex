@@ -10,7 +10,6 @@ This guide walks through preparing a base AKS cluster and the supporting Azure r
 
 Optionally, you can also deploy:
 
-- A **WireGuard gateway** for site-to-site encrypted tunneling -- see [Enable with WireGuard](#enable-with-wireguard)
 - **Unbounded CNI** for cross-cloud networking via the Unbounded CNI operator -- see [Enable with Unbounded CNI](#enable-with-unbounded-cni)
 
 ## Setup
@@ -50,7 +49,7 @@ The CLI creates an AKS cluster with `networkPlugin: none`, which disables the bu
 - **Cilium CNI** installed via the Cilium CLI after the cluster is provisioned
 - A system-assigned managed identity
 
-If you need site-to-site connectivity without a VPN gateway (or for development/testing purposes), you can additionally enable WireGuard or Unbounded CNI. These options are mutually exclusive -- refer to the [Enable with WireGuard](#enable-with-wireguard) or [Enable with Unbounded CNI](#enable-with-unbounded-cni) sections below.
+If you need site-to-site connectivity without a VPN gateway (or for development/testing purposes), you can additionally enable Unbounded CNI -- refer to the [Enable with Unbounded CNI](#enable-with-unbounded-cni) section below.
 
 ## Create Network Resources
 
@@ -124,72 +123,11 @@ $ aks-flex-cli aks deploy --cilium --kubeconfig ./my-cluster.kubeconfig
 
 ![](./images/cli-prepare-aks-cluster/resource-aks.png)
 
-### Enable with WireGuard
-
-WireGuard provides an encrypted site-to-site tunnel between the AKS cluster and remote cloud nodes. This is useful when:
-
-- A VPN gateway is not available or not practical for the environment
-- You need a lightweight tunnel for development and testing
-- You want encrypted node-to-node communication across clouds
-
-To deploy the cluster with both Cilium and WireGuard:
-
-```bash
-$ aks-flex-cli aks deploy --cilium --wireguard
-```
-
-In addition to the standard AKS resources, the `--wireguard` flag provisions:
-
-| Resource                 | Name                    | Details                                          |
-| ------------------------ | ----------------------- | ------------------------------------------------ |
-| NSG rule                 | `AllowWireGuard`        | Allows inbound UDP/51820                         |
-| Public IP prefix         | `wg-pips`  | Static public IP prefix for the gateway node     |
-| Agent pool               | `wireguard`             | 1-node pool in the `nodes` subnet with public IP (size: `$GATEWAY_VM_SIZE`) |
-| Route table              | `wg-routes`         | Routes remote cloud traffic through the gateway  |
-
-After the ARM deployment, the CLI automatically:
-
-1. Generates (or reuses) a WireGuard key pair stored as a Kubernetes secret
-2. Waits for the WireGuard gateway node to register and receive its public IP
-3. Updates the `wg-routes` route table to forward remote cloud traffic (`100.96.0.0/12`) through the gateway node
-4. Associates the route table with the `aks` and `nodes` subnets
-5. Deploys the WireGuard DaemonSet to the cluster
-
-Expected output:
-
-```
-2026/02/21 10:05:00 starting deployment aks in rg-aks-flex-<username>
-2026/02/21 10:15:00 deployment aks succeeded
-2026/02/21 10:15:01 kubeconfig saved to "/home/<username>/.kube/config"
-...
-✅ Cilium was successfully installed!
-2026/02/21 10:16:00 Getting WireGuard keys...
-2026/02/21 10:16:00   Generating new WireGuard keys
-2026/02/21 10:16:00   Public Key: <base64-encoded-public-key>
-2026/02/21 10:16:00 Waiting for WireGuard gateway node to register...
-2026/02/21 10:17:30 WireGuard gateway node ready
-2026/02/21 10:17:30   Public IP: <gateway-public-ip>
-2026/02/21 10:17:30   Private IP: <gateway-private-ip>
-2026/02/21 10:17:30 Updating route table...
-2026/02/21 10:17:35   Route table updated with gateway IP: <gateway-private-ip>
-2026/02/21 10:17:35 Associating route table with subnets...
-2026/02/21 10:17:40   Associating route table with subnet aks...
-2026/02/21 10:17:45   Route table associated with subnet aks
-2026/02/21 10:17:45   Associating route table with subnet nodes...
-2026/02/21 10:17:50   Route table associated with subnet nodes
-2026/02/21 10:17:50 Deploying WireGuard DaemonSet...
-2026/02/21 10:17:52   WireGuard DaemonSet deployed successfully
-```
-
-Sample route table after deployment:
-
-![](./images/cli-prepare-aks-cluster/resource-wg-route.png)
-
 ### Enable with Unbounded CNI
 
 Unbounded CNI provides cross-cloud networking through the Unbounded CNI operator, which manages Site, GatewayPool, and SiteGatewayPoolAssignment resources to route traffic between clouds.
 
-> **Note:** The `--unbounded-cni` flag is mutually exclusive with `--cilium` and `--wireguard`.
+> **Note:** The `--unbounded-cni` flag is mutually exclusive with `--cilium`.
 
 To deploy the cluster with Unbounded CNI:
 
@@ -254,16 +192,6 @@ $ kubectl get nodes
 NAME                             STATUS   ROLES    AGE   VERSION
 aks-system-32742974-vmss000000   Ready    <none>   16m   v1.33.6
 aks-system-32742974-vmss000001   Ready    <none>   16m   v1.33.6
-```
-
-If you deployed with `--wireguard`, you will also see the WireGuard gateway node:
-
-```bash
-$ kubectl get nodes
-NAME                                STATUS   ROLES    AGE   VERSION
-aks-system-32742974-vmss000000      Ready    <none>   19m   v1.33.6
-aks-system-32742974-vmss000001      Ready    <none>   19m   v1.33.6
-aks-wireguard-12237243-vmss000000   Ready    <none>   51s   v1.33.6
 ```
 
 If you deployed with `--unbounded-cni`, you will see the gateway node pool:
