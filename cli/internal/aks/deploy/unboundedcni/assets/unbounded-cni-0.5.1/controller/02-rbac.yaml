@@ -7,11 +7,17 @@ metadata:
     app.kubernetes.io/name: unbounded-cni-controller
     app.kubernetes.io/component: controller
 rules:
-  # Nodes: read and update for CIDR assignment and site labeling
+  # Nodes: read, patch, and update for CIDR assignment and site labeling.
+  # Cannot be further scoped -- the controller must operate on any node in the cluster.
   - apiGroups: [""]
     resources: ["nodes"]
     verbs: ["get", "list", "watch", "patch", "update"]
-  # Leases: for leader election
+  # Events: emit events about cluster-scoped objects (Nodes)
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["create", "patch"]
+  # Leases: cluster-scoped because the controller reads node heartbeat leases from
+  # kube-node-lease namespace (for dashboard status) in addition to its own namespace.
   - apiGroups: ["coordination.k8s.io"]
     resources: ["leases"]
     verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
@@ -39,9 +45,9 @@ rules:
   - apiGroups: ["unbounded.aks.azure.com"]
     resources: ["sites", "gatewaypools"]
     verbs: ["patch", "update"]
-  # Status subresources: update observed state for sites, gateway pools, and gateway pool nodes
+  # Status subresources: update observed state for sites, site peerings, gateway pools, and gateway pool nodes
   - apiGroups: ["unbounded.aks.azure.com"]
-    resources: ["sites/status", "gatewaypools/status", "gatewaypoolnodes/status"]
+    resources: ["sites/status", "sitepeerings/status", "gatewaypools/status", "gatewaypoolnodes/status"]
     verbs: ["get", "patch", "update"]
   # SiteNodeSlices: full access to manage node slices
   - apiGroups: ["unbounded.aks.azure.com"]
@@ -51,7 +57,9 @@ rules:
   - apiGroups: ["unbounded.aks.azure.com"]
     resources: ["gatewaypoolnodes"]
     verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
-  # Pods: read pods for node agent status in dashboard
+  # Pods: read pods for node agent status in dashboard.
+  # Required for dashboard node agent status view. Consider namespace-scoping if
+  # dashboard only needs pods in controller namespace.
   - apiGroups: [""]
     resources: ["pods"]
     verbs: ["get", "list", "watch"]
@@ -125,6 +133,8 @@ rules:
     verbs: ["delete"]
   # Secrets: store webhook TLS material.
   # Create cannot be constrained by resourceNames in RBAC, so split create from named-object ops.
+  # The create verb below allows creating arbitrary secrets in the namespace; RBAC cannot scope
+  # create to specific resourceNames. Named-object ops are scoped separately below.
   - apiGroups: [""]
     resources: ["secrets"]
     verbs: ["create"]

@@ -4,35 +4,26 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.20.0
-  name: sitepeerings.unbounded.aks.azure.com
+  name: sitegatewaypoolassignments.unbounded.aks.azure.com
 spec:
   group: unbounded.aks.azure.com
   names:
-    kind: SitePeering
-    listKind: SitePeeringList
-    plural: sitepeerings
+    kind: SiteGatewayPoolAssignment
+    listKind: SiteGatewayPoolAssignmentList
+    plural: sitegatewaypoolassignments
     shortNames:
-    - spr
-    singular: sitepeering
+    - sgpa
+    singular: sitegatewaypoolassignment
   scope: Cluster
   versions:
   - additionalPrinterColumns:
-    - jsonPath: .status.peeredSiteCount
-      name: Sites
-      type: integer
-    - jsonPath: .status.totalNodeCount
-      name: Nodes
-      type: integer
-    - jsonPath: .spec.meshNodes
-      name: Mesh Nodes
-      type: boolean
     - jsonPath: .metadata.creationTimestamp
       name: Age
       type: date
     name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: SitePeering defines direct peering between sites.
+        description: SiteGatewayPoolAssignment links sites to gateway pools.
         properties:
           apiVersion:
             description: |-
@@ -52,10 +43,11 @@ spec:
           metadata:
             type: object
           spec:
-            description: SitePeeringSpec defines desired state of SitePeering.
+            description: SiteGatewayPoolAssignmentSpec defines desired state for site
+              to gateway-pool assignments.
             properties:
               bfdSettings:
-                description: BFDSettings controls BFD settings for inter-site peering.
+                description: BFDSettings controls BFD for this site-to-pool assignment.
                 properties:
                   detectMultiplier:
                     description: |-
@@ -84,33 +76,25 @@ spec:
                       Accepts either a duration string (e.g. "300ms") or an integer interpreted as milliseconds.
                     x-kubernetes-int-or-string: true
                 type: object
-              meshNodes:
-                description: MeshNodes controls whether nodes in listed sites mesh
-                  directly.
+              enabled:
+                description: |-
+                  Enabled controls whether this assignment is active.
+                  Defaults to true.
                 type: boolean
-              sites:
-                description: Sites is the list of site names that should be directly
-                  peered.
+              gatewayPools:
+                description: GatewayPools is the list of gateway pool names.
                 items:
                   type: string
                 type: array
-            type: object
-          status:
-            description: SitePeeringStatus defines the observed state of SitePeering.
-            properties:
-              peeredSiteCount:
-                description: PeeredSiteCount is the number of sites in this peering
-                  that exist.
-                type: integer
-              totalNodeCount:
-                description: TotalNodeCount is the total number of nodes across all
-                  peered sites.
-                type: integer
+              sites:
+                description: Sites is the list of site names.
+                items:
+                  type: string
+                type: array
             type: object
         required:
         - spec
         type: object
     served: true
     storage: true
-    subresources:
-      status: {}
+    subresources: {}

@@ -4,16 +4,16 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.20.0
-  name: sitegatewaypoolassignments.unbounded.aks.azure.com
+  name: gatewaypoolpeerings.unbounded.aks.azure.com
 spec:
   group: unbounded.aks.azure.com
   names:
-    kind: SiteGatewayPoolAssignment
-    listKind: SiteGatewayPoolAssignmentList
-    plural: sitegatewaypoolassignments
+    kind: GatewayPoolPeering
+    listKind: GatewayPoolPeeringList
+    plural: gatewaypoolpeerings
     shortNames:
-    - sgpa
-    singular: sitegatewaypoolassignment
+    - gpp
+    singular: gatewaypoolpeering
   scope: Cluster
   versions:
   - additionalPrinterColumns:
@@ -23,7 +23,7 @@ spec:
     name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: SiteGatewayPoolAssignment links sites to gateway pools.
+        description: GatewayPoolPeering links gateway pools for routed connectivity.
         properties:
           apiVersion:
             description: |-
@@ -43,11 +43,12 @@ spec:
           metadata:
             type: object
           spec:
-            description: SiteGatewayPoolAssignmentSpec defines desired state for site
-              to gateway-pool assignments.
+            description: GatewayPoolPeeringSpec defines desired state for gateway-pool
+              peerings.
             properties:
               bfdSettings:
-                description: BFDSettings controls BFD for this site-to-pool assignment.
+                description: BFDSettings controls BFD settings for this pool-to-pool
+                  peering.
                 properties:
                   detectMultiplier:
                     description: |-
@@ -76,13 +77,13 @@ spec:
                       Accepts either a duration string (e.g. "300ms") or an integer interpreted as milliseconds.
                     x-kubernetes-int-or-string: true
                 type: object
+              enabled:
+                description: |-
+                  Enabled controls whether this peering is active.
+                  Defaults to true.
+                type: boolean
               gatewayPools:
                 description: GatewayPools is the list of gateway pool names.
-                items:
-                  type: string
-                type: array
-              sites:
-                description: Sites is the list of site names.
                 items:
                   type: string
                 type: array

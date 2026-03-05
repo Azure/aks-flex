@@ -4,17 +4,14 @@ kind: Service
 metadata:
   name: unbounded-cni-controller
   namespace: unbounded-cni
-  annotations:
-    service.beta.kubernetes.io/azure-allowed-service-tags: "CorpNetPublic"
-    service.beta.kubernetes.io/azure-dns-label-name: "unbounded-cni-controller"
   labels:
     app.kubernetes.io/name: unbounded-cni-controller
     app.kubernetes.io/component: controller
 spec:
-  type: LoadBalancer
+  type: ClusterIP
   # No selector — EndpointSlice managed by the leader pod
   ports:
     - name: http
-      port: 80
+      port: 9999
       targetPort: 9999
       protocol: TCP
