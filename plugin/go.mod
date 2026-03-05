@@ -3,7 +3,7 @@ module github.com/Azure/aks-flex/plugin
 go 1.26.0
 
 require (
-	github.com/Azure/AKSFlexNode v0.0.12
+	github.com/Azure/AKSFlexNode v0.0.14-docker2
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.21.0
 	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.13.1
 	github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute/v7 v7.3.0
