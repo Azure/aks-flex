@@ -20,8 +20,8 @@ data:
       registerAggregatedAPIServer: true
       leaderElection:
         enabled: true
-        leaseDuration: "15s"
-        renewDeadline: "30s"
+        leaseDuration: "30s"
+        renewDeadline: "15s"
         retryPeriod: "10s"
         resourceNamespace: unbounded-cni
         resourceName: "unbounded-cni-controller"

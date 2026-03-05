@@ -57,6 +57,11 @@ func Deploy(
 		}
 	}
 
+	// wait for the controller (webhook) to be ready before applying AKS resources
+	if err := kubectlRolloutWait(ctx, kubeconfigFile, "unbounded-cni", "deployment/unbounded-cni-controller"); err != nil {
+		return fmt.Errorf("failed waiting for unbounded CNI controller to be ready: %w", err)
+	}
+
 	// deploy the AKS site and gateway pool resources
 	aksDir := filepath.Join(tempDir, "aks")
 	if err := kubectlApply(ctx, kubeconfigFile, aksDir); err != nil {
@@ -64,6 +69,18 @@ func Deploy(
 	}
 
 	return nil
+}
+
+// kubectlRolloutWait runs kubectl rollout status for the given resource in the
+// given namespace, blocking until the rollout is complete.
+func kubectlRolloutWait(ctx context.Context, kubeconfigFile, namespace, resource string) error {
+	cmd := exec.CommandContext(ctx, "kubectl", "rollout", "status", resource, "-n", namespace)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.Env = append(cmd.Environ(),
+		"KUBECONFIG="+kubeconfigFile,
+	)
+	return cmd.Run()
 }
 
 // kubectlApply runs kubectl apply -f against the given path (file or directory)
