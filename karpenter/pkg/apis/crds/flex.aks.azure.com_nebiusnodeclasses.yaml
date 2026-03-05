@@ -73,12 +73,6 @@ spec:
                   SubnetID is the nebius subnet id to launch nodes in.
                   Node will be auto-assigned an IP from this subnet.
                 type: string
-              wireguardPeerCIDR:
-                description: |-
-                  WireguardPeerCIDR is the CIDR to use for Wireguard peer IPs.
-                  When this is set to a non-empty value, nodes will be allocated with a IP address
-                  from this CIDR and configured to use Wireguard for node to node networking.
-                type: string
             required:
             - projectID
             - region

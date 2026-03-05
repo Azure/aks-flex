@@ -70,12 +70,6 @@ type NebiusNodeClassSpec struct {
 	// +optional
 	AllocateNodePublicIP *bool `json:"allocateNodePublicIP,omitempty"`
 
-	// WireguardPeerCIDR is the CIDR to use for Wireguard peer IPs.
-	// When this is set to a non-empty value, nodes will be allocated with a IP address
-	// from this CIDR and configured to use Wireguard for node to node networking.
-	// +optional
-	WireguardPeerCIDR *string `json:"wireguardPeerCIDR,omitempty"`
-
 	// TODO: other fields (kublet etc)
 }
 

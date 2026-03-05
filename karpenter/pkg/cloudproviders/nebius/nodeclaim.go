@@ -16,7 +16,6 @@ import (
 
 	stretchapi "github.com/Azure/aks-flex/plugin/api"
 	"github.com/Azure/aks-flex/plugin/pkg/services/agentpools/api/features/kubeadm"
-	"github.com/Azure/aks-flex/plugin/pkg/services/agentpools/api/features/wireguard"
 	nebiusinstance "github.com/Azure/aks-flex/plugin/pkg/services/agentpools/nebius/instance"
 	"github.com/Azure/aks-flex/plugin/pkg/topology"
 
@@ -83,7 +82,6 @@ func nodeClaimToStretchAgentPool(
 	nodeClass *v1alpha1.NebiusNodeClass,
 	nodeClaim *v1.NodeClaim,
 	platformPreset *platformPreset,
-	wgConfig *wireguard.Config,
 ) *nebiusinstance.AgentPool {
 	mdBuilder := stretchapi.Metadata_builder{
 		Id: lo.ToPtr(nodeClaim.Name),
@@ -141,7 +139,6 @@ func nodeClaimToStretchAgentPool(
 		ImageFamily:         lo.ToPtr(imageFamily),
 		OsDiskSizeGibibytes: lo.ToPtr(int64(osDiskSize)),
 		Kubeadm:             kubeadmConfig,
-		Wireguard:           wgConfig,
 	}
 
 	return nebiusinstance.AgentPool_builder{

@@ -13,13 +13,11 @@ import (
 
 	stretchapi "github.com/Azure/aks-flex/plugin/api"
 	"github.com/Azure/aks-flex/plugin/pkg/services/agentpools/api/features/kubeadm"
-	"github.com/Azure/aks-flex/plugin/pkg/services/agentpools/api/features/wireguard"
 	nebiusinstance "github.com/Azure/aks-flex/plugin/pkg/services/agentpools/nebius/instance"
 	"github.com/Azure/aks-flex/plugin/pkg/topology"
 
 	"github.com/Azure/aks-flex/karpenter/pkg/cloudproviders"
 	flexopts "github.com/Azure/aks-flex/karpenter/pkg/options"
-	wgallocator "github.com/Azure/aks-flex/karpenter/pkg/utils/wireguard"
 )
 
 // ```
@@ -114,7 +112,6 @@ type resolvedNebiusAgentPoolSettings struct {
 	Preset              string
 	ImageFamily         string
 	OSDiskSizeGibibytes int64
-	Wireguard           *wireguard.Config
 }
 
 var azureGPUInstanceTypeToNebiusPlatformPreset = map[string]struct {
@@ -133,7 +130,6 @@ var azureGPUInstanceTypeToNebiusPlatformPreset = map[string]struct {
 func resolveNebiusAgentPoolSettings(
 	ctx context.Context,
 	kaitoOpts *flexopts.KaitoOptions,
-	wgAllocator *wgallocator.IPAllocator,
 	nodeClaim *v1.NodeClaim,
 	nodeClaimReqs nodeClaimRequirements,
 ) (resolvedNebiusAgentPoolSettings, error) {
@@ -153,20 +149,6 @@ func resolveNebiusAgentPoolSettings(
 		nodeClaimReqs.DiskSizeGibibytesRequested+30, // add 30 GiB buffer for OS deps
 		minimalOSDiskSizeGibibytes,
 	)
-
-	if cidr := kaitoOpts.NebiusWireguardPeerCIDR; cidr != "" {
-		wgPeerIP, err := wgAllocator.AllocateIP(
-			ctx, cidr,
-			kaitoNodeClassName, nodeClaim.Name,
-		)
-		if err != nil {
-			var zero resolvedNebiusAgentPoolSettings
-			return zero, fmt.Errorf("failed to allocate wireguard peer IP: %w", err)
-		}
-		rv.Wireguard = wireguard.Config_builder{
-			PeerIp: lo.ToPtr(wgPeerIP),
-		}.Build()
-	}
 
 	return rv, nil
 }
@@ -221,7 +203,6 @@ func nodeClaimToNebiusAgentPool( // TODO: support more remote cloud types
 		ImageFamily:         lo.ToPtr(resolvedSettings.ImageFamily),
 		OsDiskSizeGibibytes: lo.ToPtr(resolvedSettings.OSDiskSizeGibibytes),
 		Kubeadm:             kubeadmConfig,
-		Wireguard:           resolvedSettings.Wireguard,
 	}
 
 	return nebiusinstance.AgentPool_builder{
