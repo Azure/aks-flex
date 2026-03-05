@@ -33,7 +33,7 @@ data:
       wireGuardDir: "/host/etc/wireguard"
       wireGuardPort: 51820
       enablePolicyRouting: true
-      mtu: 0
+      mtu: 1370
       healthPort: 9998
       informerResyncPeriod: "3600s"
       statusWebsocketEnabled: true
