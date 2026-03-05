@@ -76,7 +76,7 @@ func installGPUDevicePlugin(ctx context.Context) error {
 	}{
 		{"helm", []string{"repo", "add", "nvdp", "https://nvidia.github.io/k8s-device-plugin"}},
 		{"helm", []string{"repo", "update"}},
-		{"helm", []string{"upgrade", "--install", "--wait", "nvidia-device-plugin", "-n", "nvidia-device-plugin", "--create-namespace", "nvdp/nvidia-device-plugin", "--set", "failOnInitError=false", "--set", "affinity=null"}},
+		{"helm", []string{"upgrade", "--install", "--wait", "nvidia-device-plugin", "-n", "nvidia", "--create-namespace", "nvdp/nvidia-device-plugin", "--set", "failOnInitError=false", "--set", "affinity=null"}},
 	}
 
 	for _, c := range commands {
