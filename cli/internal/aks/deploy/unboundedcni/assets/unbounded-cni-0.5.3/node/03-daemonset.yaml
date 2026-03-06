@@ -40,7 +40,7 @@ spec:
       initContainers:
         # Install CNI plugins to host
         - name: install-cni-plugins
-          image: unboundedcnitme.azurecr.io/unbounded-cni-node:v0.5.2
+          image: unboundedcnitme.azurecr.io/unbounded-cni-node:v0.5.3
           imagePullPolicy: Always
           command:
             - /usr/local/bin/node-agent-init.sh
@@ -53,7 +53,7 @@ spec:
             privileged: true
       containers:
         - name: node
-          image: unboundedcnitme.azurecr.io/unbounded-cni-node:v0.5.2
+          image: unboundedcnitme.azurecr.io/unbounded-cni-node:v0.5.3
           imagePullPolicy: Always
           env:
             - name: LOG_LEVEL
@@ -125,7 +125,7 @@ spec:
             periodSeconds: 5
             timeoutSeconds: 5
         - name: frr
-          image: unboundedcnitme.azurecr.io/unbounded-cni-node:v0.5.2
+          image: unboundedcnitme.azurecr.io/unbounded-cni-node:v0.5.3
           imagePullPolicy: Always
           command:
             - /usr/local/bin/start-frr.sh
@@ -163,7 +163,7 @@ spec:
             runAsUser: 0
             privileged: true
         - name: frr-exporter
-          image: unboundedcnitme.azurecr.io/unbounded-cni-node:v0.5.2
+          image: unboundedcnitme.azurecr.io/unbounded-cni-node:v0.5.3
           imagePullPolicy: Always
           command:
             - /usr/local/bin/frr_exporter
