@@ -286,9 +286,18 @@ func runHelm(ctx context.Context, out io.Writer, errOut io.Writer) error {
 		return fmt.Errorf("writing %s: %w", flagOutput, err)
 	}
 
-	fmt.Fprintf(errOut, "Written to %s\n\n", flagOutput)
-	fmt.Fprintf(out, "helm upgrade --install karpenter charts/karpenter \\\n")
-	fmt.Fprintf(out, "  --namespace karpenter --create-namespace \\\n")
-	fmt.Fprintf(out, "  --values %s\n", flagOutput)
-	return nil
+	// Collect write errors from sequential output calls.
+	var writeErr error
+	write := func(w io.Writer, format string, args ...any) {
+		if writeErr != nil {
+			return
+		}
+		_, writeErr = fmt.Fprintf(w, format, args...)
+	}
+
+	write(errOut, "Written to %s\n\n", flagOutput)
+	write(out, "helm upgrade --install karpenter charts/karpenter \\\n")
+	write(out, "  --namespace karpenter --create-namespace \\\n")
+	write(out, "  --values %s\n", flagOutput)
+	return writeErr
 }
