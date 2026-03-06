@@ -236,10 +236,14 @@ NAME                       TYPE           CAPACITY   ZONE   NODE                
 azure-cpu-nodepool-6rhlk                                    aks-azure-cpu-nodepool-6rhlk True    2m
 ```
 
-> **Note:** GPU workloads require the NVIDIA device plugin. Install it with the CLI before creating GPU workloads:
+> **Note:** GPU workloads require an NVIDIA plugin to advertise GPU resources. Install one with the CLI before creating GPU workloads:
 >
 > ```bash
-> aks-flex-cli aks deploy --gpu-device-plugin --skip-arm
+> # NVIDIA GPU Device Plugin (standard resource-based allocation)
+> aks-flex-cli aks deploy --nvidia-device-plugin --skip-arm
+>
+> # NVIDIA DRA Driver (Dynamic Resource Allocation)
+> aks-flex-cli aks deploy --nvidia-dra-driver --skip-arm
 > ```
 
 ## Creating Nodes on Nebius via Karpenter
@@ -386,10 +390,14 @@ nebius-cpu-nodepool-6g8v8   cpu-d3-16vcpu-64gb                 on-demand   1    
 nebius-gpu-nodepool-r2qwq   gpu-h100-sxm-8gpu-128vcpu-1600gb   on-demand                                              Unknown   16s
 ```
 
-> **Note:** GPU workloads require the NVIDIA device plugin to be installed so that `nvidia.com/gpu` resources are advertised to the scheduler. Install it with the CLI before creating GPU workloads:
+> **Note:** GPU workloads require an NVIDIA plugin to be installed so that GPU resources are advertised to the scheduler. Install one with the CLI before creating GPU workloads:
 >
 > ```bash
-> aks-flex-cli aks deploy --gpu-device-plugin --skip-arm
+> # NVIDIA GPU Device Plugin (standard resource-based allocation)
+> aks-flex-cli aks deploy --nvidia-device-plugin --skip-arm
+>
+> # NVIDIA DRA Driver (Dynamic Resource Allocation)
+> aks-flex-cli aks deploy --nvidia-dra-driver --skip-arm
 > ```
 
 After the GPU node is provisioned, both nodes and pods should be running:
