@@ -15,7 +15,7 @@ var draDriverValuesYAML []byte
 func preflightDRADriver() error {
 	_, err := exec.LookPath("helm")
 	if err != nil {
-		return fmt.Errorf("helm not found in PATH, please install Helm to use --dra-driver: %w", err)
+		return fmt.Errorf("helm not found in PATH, please install Helm to use --nvidia-dra-driver: %w", err)
 	}
 
 	return nil
@@ -33,7 +33,7 @@ func preflightGPUOperator() error {
 func preflightGPUDevicePlugin() error {
 	_, err := exec.LookPath("helm")
 	if err != nil {
-		return fmt.Errorf("helm not found in PATH, please install Helm to use --gpu-device-plugin: %w", err)
+		return fmt.Errorf("helm not found in PATH, please install Helm to use --nvidia-device-plugin: %w", err)
 	}
 
 	return nil
