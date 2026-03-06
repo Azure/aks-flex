@@ -27,7 +27,7 @@ var bootstrapTmpl string
 var bootstrapTemplate = template.Must(template.New("bootstrap.sh").Parse(bootstrapTmpl))
 
 const (
-	flexNodeVersion = "v0.0.14"
+	flexNodeVersion = "v0.0.15"
 	defaultArch     = "amd64"
 	defaultKubeVer  = "1.34.2"
 )
@@ -147,6 +147,10 @@ func resolveFlexComponentConfigs(
 			Metadata: flexMetadata[*linux.ConfigureBaseOS]("configure-base-os"),
 			Spec:     linux.ConfigureBaseOSSpec_builder{}.Build(),
 		}.Build(),
+		linux.DisableDocker_builder{
+			Metadata: flexMetadata[*linux.DisableDocker]("disable-docker"),
+			Spec:     linux.DisableDockerSpec_builder{}.Build(),
+		}.Build(),
 		cri.DownloadCRIBinaries_builder{
 			Metadata: flexMetadata[*cri.DownloadCRIBinaries]("download-cri-binaries"),
 			Spec: cri.DownloadCRIBinariesSpec_builder{
@@ -161,6 +165,10 @@ func resolveFlexComponentConfigs(
 			}.Build(),
 		}.Build(),
 		startCRI,
+		linux.ConfigureIPTables_builder{
+			Metadata: flexMetadata[*linux.ConfigureIPTables]("configure-iptables"),
+			Spec:     linux.ConfigureIPTablesSpec_builder{}.Build(),
+		}.Build(),
 		kubeadmNodeJoin,
 	}
 	marshalOpts := protojson.MarshalOptions{
