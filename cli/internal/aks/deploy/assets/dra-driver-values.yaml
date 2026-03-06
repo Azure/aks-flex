@@ -1,0 +1,5 @@
+gpuResourcesEnabledOverride: true
+resources:
+  computeDomains:
+    enabled: false
+nvidiaDriverRoot: "/"

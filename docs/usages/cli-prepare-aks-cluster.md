@@ -40,8 +40,7 @@ The following environment variables are relevant to cluster creation:
 | `CLUSTER_NAME`           | Name of the AKS cluster                | `flex`               |
 | `CLUSTER_VERSION`        | Kubernetes version for the AKS cluster | `1.34.2`             |
 | `SYSTEM_VM_SIZE`         | VM size for the system node pool       | `Standard_D8ds_v5`   |
-| `WIREGUARD_VM_SIZE`      | VM size for the WireGuard gateway node | `Standard_D16ds_v5`  |
-| `GATEWAY_VM_SIZE`        | VM size for the Unbounded CNI gateway node | `Standard_D16ds_v5`  |
+| `GATEWAY_VM_SIZE`        | VM size for the gateway node           | `Standard_D16ds_v5`  |
 
 ### Desired Cluster Setup
 
@@ -145,7 +144,7 @@ In addition to the standard AKS resources, the `--wireguard` flag provisions:
 | ------------------------ | ----------------------- | ------------------------------------------------ |
 | NSG rule                 | `AllowWireGuard`        | Allows inbound UDP/51820                         |
 | Public IP prefix         | `wg-pips`  | Static public IP prefix for the gateway node     |
-| Agent pool               | `wireguard`             | 1-node pool in the `nodes` subnet with public IP (size: `$WIREGUARD_VM_SIZE`) |
+| Agent pool               | `wireguard`             | 1-node pool in the `nodes` subnet with public IP (size: `$GATEWAY_VM_SIZE`) |
 | Route table              | `wg-routes`         | Routes remote cloud traffic through the gateway  |
 
 After the ARM deployment, the CLI automatically:

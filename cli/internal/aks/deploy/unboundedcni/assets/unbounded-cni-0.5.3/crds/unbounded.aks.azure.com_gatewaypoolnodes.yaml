@@ -121,6 +121,7 @@ spec:
                           - type
                           type: object
                         type: array
+                      maxItems: 100
                       type: array
                     source:
                       description: Source identifies the originating object for this
@@ -147,6 +148,7 @@ spec:
                 description: |-
                   Routes is a map of reachable CIDRs advertised by this gateway node.
                   The map key is the CIDR prefix.
+                maxProperties: 1000
                 type: object
             type: object
         required:

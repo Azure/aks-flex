@@ -1,7 +1,7 @@
 buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.4-20250130201111-63bb56e20495.1 h1:4erM3WLgEG/HIBrpBDmRbs1puhd7p0z7kNXDuhHthwM=
 buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.4-20250130201111-63bb56e20495.1/go.mod h1:novQBstnxcGpfKf8qGRATqn1anQKwMJIbH5Q581jibU=
-github.com/Azure/AKSFlexNode v0.0.13 h1:6Xgos7B9G2Al/0vDRDjPqxM4igCMezbx4A3khD9a/Y8=
-github.com/Azure/AKSFlexNode v0.0.13/go.mod h1:rJlzVk5SUWVgk25LbljX6k2vNczy/qO7E4grk/jhLhc=
+github.com/Azure/AKSFlexNode v0.0.15 h1:WK+jJhi6f+zd4Rv39lT9Gi46Cz9O7T7Gx/+pQWKa2gs=
+github.com/Azure/AKSFlexNode v0.0.15/go.mod h1:rJlzVk5SUWVgk25LbljX6k2vNczy/qO7E4grk/jhLhc=
 github.com/Azure/azure-sdk-for-go/sdk/azcore v1.21.0 h1:fou+2+WFTib47nS+nz/ozhEBnvU96bKHy6LjRsY4E28=
 github.com/Azure/azure-sdk-for-go/sdk/azcore v1.21.0/go.mod h1:t76Ruy8AHvUAC8GfMWJMa0ElSbuIcO03NLpynfbgsPA=
 github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.13.1 h1:Hk5QBxZQC1jb2Fwj6mpzme37xbCDdNTxU7O9eb5+LB4=

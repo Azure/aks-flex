@@ -26,7 +26,7 @@ type Config struct {
 	ClusterVersion    string
 	SystemPoolSize    int
 	SystemVMSize      string
-	WireguardVMSize   string
+	GatewayVMSize     string
 	StretchNodeVMSize string
 	StretchNodeZones  []string
 
@@ -57,7 +57,7 @@ func New() (*Config, error) {
 		ClusterVersion:    defaultClusterVersion(),
 		SystemPoolSize:    defaultSystemPoolSize(),
 		SystemVMSize:      defaultSystemVMSize(),
-		WireguardVMSize:   defaultWireguardVMSize(),
+		GatewayVMSize:     defaultGatewayVMSize(),
 		StretchNodeVMSize: defaultStretchNodeVMSize(),
 		StretchNodeZones:  defaultStretchNodeZones(),
 
@@ -155,8 +155,8 @@ func defaultSystemPoolSize() int {
 	return 3
 }
 
-func defaultWireguardVMSize() string {
-	if vmSize := os.Getenv("WIREGUARD_VM_SIZE"); vmSize != "" {
+func defaultGatewayVMSize() string {
+	if vmSize := os.Getenv("GATEWAY_VM_SIZE"); vmSize != "" {
 		return vmSize
 	}
 	return "Standard_D16ds_v5"

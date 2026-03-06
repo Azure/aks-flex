@@ -96,19 +96,26 @@ controller:
     # -- Tag of the controller image.
     tag: main
     # -- SHA256 digest of the controller image.
-    digest: sha256:3625d2a19298da105cfc24f6f0694cbd9dc1d5443ba10b6d9043d0ed1902d470
-  # -- Optional Nebius credentials secret mount. The secret must be created by
-  # the user separately (not managed by this chart). When enabled, the secret is
+    digest: sha256:e1157f380a4f04ec2fa1657f950c259c34562a365305af7d3f0b2ccef6d87e56
+  # -- Nebius credentials secret configuration. When enabled, the secret is
   # mounted as a file and passed via the -flex-nebius.credentials-file flag.
+  # The chart can create the Secret automatically when credentialsJSON is
+  # provided (e.g. via --set-file controller.nebiusCredentials.credentialsJSON=<path>).
   nebiusCredentials:
     # -- Enable mounting the Nebius credentials secret.
     enabled: false
-    # -- Name of the pre-existing Secret containing the credentials file.
+    # -- Name of the Secret containing the credentials file.
+    # The chart creates this Secret when credentialsJSON is non-empty;
+    # otherwise it must be pre-created by the user.
     secretName: "nebius-credentials"
     # -- Key inside the Secret that holds the credentials file.
     secretKey: "credentials.json"
     # -- Mount path inside the container.
     mountPath: "/etc/nebius"
+    # -- Raw contents of the Nebius credentials JSON file.
+    # When non-empty the chart creates (or updates) the Secret automatically.
+    # Pass via: --set-file controller.nebiusCredentials.credentialsJSON=<path>
+    credentialsJSON: ""
   # -- Additional environment variables for the controller pod.
   env: []
   # - name:

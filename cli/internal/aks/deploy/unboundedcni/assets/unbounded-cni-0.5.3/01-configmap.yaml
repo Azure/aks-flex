@@ -20,9 +20,9 @@ data:
       registerAggregatedAPIServer: true
       leaderElection:
         enabled: true
-        leaseDuration: "15s"
-        renewDeadline: "10s"
-        retryPeriod: "2s"
+        leaseDuration: "30s"
+        renewDeadline: "15s"
+        retryPeriod: "10s"
         resourceNamespace: unbounded-cni
         resourceName: "unbounded-cni-controller"
 
@@ -33,7 +33,7 @@ data:
       wireGuardDir: "/host/etc/wireguard"
       wireGuardPort: 51820
       enablePolicyRouting: true
-      mtu: 0
+      mtu: 1370
       healthPort: 9998
       informerResyncPeriod: "3600s"
       statusWebsocketEnabled: true
