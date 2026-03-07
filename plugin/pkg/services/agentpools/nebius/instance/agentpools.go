@@ -102,6 +102,7 @@ func (srv *agentPoolsServer) CreateOrUpdate(
 		ud.RunCmd = append(ud.RunCmd, strings.Join([]string{
 			"export ANNOTATION_PREFIX='stretch.azure.com/wireguard-'",
 			fmt.Sprintf("export WG_ADDRESS='%s/32'", wireguardIP),
+			fmt.Sprintf("export WG_SITE='%s'", apSpec.GetSubnetId()),
 			"export WG_DAEMONIZE='true'",
 			"/root/wg-spoke.sh",
 		}, "\n"))
