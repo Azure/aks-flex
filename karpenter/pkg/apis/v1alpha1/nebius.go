@@ -76,6 +76,12 @@ type NebiusNodeClassSpec struct {
 	// +optional
 	WireguardPeerCIDR *string `json:"wireguardPeerCIDR,omitempty"`
 
+	// MaxPodsPerNode is the maximum number of pods that can be scheduled on a single node.
+	// This value is advertised in the node's capacity and affects Karpenter's scheduling decisions.
+	// +default=110
+	// +optional
+	MaxPodsPerNode *int32 `json:"maxPodsPerNode,omitempty"`
+
 	// TODO: other fields (kublet etc)
 }
 

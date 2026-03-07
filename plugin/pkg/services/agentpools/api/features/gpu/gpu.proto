@@ -1,0 +1,9 @@
+edition = "2024";
+
+package gpu;
+
+option go_package = "github.com/Azure/aks-flex/plugin/pkg/services/agentpools/api/features/gpu";
+
+message Config {
+ // TODO: declare GPU container runtime settings
+}

@@ -21,5 +21,6 @@ func IsQuotaError(err error) bool {
 	// FIXME: check how to identify the error using nebius sdk
 	errString := err.Error()
 	return strings.Contains(errString, "Quota failure") ||
-		strings.Contains(errString, "Not enough resources")
+		strings.Contains(errString, "Not enough resources") ||
+		strings.Contains(errString, "insufficient capacity") // example: insufficient capacity, rpc error: code = ResourceExhausted
 }

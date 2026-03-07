@@ -61,6 +61,13 @@ spec:
                 description: OSDiskSizeGB is the size of the OS disk in GB.
                 format: int32
                 type: integer
+              maxPodsPerNode:
+                default: 110
+                description: |-
+                  MaxPodsPerNode is the maximum number of pods that can be scheduled on a single node.
+                  This value is advertised in the node's capacity and affects Karpenter's scheduling decisions.
+                format: int32
+                type: integer
               projectID:
                 description: ProjectID is the nebius project id to launch nodes in.
                 type: string
