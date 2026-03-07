@@ -10,12 +10,15 @@ import (
 	nebiuscommon "github.com/nebius/gosdk/proto/nebius/common/v1"
 	nebiuscompute "github.com/nebius/gosdk/proto/nebius/compute/v1"
 	nebiuscomputeservice "github.com/nebius/gosdk/services/nebius/compute/v1"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/anypb"
 
 	"github.com/Azure/aks-flex/plugin/api"
 	"github.com/Azure/aks-flex/plugin/pkg/db"
 	"github.com/Azure/aks-flex/plugin/pkg/helper"
 	agentpools "github.com/Azure/aks-flex/plugin/pkg/services/agentpools/api"
+	"github.com/Azure/aks-flex/plugin/pkg/services/agentpools/api/features/capacity"
 	"github.com/Azure/aks-flex/plugin/pkg/services/agentpools/userdata/flex"
 	"github.com/Azure/aks-flex/plugin/pkg/topology"
 	"github.com/Azure/aks-flex/plugin/pkg/util/cloudinit"
@@ -50,17 +53,26 @@ func (srv *agentPoolsServer) CreateOrUpdate(
 	apSpec := ap.GetSpec()
 
 	// TODO: validate / default spec
+	kubeVersion := apSpec.GetKubernetesVersion()
+	if kubeVersion == "" {
+		return nil, status.Error(codes.InvalidArgument, "kubernetes_version is required")
+	}
 
 	agentPoolResources := resolveNebiusAgentPool(utilnebius.MustGetSDK(ctx), ap)
 
 	kubeadmConfig := apSpec.GetKubeadm()
 	kubeadmConfig.AddNodeLabels(map[string]string{
-		topology.NodeLabelKeyCloud:  "nebius",
-		topology.NodeLabelKeyRegion: strings.ToLower(apSpec.GetRegion()),
-		// NOTE: this is to match nebius' naming pattern:
-		// node.kubernetes.io/instance-type: cpu-d3
-		topology.NodeLabelKeyInstanceType: apSpec.GetPlatform(),
+		topology.NodeLabelKeyCloud:        "nebius",
+		topology.NodeLabelKeyRegion:       strings.ToLower(apSpec.GetRegion()),
+		topology.NodeLabelKeyInstanceType: fmt.Sprintf("%s-%s", apSpec.GetPlatform(), apSpec.GetPreset()),
 	})
+	if zone := apSpec.GetZone(); zone != "" {
+		// if input has specified zone, add it as a node label.
+		// But this label is no-op anyway because Nebius doesn't have zone.
+		kubeadmConfig.AddNodeLabels(map[string]string{
+			topology.NodeLabelKeyZone: strings.ToLower(zone),
+		})
+	}
 
 	wireguardIP := apSpec.GetWireguard().GetPeerIp()
 
@@ -70,12 +82,10 @@ func (srv *agentPoolsServer) CreateOrUpdate(
 		kubeadmConfig.SetNodeIp(wireguardIP)
 	}
 
-	// TODO: get gpu info from spec (might need to infer from SKU)
-	hasGPU := strings.Contains(apSpec.GetImageFamily(), "cuda")
-	// TODO: get the k8s version from spec
 	ud, err := flex.UserData(
-		flex.WithEnableNvidiaGPURuntime(hasGPU),
+		flex.WithEnableNvidiaGPURuntime(apSpec.HasGpu()),
 		flex.WithKubeadmConfig(kubeadmConfig),
+		flex.WithKubeVersion(kubeVersion),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate userdata: %w", err)
@@ -218,7 +228,7 @@ func (res *nebiusAgentPoolResources) DesiredInstance(
 	}
 	// TODO: allow assigning public IP
 
-	return &nebiuscompute.Instance{
+	rv := &nebiuscompute.Instance{
 		Metadata: &nebiuscommon.ResourceMetadata{
 			ParentId: res.AgentPool.GetSpec().GetProjectId(),
 			Id:       res.AgentPool.GetStatus().GetInstanceId(),
@@ -245,4 +255,17 @@ func (res *nebiusAgentPoolResources) DesiredInstance(
 			CloudInitUserData: userdata,
 		},
 	}
+
+	// spot pool requested
+	capacityType := res.AgentPool.GetSpec().GetCapacity().GetCapacityType()
+	if capacityType == capacity.CapacityType_CAPACITY_TYPE_SPOT {
+		rv.Spec.Preemptible = &nebiuscompute.PreemptibleSpec{
+			OnPreemption: nebiuscompute.PreemptibleSpec_STOP,
+			Priority:     5,
+		}
+		// don't ask for restart for spot instance, required by nebius
+		rv.Spec.RecoveryPolicy = nebiuscompute.InstanceRecoveryPolicy_FAIL
+	}
+
+	return rv
 }

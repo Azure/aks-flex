@@ -4,6 +4,14 @@ package capacity;
 
 option go_package = "github.com/Azure/aks-flex/plugin/pkg/services/agentpools/api/features/capacity";
 
+enum CapacityType {
+  CAPACITY_TYPE_UNSPECIFIED = 0;
+  CAPACITY_TYPE_ON_DEMAND = 1;
+  CAPACITY_TYPE_SPOT = 2;
+  CAPACITY_TYPE_RESERVED = 3;
+}
+
 message Config {
   uint32 capacity = 1;
+  CapacityType capacity_type = 2;
 }

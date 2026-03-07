@@ -122,15 +122,16 @@ func resolveFlexComponentConfigs(
 		Spec:     startCRISpecBuilder.Build(),
 	}.Build()
 
-	kubletConfig := kubeadm.Kubelet_builder{
+	kubeletConfig := kubeadm.Kubelet_builder{
 		BootstrapAuthInfo: kubeadm.NodeAuthInfo_builder{
 			Token: proto.String(kubeadmConfig.GetToken()),
 		}.Build(),
 		NodeLabels: maps.Clone(kubeadmConfig.GetNodeLabels()),
 	}.Build()
 	if nodeIP := kubeadmConfig.GetNodeIp(); nodeIP != "" {
-		kubletConfig.SetNodeIp(nodeIP)
+		kubeletConfig.SetNodeIp(nodeIP)
 	}
+	kubeletConfig.AddK8SRegisterTaints(kubeadmConfig.GetK8SRegisterTaints()...)
 	kubeadmNodeJoin := kubeadm.KubeadmNodeJoin_builder{
 		Metadata: flexMetadata[*kubeadm.KubeadmNodeJoin]("kubeadm-node-join"),
 		Spec: kubeadm.KubeadmNodeJoinSpec_builder{
@@ -138,7 +139,7 @@ func resolveFlexComponentConfigs(
 				Server:                   proto.String(kubeadmConfig.GetServer()),
 				CertificateAuthorityData: kubeadmConfig.GetCertificateAuthorityData(),
 			}.Build(),
-			Kubelet: kubletConfig,
+			Kubelet: kubeletConfig,
 		}.Build(),
 	}.Build()
 
