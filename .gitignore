@@ -433,3 +433,6 @@ dist/
 .env
 .kube
 *.kubeconfig
+
+# Helm chart packaging output
+.helm-packages/

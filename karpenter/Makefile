@@ -150,6 +150,20 @@ build-installer: manifests generate kustomize ## Generate a consolidated YAML wi
 	mkdir -p dist
 	$(KUSTOMIZE) build config/default > dist/install.yaml
 
+##@ Helm Chart
+
+.PHONY: helm-lint
+helm-lint: ## Lint the Karpenter Helm chart.
+	helm lint charts/karpenter
+
+.PHONY: helm-package
+helm-package: ## Lint and package the Karpenter Helm chart into a .tgz archive.
+	hack/release-chart.sh
+
+.PHONY: helm-push
+helm-push: ## Lint, package, and push the Karpenter Helm chart to an OCI registry. Requires HELM_REGISTRY (e.g. oci://ghcr.io/azure/aks-flex/charts).
+	hack/release-chart.sh --registry $(HELM_REGISTRY) --push
+
 ##@ Deployment
 
 ifndef ignore-not-found
