@@ -62,6 +62,11 @@ type Provider struct {
 
 	cache *lru.Cache
 
+	// UnavailableOfferings tracks offerings that recently failed due to quota
+	// or insufficient-capacity errors. Entries expire after a TTL so that
+	// previously blocked instance types are retried automatically.
+	UnavailableOfferings *UnavailableOfferings
+
 	// activeKeys tracks cache keys that have been fetched at least once,
 	// so the background refresh loop knows what to re-fetch.
 	// (k8s.io/utils/lru does not expose a Keys() method.)
@@ -85,20 +90,23 @@ func newProvider(
 	pricingProvider *PricingProvider,
 ) *Provider {
 	op := &Provider{
-		platformService: platformService,
-		pricingProvider: pricingProvider,
-		cache:           lru.New(cacheSize),
-		activeKeys:      make(map[NodeClassKey]struct{}),
-		refreshInterval: defaultRefreshInterval,
-		stopCh:          make(chan struct{}),
+		platformService:      platformService,
+		pricingProvider:      pricingProvider,
+		cache:                lru.New(cacheSize),
+		UnavailableOfferings: NewUnavailableOfferings(),
+		activeKeys:           make(map[NodeClassKey]struct{}),
+		refreshInterval:      defaultRefreshInterval,
+		stopCh:               make(chan struct{}),
 	}
 	go op.refreshLoop()
 	return op
 }
 
-// Stop terminates the background refresh goroutine.
+// Stop terminates the background refresh goroutine and the unavailable
+// offerings cleanup goroutine.
 func (op *Provider) Stop() {
 	close(op.stopCh)
+	op.UnavailableOfferings.Stop()
 }
 
 func (op *Provider) getOrResolveCachedEntry(
@@ -166,7 +174,7 @@ func (op *Provider) GetInstanceTypeByPlatformPreset(
 		presetPrices = Prices{OnDemand: defaultPrice, Preemptible: defaultPrice}
 	}
 
-	offerings := CreateOfferings(ctx, preset, key.Region, presetPrices)
+	offerings := CreateOfferings(ctx, preset, key.Region, presetPrices, op.UnavailableOfferings)
 	return NewInstanceType(key, preset, offerings)
 }
 
@@ -204,7 +212,7 @@ func (op *Provider) resolve(
 			presetPrices = Prices{OnDemand: defaultPrice, Preemptible: defaultPrice}
 		}
 
-		offerings := CreateOfferings(ctx, p, key.Region, presetPrices)
+		offerings := CreateOfferings(ctx, p, key.Region, presetPrices, op.UnavailableOfferings)
 		it := NewInstanceType(key, p, offerings)
 		instanceTypes = append(instanceTypes, it)
 	}
@@ -311,6 +319,8 @@ func (op *Provider) ResolvePlatformPresetFromNodeClaim(
 
 	// Find the cheapest matching instance type whose offering is compatible
 	// with the NodeClaim's requirements (instance type, zone, capacity type).
+	// Offerings that are temporarily blocked due to recent quota failures are
+	// skipped via the UnavailableOfferings cache.
 	var (
 		bestPreset   *PlatformPreset
 		bestOffering *karpcloudprovider.Offering
@@ -328,6 +338,15 @@ func (op *Provider) ResolvePlatformPresetFromNodeClaim(
 			if !requirements.IsCompatible(of.Requirements, scheduling.AllowUndefinedWellKnownLabels) {
 				continue
 			}
+
+			// Check the unavailable offerings cache to skip offerings that
+			// recently failed due to quota/capacity errors.
+			ofRegion := requirementValue(of.Requirements, corev1.LabelTopologyZone, key.Region)
+			ofCapType := requirementValue(of.Requirements, karpv1.CapacityTypeLabelKey, karpv1.CapacityTypeOnDemand)
+			if op.UnavailableOfferings.IsUnavailable(it.Name, ofRegion, ofCapType) {
+				continue
+			}
+
 			if of.Price < bestPrice {
 				bestPrice = of.Price
 				bestPreset = presetByName[it.Name]
@@ -342,24 +361,25 @@ func (op *Provider) ResolvePlatformPresetFromNodeClaim(
 	}
 
 	// Extract capacity type and zone from the winning offering's requirements.
-	capacityType := karpv1.CapacityTypeOnDemand
-	if capReq := bestOffering.Requirements.Get(karpv1.CapacityTypeLabelKey); capReq != nil {
-		if values := capReq.Values(); len(values) > 0 {
-			capacityType = values[0]
-		}
-	}
-	zone := key.Region // fallback
-	if zoneReq := bestOffering.Requirements.Get(corev1.LabelTopologyZone); zoneReq != nil {
-		if values := zoneReq.Values(); len(values) > 0 {
-			zone = values[0]
-		}
-	}
+	capacityType := requirementValue(bestOffering.Requirements, karpv1.CapacityTypeLabelKey, karpv1.CapacityTypeOnDemand)
+	zone := requirementValue(bestOffering.Requirements, corev1.LabelTopologyZone, key.Region)
 
 	return &PlatformPresetLaunchSettings{
 		PlatformPreset: bestPreset,
 		CapacityType:   capacityType,
 		Zone:           zone,
 	}, nil
+}
+
+// requirementValue returns the first value for the given label key from the
+// scheduling requirements, or fallback if the key is absent or has no values.
+func requirementValue(reqs scheduling.Requirements, key string, fallback string) string {
+	if req := reqs.Get(key); req != nil {
+		if values := req.Values(); len(values) > 0 {
+			return values[0]
+		}
+	}
+	return fallback
 }
 
 // On cache hit it returns the presets stored alongside the assembled InstanceTypes.
