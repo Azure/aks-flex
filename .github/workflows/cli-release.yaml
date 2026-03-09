@@ -1,0 +1,47 @@
+name: Release CLI
+
+on:
+  push:
+    tags:
+      - "cli/v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: cli/go.mod
+          cache-dependency-path: cli/go.sum
+
+      - name: Extract version from tag
+        id: version
+        run: |
+          # Strip the "cli/" prefix from the tag to get the semver (e.g. cli/v1.2.3 -> v1.2.3)
+          TAG="${GITHUB_REF#refs/tags/}"
+          VERSION="${TAG#cli/}"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+
+      - name: Install GoReleaser
+        uses: goreleaser/goreleaser-action@v6
+        with:
+          install-only: true
+          version: "~> v2"
+
+      - name: Run GoReleaser
+        working-directory: cli
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GORELEASER_CURRENT_TAG: ${{ steps.version.outputs.version }}
+        run: goreleaser release --clean
