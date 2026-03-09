@@ -13,7 +13,7 @@ import (
 	"github.com/Azure/aks-flex/cli/internal/plugin"
 )
 
-// Set via ldflags at build time.
+// NOTE: set via ldflags at build time.
 var (
 	version = "dev"
 	commit  = "unknown"
