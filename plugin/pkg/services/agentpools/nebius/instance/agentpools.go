@@ -28,6 +28,10 @@ import (
 //go:embed assets/wg-spoke.sh
 var wgSpokeScript string
 
+func GetWgSpokeScript() string {
+	return wgSpokeScript
+}
+
 var _ api.Object = (*AgentPool)(nil)
 
 type agentPoolsServer struct {
