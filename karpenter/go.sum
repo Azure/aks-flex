@@ -2,8 +2,8 @@ buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.6-2025042515311
 buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.6-20250425153114-8976f5be98c1.1/go.mod h1:avRlCjnFzl98VPaeCtJ24RrV/wwHFzB8sWXhj26+n/U=
 dario.cat/mergo v1.0.2 h1:85+piFYR1tMbRrLcDwR18y4UKJ3aH1Tbzi24VRW1TK8=
 dario.cat/mergo v1.0.2/go.mod h1:E/hbnu0NxMFBjpMIE34DRGLWqDy0g5FuKDhCb31ngxA=
-github.com/Azure/AKSFlexNode v0.0.15 h1:WK+jJhi6f+zd4Rv39lT9Gi46Cz9O7T7Gx/+pQWKa2gs=
-github.com/Azure/AKSFlexNode v0.0.15/go.mod h1:rJlzVk5SUWVgk25LbljX6k2vNczy/qO7E4grk/jhLhc=
+github.com/Azure/AKSFlexNode v0.0.16 h1:f9lDFt+yV3sQMEvhGUIkPFqLL2opUTtyGFgbHTdqIQg=
+github.com/Azure/AKSFlexNode v0.0.16/go.mod h1:qwNqscqJII+OQM5102L8qArjo9EttWkZKBplF+55eMI=
 github.com/Azure/aks-middleware v0.0.42 h1:StRGz6OuQi6mht5LV9uwhWn74kEsFP1wvpYQnyUOKHM=
 github.com/Azure/aks-middleware v0.0.42/go.mod h1:7Y+wxZmS7p1K0FPreiO3+6Wr8YhYjWz9c50YohDQIQ4=
 github.com/Azure/azure-kusto-go v0.16.1 h1:vCBWcQghmC1qIErUUgVNWHxGhZVStu1U/hki6iBA14k=
