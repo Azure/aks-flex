@@ -53,4 +53,3 @@ data:
       statusPushDelta: true
       statusPushInterval: "10s"
       statusPushApiserverInterval: "20s"
-      frrVtyshPath: "/frr/bin/vtysh"
