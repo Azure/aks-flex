@@ -27,9 +27,9 @@ var bootstrapTmpl string
 var bootstrapTemplate = template.Must(template.New("bootstrap.sh").Parse(bootstrapTmpl))
 
 const (
-	flexNodeVersion = "v0.0.16"
+	flexNodeVersion = "v0.0.17"
 	defaultArch     = "amd64"
-	defaultKubeVer  = "1.34.2"
+	DefaultKubeVer  = "1.34.2"
 )
 
 // Options configures how the flex node userdata is generated.
@@ -65,7 +65,7 @@ func WithKubeadmConfig(cfg *kubeadmapi.Config) Option {
 
 func defaultOptions() *Options {
 	return &Options{
-		KubeVersion: defaultKubeVer,
+		KubeVersion: DefaultKubeVer,
 		Arch:        defaultArch,
 	}
 }
