@@ -22,7 +22,7 @@ require (
 
 require (
 	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.6-20250425153114-8976f5be98c1.1 // indirect
-	github.com/Azure/AKSFlexNode v0.0.15 // indirect
+	github.com/Azure/AKSFlexNode v0.0.16 // indirect
 	github.com/Azure/aks-middleware v0.0.42 // indirect
 	github.com/Azure/azure-kusto-go v0.16.1 // indirect
 	github.com/Azure/azure-sdk-for-go v68.0.0+incompatible // indirect
