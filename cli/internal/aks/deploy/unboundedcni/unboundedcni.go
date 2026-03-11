@@ -15,7 +15,7 @@ import (
 //go:embed assets/*
 var assets embed.FS
 
-const bundledFolder = "unbounded-cni-0.5.3"
+const bundledFolder = "unbounded-cni"
 
 func Preflight() error {
 	// check for kubectl
