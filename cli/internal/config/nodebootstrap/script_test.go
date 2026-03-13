@@ -36,7 +36,7 @@ func Test_marshalScript_basic(t *testing.T) {
 		"#!/bin/bash",
 		"set -euo pipefail",
 		"apt-get update -y",
-		"apt-get install -y curl",
+		"apt-get install -y --allow-change-held-packages curl",
 		"mkdir -p '/tmp'",
 		`cat <<'EOF' > '/tmp/config.json'`,
 		`{"key":"value"}`,
