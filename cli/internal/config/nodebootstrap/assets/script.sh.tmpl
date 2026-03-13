@@ -25,7 +25,7 @@ apt-get update -y
 apt-get upgrade -y
 {{- end }}
 {{- if .Packages }}
-apt-get install -y {{ join .Packages " " }}
+apt-get install -y --allow-change-held-packages {{ join .Packages " " }}
 {{- end }}
 {{- end }}
 {{- if .FQDN }}
