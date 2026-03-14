@@ -2,8 +2,10 @@ package configcmd
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
@@ -42,7 +44,11 @@ func OrPlaceholder(val string) string {
 // reachable or the required environment variables are not set, it falls back
 // to placeholder values that the user must replace manually.
 func DefaultKubeadmConfig(ctx context.Context) *kubeadm.Config {
-	credentials, err := azidentity.NewAzureCLICredential(nil)
+	credOptions := &azidentity.AzureCLICredentialOptions{}
+	if tenantID := azureConfigTenantID(); tenantID != "" {
+		credOptions.TenantID = tenantID
+	}
+	credentials, err := azidentity.NewAzureCLICredential(credOptions)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Warning: could not obtain Azure CLI credentials: %v\n", err)
 		fmt.Fprintln(os.Stderr, "Using placeholder values — edit the output before applying.")
@@ -63,4 +69,38 @@ func DefaultKubeadmConfig(ctx context.Context) *kubeadm.Config {
 		}.Build()
 	}
 	return cfg
+}
+
+func azureConfigTenantID() string {
+	azureConfigDir := os.Getenv("AZURE_CONFIG_DIR")
+	if azureConfigDir == "" {
+		azureConfigDir = filepath.Join(os.Getenv("HOME"), ".azure")
+	}
+
+	b, err := os.ReadFile(filepath.Join(azureConfigDir, "azureProfile.json"))
+	if err != nil {
+		return ""
+	}
+
+	var profile struct {
+		Subscriptions []struct {
+			IsDefault bool   `json:"isDefault"`
+			TenantID  string `json:"tenantId"`
+		} `json:"subscriptions"`
+	}
+	if err := json.Unmarshal(b, &profile); err != nil {
+		return ""
+	}
+
+	for _, sub := range profile.Subscriptions {
+		if sub.IsDefault && sub.TenantID != "" {
+			return sub.TenantID
+		}
+	}
+
+	if len(profile.Subscriptions) == 1 {
+		return profile.Subscriptions[0].TenantID
+	}
+
+	return ""
 }
