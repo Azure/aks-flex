@@ -107,7 +107,12 @@ func defaultSubscriptionID() string {
 		return subscriptionID
 	}
 
-	b, err := os.ReadFile(filepath.Join(os.Getenv("HOME"), ".azure/clouds.config"))
+	azureConfigDir := os.Getenv("AZURE_CONFIG_DIR")
+	if azureConfigDir == "" {
+		azureConfigDir = filepath.Join(os.Getenv("HOME"), ".azure")
+	}
+
+	b, err := os.ReadFile(filepath.Join(azureConfigDir, "clouds.config"))
 	if err != nil {
 		return ""
 	}
