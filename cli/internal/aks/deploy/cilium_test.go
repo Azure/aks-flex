@@ -4,6 +4,8 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	k8sutil "github.com/Azure/aks-flex/plugin/pkg/util/k8s"
 )
 
 func TestKubeconfigAPIServer(t *testing.T) {
@@ -29,9 +31,9 @@ users:
 		t.Fatalf("write kubeconfig: %v", err)
 	}
 
-	host, port, err := kubeconfigAPIServer(kubeconfig)
+	host, port, err := k8sutil.APIServerFromKubeconfigFile(kubeconfig, "")
 	if err != nil {
-		t.Fatalf("kubeconfigAPIServer returned error: %v", err)
+		t.Fatalf("APIServerFromKubeconfigFile returned error: %v", err)
 	}
 	if host != "example.hcp.eastus2.azmk8s.io" {
 		t.Fatalf("unexpected host %q", host)
