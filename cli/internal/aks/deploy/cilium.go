@@ -30,7 +30,8 @@ func deployCilium(
 	kubeconfigFile string,
 	cfg *config.Config,
 ) error {
-	k8sServiceHost, k8sServicePort, err := k8s.APIServerFromKubeconfigFile(kubeconfigFile, cfg.ClusterName+"-admin")
+	clusterContext := cfg.ClusterName + "-admin"
+	k8sServiceHost, k8sServicePort, err := k8s.APIServerFromKubeconfigFile(kubeconfigFile, clusterContext)
 	if err != nil {
 		return err
 	}
@@ -39,7 +40,7 @@ func deployCilium(
 		ctx,
 		"cilium", "install",
 		"--kubeconfig", kubeconfigFile,
-		"--context", cfg.ClusterName+"-admin",
+		"--context", clusterContext,
 		"--namespace", "kube-system",
 		"--datapath-mode", "aks-byocni",
 		"--helm-set", "aksbyocni.enabled=true",
@@ -56,7 +57,7 @@ func deployCilium(
 		"KUBECONFIG="+kubeconfigFile,
 		"PATH="+os.Getenv("PATH"),
 	)
-	log.Printf("Running: cilium install --kubeconfig %s --context %s --namespace kube-system --datapath-mode aks-byocni --helm-set aksbyocni.enabled=true --helm-set cluster.name=%s --helm-set operator.replicas=1 --helm-set kubeProxyReplacement=true --helm-set k8sServiceHost=%s --helm-set k8sServicePort=%s", kubeconfigFile, cfg.ClusterName+"-admin", cfg.ClusterName, k8sServiceHost, k8sServicePort)
+	log.Printf("Running: cilium install --kubeconfig %s --context %s --namespace kube-system --datapath-mode aks-byocni --helm-set aksbyocni.enabled=true --helm-set cluster.name=%s --helm-set operator.replicas=1 --helm-set kubeProxyReplacement=true --helm-set k8sServiceHost=%s --helm-set k8sServicePort=%s", kubeconfigFile, clusterContext, cfg.ClusterName, k8sServiceHost, k8sServicePort)
 
 	return cmd.Run()
 }
