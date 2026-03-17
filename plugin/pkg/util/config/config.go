@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"regexp"
 	"strconv"
@@ -100,6 +101,16 @@ func (c *Config) validate() error {
 	}
 
 	return nil
+}
+
+// AzureTenantID returns the tenant ID of the current Azure CLI account by
+// running `az account show --query 'tenantId' -o tsv`.
+func AzureTenantID() string {
+	out, err := exec.Command("az", "account", "show", "--query", "tenantId", "-o", "tsv").Output()
+	if err != nil {
+		return ""
+	}
+	return strings.TrimSpace(string(out))
 }
 
 func defaultSubscriptionID() string {

@@ -2,6 +2,9 @@ package k8s
 
 import (
 	"context"
+	"errors"
+	"fmt"
+	"net/url"
 	"os"
 	"path/filepath"
 
@@ -118,4 +121,51 @@ func MergeKubeconfigInto(ctx context.Context, credentials azcore.TokenCredential
 	}
 
 	return os.WriteFile(path, content, 0600)
+}
+
+// APIServerFromKubeconfigFile returns the API server hostname and port from
+// the current context of the kubeconfig file at path.
+func APIServerFromKubeconfigFile(path string) (host, port string, err error) {
+kcfg, err := clientcmd.LoadFromFile(path)
+if err != nil {
+return "", "", fmt.Errorf("loading kubeconfig for API server: %w", err)
+}
+
+ctxName := kcfg.CurrentContext
+if ctxName == "" {
+return "", "", errors.New("kubeconfig missing current context")
+}
+
+ctxCfg, ok := kcfg.Contexts[ctxName]
+if !ok || ctxCfg == nil {
+return "", "", fmt.Errorf("kubeconfig missing context %q", ctxName)
+}
+
+clusterCfg, ok := kcfg.Clusters[ctxCfg.Cluster]
+if !ok || clusterCfg == nil {
+return "", "", fmt.Errorf("kubeconfig missing cluster %q", ctxCfg.Cluster)
+}
+
+u, err := url.Parse(clusterCfg.Server)
+if err != nil {
+return "", "", fmt.Errorf("parsing API server URL %q: %w", clusterCfg.Server, err)
+}
+
+hostname := u.Hostname()
+p := u.Port()
+if hostname == "" {
+return "", "", fmt.Errorf("API server URL missing hostname: %q", clusterCfg.Server)
+}
+if p == "" {
+switch u.Scheme {
+case "https":
+p = "443"
+case "http":
+p = "80"
+default:
+return "", "", fmt.Errorf("API server URL missing port and unsupported scheme %q", u.Scheme)
+}
+}
+
+return hostname, p, nil
 }
