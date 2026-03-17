@@ -4,12 +4,9 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
-
-	"gopkg.in/ini.v1"
 )
 
 var (
@@ -118,22 +115,11 @@ func defaultSubscriptionID() string {
 		return subscriptionID
 	}
 
-	azureConfigDir := os.Getenv("AZURE_CONFIG_DIR")
-	if azureConfigDir == "" {
-		azureConfigDir = filepath.Join(os.Getenv("HOME"), ".azure")
-	}
-
-	b, err := os.ReadFile(filepath.Join(azureConfigDir, "clouds.config"))
+	out, err := exec.Command("az", "account", "show", "--query", "id", "-o", "tsv").Output()
 	if err != nil {
 		return ""
 	}
-
-	f, err := ini.Load(b)
-	if err != nil {
-		return ""
-	}
-
-	return f.Section("AzureCloud").Key("subscription").String()
+	return strings.TrimSpace(string(out))
 }
 
 func defaultResourceGroupName() string {
