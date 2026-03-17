@@ -42,7 +42,11 @@ func OrPlaceholder(val string) string {
 // reachable or the required environment variables are not set, it falls back
 // to placeholder values that the user must replace manually.
 func DefaultKubeadmConfig(ctx context.Context) *kubeadm.Config {
-	credentials, err := azidentity.NewAzureCLICredential(nil)
+	credOptions := &azidentity.AzureCLICredentialOptions{}
+	if tenantID := config.AzureTenantID(); tenantID != "" {
+		credOptions.TenantID = tenantID
+	}
+	credentials, err := azidentity.NewAzureCLICredential(credOptions)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Warning: could not obtain Azure CLI credentials: %v\n", err)
 		fmt.Fprintln(os.Stderr, "Using placeholder values — edit the output before applying.")
