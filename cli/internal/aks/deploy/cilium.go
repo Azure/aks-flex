@@ -55,7 +55,6 @@ func deployCilium(
 	cmd.Env = append(
 		cmd.Environ(),
 		"KUBECONFIG="+kubeconfigFile,
-		"PATH="+os.Getenv("PATH"),
 	)
 	log.Printf("Running: cilium install --kubeconfig %s --context %s --namespace kube-system --datapath-mode aks-byocni --helm-set aksbyocni.enabled=true --helm-set cluster.name=%s --helm-set operator.replicas=1 --helm-set kubeProxyReplacement=true --helm-set k8sServiceHost=%s --helm-set k8sServicePort=%s", kubeconfigFile, clusterContext, cfg.ClusterName, k8sServiceHost, k8sServicePort)
 
