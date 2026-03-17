@@ -124,14 +124,18 @@ func MergeKubeconfigInto(ctx context.Context, credentials azcore.TokenCredential
 }
 
 // APIServerFromKubeconfigFile returns the API server hostname and port from
-// the current context of the kubeconfig file at path.
-func APIServerFromKubeconfigFile(path string) (host, port string, err error) {
+// the kubeconfig file at path. If contextName is non-empty it is used to
+// select the context; otherwise the file's current-context is used.
+func APIServerFromKubeconfigFile(path, contextName string) (host, port string, err error) {
 	kcfg, err := clientcmd.LoadFromFile(path)
 	if err != nil {
 		return "", "", fmt.Errorf("loading kubeconfig for API server: %w", err)
 	}
 
-	ctxName := kcfg.CurrentContext
+	ctxName := contextName
+	if ctxName == "" {
+		ctxName = kcfg.CurrentContext
+	}
 	if ctxName == "" {
 		return "", "", errors.New("kubeconfig missing current context")
 	}

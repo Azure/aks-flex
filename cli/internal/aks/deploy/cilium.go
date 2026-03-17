@@ -30,7 +30,7 @@ func deployCilium(
 	kubeconfigFile string,
 	cfg *config.Config,
 ) error {
-	k8sServiceHost, k8sServicePort, err := k8s.APIServerFromKubeconfigFile(kubeconfigFile)
+	k8sServiceHost, k8sServicePort, err := k8s.APIServerFromKubeconfigFile(kubeconfigFile, cfg.ClusterName+"-admin")
 	if err != nil {
 		return err
 	}

@@ -31,7 +31,7 @@ users:
 		t.Fatalf("write kubeconfig: %v", err)
 	}
 
-	host, port, err := k8sutil.APIServerFromKubeconfigFile(kubeconfig)
+	host, port, err := k8sutil.APIServerFromKubeconfigFile(kubeconfig, "")
 	if err != nil {
 		t.Fatalf("APIServerFromKubeconfigFile returned error: %v", err)
 	}
