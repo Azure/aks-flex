@@ -178,12 +178,21 @@ func (c *CloudProvider) Create(ctx context.Context, nodeClaim *v1.NodeClaim) (*v
 			// of other resources (disk, nic, etc). So here we delete the created resource
 			// in best effort when seeing quota error.
 			// FIXME: use a better clean up helper to perform the clean up in background
-			//
-			// TODO: currently nebius doesn't provide a way for us to check if the capacity exists before real creation.
-			// This could result in deadlock case where the node claim is being repeatedly created and failed for the same
-			// instance type with quota issue. In such case, we are relying on the user to fix the quota or update the
-			// node pool to exclude the problematic instance type. In the future, we should consider implementing a proactive
-			// model to filter out these instance types internally and temporarily.
+
+			// Record the failed instance type in the unavailable offerings cache
+			// so that ResolvePlatformPresetFromNodeClaim will skip this offering
+			// on subsequent attempts. The entry expires after a TTL, at which point
+			// the offering becomes eligible for selection again.
+			// NOTE: Nebius does not expose availability zones at this moment,
+			// so we use the region as the location dimension for the cache key.
+			c.instanceTypeProvider.UnavailableOfferings.MarkUnavailable(
+				ctx,
+				"QuotaFailure",
+				launchSettings.InstanceTypeName(),
+				nodeClass.Spec.Region,
+				launchSettings.CapacityType,
+			)
+
 			go func() {
 				cleanUpCtx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
 				defer cancel()

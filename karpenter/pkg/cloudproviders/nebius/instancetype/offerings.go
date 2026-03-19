@@ -39,9 +39,10 @@ type Prices struct {
 // If the platform allows preemptible instances, a second offering with capacity type "spot"
 // is added (Karpenter uses "spot" as the generic term for preemptible/interruptible).
 //
-// When the pricing lookup failed (prices.Err != nil), offerings are still created with
-// the fallback default price but marked as unavailable so Karpenter will not schedule
-// pods onto them.
+// An offering is marked unavailable when:
+//   - the pricing lookup failed (prices.Err != nil), or
+//   - the instance type + zone + capacity type combination is present in the
+//     unavailableOfferings cache (recent quota/capacity failure).
 //
 // The zone is set to the region because Nebius does not expose availability zones.
 func CreateOfferings(
@@ -49,21 +50,26 @@ func CreateOfferings(
 	p *PlatformPreset,
 	region string,
 	prices Prices,
+	unavailableOfferings *UnavailableOfferings,
 ) karpcloudprovider.Offerings {
-	available := true
+	pricingAvailable := true
 	if prices.Err != nil {
-		available = false
+		pricingAvailable = false
 		log.FromContext(ctx).Error(prices.Err, "failed to resolve price for instance type, marking as unavailable",
 			"instanceType", p.InstanceTypeName(),
 		)
 	}
 
+	instanceTypeName := p.InstanceTypeName()
+
+	onDemandAvailable := pricingAvailable && !unavailableOfferings.IsUnavailable(instanceTypeName, region, v1.CapacityTypeOnDemand)
 	offerings := karpcloudprovider.Offerings{
-		newOffering(v1.CapacityTypeOnDemand, region, prices.OnDemand, available),
+		newOffering(v1.CapacityTypeOnDemand, region, prices.OnDemand, onDemandAvailable),
 	}
 
 	if p.AllowedForPreemptibles() {
-		offerings = append(offerings, newOffering(v1.CapacityTypeSpot, region, prices.Preemptible, available))
+		spotAvailable := pricingAvailable && !unavailableOfferings.IsUnavailable(instanceTypeName, region, v1.CapacityTypeSpot)
+		offerings = append(offerings, newOffering(v1.CapacityTypeSpot, region, prices.Preemptible, spotAvailable))
 	}
 
 	return offerings
