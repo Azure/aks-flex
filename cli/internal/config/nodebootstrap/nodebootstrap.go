@@ -33,8 +33,8 @@ func init() {
 	Command.Flags().BoolVar(&flagEnableNvidiaGPURuntime, "nvidia-gpu", false, "Enable Nvidia GPU runtime in containerd configuration.")
 	Command.Flags().StringVar(&flagArch, "arch", "amd64",
 		"CPU architecture for the flex node binary (e.g. amd64, arm64).")
-	Command.Flags().StringVar(&flagKubeVersion, "k8s-version", "1.33.3",
-		"Kubernetes version for the downloaded binaries (e.g. 1.33.3).")
+	Command.Flags().StringVar(&flagKubeVersion, "k8s-version", flex.DefaultKubeVer,
+		"Kubernetes version for the downloaded binaries.")
 	Command.Flags().StringVar(&flagVariant, "variant", variantCloudInit,
 		fmt.Sprintf("Output variant: %q produces cloud-init YAML user data, %q produces an equivalent standalone bash script.", variantCloudInit, variantScript))
 }

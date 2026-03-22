@@ -28,8 +28,8 @@ func UserData(kubeadmConfig *kubeadmapi.Config) (*cloudinit.UserData, error) {
 		APT: &cloudinit.APT{
 			Sources: map[string]*cloudinit.APTSource{
 				"kubernetes": {
-					Source: "deb https://pkgs.k8s.io/core:/stable:/v1.33/deb/ /",
-					KeyID:  "DE15B14486CD377B9E876E1A234654DA9A296436", // curl -sL https://pkgs.k8s.io/core:/stable:/v1.33/deb/Release.key | gpg --show-keys
+					Source: "deb https://pkgs.k8s.io/core:/stable:/v1.34/deb/ /",
+					KeyID:  "DE15B14486CD377B9E876E1A234654DA9A296436", // curl -sL https://pkgs.k8s.io/core:/stable:/v1.34/deb/Release.key | gpg --show-keys
 				},
 			},
 		},

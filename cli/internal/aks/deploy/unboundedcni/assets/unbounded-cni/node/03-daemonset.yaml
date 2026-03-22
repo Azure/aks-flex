@@ -37,7 +37,7 @@ spec:
       initContainers:
         # Install CNI plugins to host
         - name: install-cni-plugins
-          image: unboundedcnitme.azurecr.io/unbounded-cni-node:v0.7.0
+          image: unboundedcnitme.azurecr.io/unbounded-cni-node:v0.7.1
           imagePullPolicy: Always
           command:
             - /usr/local/bin/node-agent-init.sh
@@ -50,7 +50,7 @@ spec:
             privileged: true
       containers:
         - name: node
-          image: unboundedcnitme.azurecr.io/unbounded-cni-node:v0.7.0
+          image: unboundedcnitme.azurecr.io/unbounded-cni-node:v0.7.1
           imagePullPolicy: Always
           env:
             - name: LOG_LEVEL
