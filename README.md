@@ -5,6 +5,8 @@ cloud providers or on-premises infrastructure. Worker nodes running on remote cl
 on-prem hardware join the AKS control plane over an encrypted overlay network, giving you
 a single Kubernetes cluster that spans hybrid and multi-cloud environments.
 
+![AKS Flex Demo](docs/demo.gif)
+
 ## Components
 
 | Component | Description |
